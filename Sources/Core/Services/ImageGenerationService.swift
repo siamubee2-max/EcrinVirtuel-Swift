@@ -1,0 +1,272 @@
+import UIKit
+
+// MARK: - Modèle de génération
+// Tout passe par le proxy Supabase Edge Function → Google Gemini (primary) → GPT Image fallback.
+// La clé API n'est JAMAIS côté iOS — elle vit uniquement dans les secrets Supabase.
+//
+// Nano Banana 2  (Gemini 3.1 Flash Image) $0.045 — identity preservation ⭐
+// Nano Banana Pro(Gemini 3 Pro Image)      $0.134 — outfit complet / export
+// Imagen 4 Fast                            $0.020 — previews rapides
+// Fallback GPT Image 2.0                   $0.042 — si Google indisponible
+enum GenerationModel: String {
+    case preview  = "preview"   // Imagen 4 Fast — $0.020
+    case standard = "standard"  // Gemini 3.1 Flash Image (NB2) — $0.045 ⭐
+    case premium  = "premium"   // Gemini 3 Pro Image (NBPro) — $0.134
+
+    var costUSD: Double {
+        switch self {
+        case .preview:  return 0.020
+        case .standard: return 0.045
+        case .premium:  return 0.134
+        }
+    }
+}
+
+/// Format vertical attendu pour essayage rapide et multi-vues (aligné UI 9:16).
+enum GenerationAspectRatio {
+    static let tryOn = "9:16"
+}
+
+// MARK: - Service (Sendable — toutes propriétés sont let)
+final class ImageGenerationService: Sendable {
+
+    static let shared = ImageGenerationService()
+
+    private let proxyURL: URL
+    private let session: URLSession
+
+    private init() {
+        guard let url = URL(string: "\(Secrets.supabaseURL)/functions/v1/tryon-generate") else {
+            fatalError("SUPABASE_URL invalide — proxy tryon-generate")
+        }
+        proxyURL = url
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30   // timeout connexion
+        config.timeoutIntervalForResource = 90  // timeout total (génération IA peut prendre 20-40s)
+        session = URLSession(configuration: config)
+    }
+
+    // MARK: - Jewelry try-on
+
+    func tryOn(photo: UIImage, jewelry: JewelryItem) async throws -> UIImage {
+        guard let imageData = resizedImageData(photo) else {
+            throw GenerationError.invalidImage
+        }
+
+        let prompt = """
+        High-end jewelry photography. The person is wearing \(jewelry.prompt). \
+        Photorealistic, luxury, elegant lighting, 8K quality. \
+        Keep the person's face, skin tone, and pose exactly the same.
+        """
+
+        let reference = await downloadReference(jewelry.imageURL)
+        return try await sendRequest(imageData: imageData, prompt: prompt, referenceImageData: reference)
+    }
+
+    // MARK: - QuickTryOn — prompt libre
+
+    func tryOnQuick(
+        photo: UIImage,
+        prompt: String,
+        model: GenerationModel = .standard,
+        referenceImageData: Data? = nil
+    ) async throws -> UIImage {
+        guard let imageData = resizedImageData(photo) else {
+            throw GenerationError.invalidImage
+        }
+        return try await sendRequest(imageData: imageData, prompt: prompt, model: model, referenceImageData: referenceImageData)
+    }
+
+    /// Télécharge l'image produit d'un article pour la réutiliser comme référence
+    /// (ex MultiPose : 1 seul fetch pour N poses). Retourne nil si indisponible.
+    func referenceData(for url: URL?) async -> Data? {
+        await downloadReference(url)
+    }
+
+    // MARK: - QuickTryOn Enrichi — analyse corporelle + prompt contextuel
+
+    @MainActor
+    func tryOnEnriched(
+        photo: UIImage,
+        item: QuickTryOnItem,
+        mode: QuickTryOnMode
+    ) async throws -> (image: UIImage, context: BodyContext) {
+        guard let imageData = resizedImageData(photo) else {
+            throw GenerationError.invalidImage
+        }
+
+        let bodyContext = await BodyContextAnalyzer.shared.analyze(image: photo)
+        let prompt = EnrichedPromptBuilder.build(
+            for: item,
+            mode: mode,
+            bodyContext: bodyContext
+        )
+        let reference = await downloadReference(item.referenceImageURL)
+        let generated = try await sendRequest(imageData: imageData, prompt: prompt, referenceImageData: reference)
+        return (image: generated, context: bodyContext)
+    }
+
+    // MARK: - FashionItem try-on (garde-robe étendue)
+
+    func tryOnFashion(
+        photo: UIImage,
+        item: FashionItem,
+        angle: ShootingAngle = .front,
+        model: GenerationModel = .standard
+    ) async throws -> UIImage {
+        guard let imageData = resizedImageData(photo) else {
+            throw GenerationError.invalidImage
+        }
+
+        let prompt = buildPrompt(for: item, angle: angle)
+        let reference = await downloadReference(item.imageURL)
+        return try await sendRequest(imageData: imageData, prompt: prompt, model: model, referenceImageData: reference)
+    }
+
+    // MARK: - Private helpers
+
+    /// Télécharge l'image produit du catalogue (vraie photo de l'article) pour
+    /// la fournir au modèle comme référence — garantit le bon bijou / vêtement.
+    /// Retourne nil si pas d'URL ou échec → fallback prompt-texte (comportement historique).
+    private func downloadReference(_ url: URL?) async -> Data? {
+        guard let url else { return nil }
+        do {
+            let (data, response) = try await session.data(from: url)
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200,
+                  let image = UIImage(data: data) else { return nil }
+            return resizedImageData(image)
+        } catch {
+            return nil
+        }
+    }
+
+    /// Compresse et redimensionne l'image pour rester sous 4 MB.
+    private func resizedImageData(_ image: UIImage, maxBytes: Int = 4 * 1024 * 1024) -> Data? {
+        var quality: CGFloat = 0.85
+        while quality > 0.1 {
+            if let data = image.jpegData(compressionQuality: quality), data.count <= maxBytes {
+                return data
+            }
+            quality -= 0.15
+        }
+        return nil
+    }
+
+    private func buildPrompt(for item: FashionItem, angle: ShootingAngle) -> String {
+        let angleTag: String = switch angle {
+        case .front: "Front-facing view."
+        case .side:  "Side profile view."
+        case .down:  "Top-down view of feet."
+        }
+
+        let parts: [String?] = [
+            item.tryOnPrompt,
+            item.material.map { "Material: \($0)." },
+            item.color.map { "Color: \($0)." },
+            item.brand.map { "Brand style: \($0)." },
+            angleTag,
+            "Photorealistic, luxury fashion photography, 8K quality, professional lighting. Keep the person's face, skin tone, and body proportions exactly the same."
+        ]
+        return parts.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
+    }
+
+    /// Envoie la requête en JSON (base64) vers le proxy Supabase.
+    /// L'Edge Function retourne { result: string_base64, provider: string }.
+    private func sendRequest(
+        imageData: Data,
+        prompt: String,
+        model: GenerationModel = .standard,
+        referenceImageData: Data? = nil
+    ) async throws -> UIImage {
+        // Obtenir le JWT utilisateur.
+        // Pour les utilisateurs non connectés (wizard first-run), on crée une session anonyme.
+        // L'Edge Function accepte les users anonymes Supabase (isAnonymous = true côté serveur).
+        let userJWT: String
+        do {
+            userJWT = try await SupabaseService.shared.client.auth.session.accessToken
+        } catch {
+            // Pas de session — créer une session anonyme (premier essai sans compte)
+            do {
+                let anon = try await SupabaseService.shared.client.auth.signInAnonymously()
+                userJWT = anon.accessToken
+            } catch {
+                throw GenerationError.authenticationRequired
+            }
+        }
+
+        var request = URLRequest(url: proxyURL)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(userJWT)", forHTTPHeaderField: "Authorization")
+        request.setValue(Secrets.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        var body: [String: Any] = [
+            "imageBase64": imageData.base64EncodedString(),
+            "prompt": prompt,
+            "model": model.rawValue,
+            "quality": "medium",
+            "aspectRatio": GenerationAspectRatio.tryOn,
+        ]
+        if let referenceImageData {
+            body["referenceImageBase64"] = referenceImageData.base64EncodedString()
+        }
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let http = response as? HTTPURLResponse else {
+            throw GenerationError.apiError
+        }
+
+        if http.statusCode == 401 {
+            throw GenerationError.authenticationRequired
+        }
+
+        guard http.statusCode == 200 else {
+            if let body = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let msg = body["error"] as? String {
+                if msg == "unauthorized" {
+                    throw GenerationError.authenticationRequired
+                }
+                if msg == "quota_exceeded" {
+                    throw GenerationError.quotaExceeded
+                }
+                throw GenerationError.serverError(msg)
+            }
+            throw GenerationError.apiError
+        }
+
+        let decoded = try JSONDecoder().decode(EdgeResponse.self, from: data)
+        guard let imgData = Data(base64Encoded: decoded.result),
+              let image = UIImage(data: imgData) else {
+            throw GenerationError.invalidResponse
+        }
+        return image
+    }
+
+    enum GenerationError: Error, LocalizedError {
+        case invalidImage
+        case apiError
+        case invalidResponse
+        case authenticationRequired
+        case quotaExceeded
+        case serverError(String)
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidImage:              return "Impossible de lire l'image sélectionnée."
+            case .apiError:                  return "Erreur lors de la génération. Réessayez."
+            case .invalidResponse:           return "Réponse inattendue du serveur."
+            case .authenticationRequired:    return "Connectez-vous avec Apple pour générer votre essayage."
+            case .quotaExceeded:             return "Plus de crédits disponibles. Passez à un abonnement pour continuer."
+            case .serverError(let msg):      return "Serveur : \(msg)"
+            }
+        }
+    }
+}
+
+// MARK: - Response model (format retourné par tryon-generate Edge Function)
+private struct EdgeResponse: Decodable {
+    let result: String
+    let provider: String
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "face",
+    "path": "/Volumes/EVO/EcrinVirtuel-Swift/generated/9x16/face.png",
+    "url": "https://tempfile.aiquickdraw.com/gpt-image-2-kie/1780315285908-3qmcgsaqani.png",
+    "task_id": "7bb7f74a6cb9c85afedd198c69be6112"
+  },
+  {
+    "name": "back",
+    "path": "/Volumes/EVO/EcrinVirtuel-Swift/generated/9x16/back.png",
+    "url": "https://tempfile.aiquickdraw.com/images/chatgpt/37a16f07ea99de9819325b3b39036d49_114e1f850e8d495abee5b598df53f853.png",
+    "task_id": "37a16f07ea99de9819325b3b39036d49"
+  },
+  {
+    "name": "three-quarter",
+    "path": "/Volumes/EVO/EcrinVirtuel-Swift/generated/9x16/three-quarter.png",
+    "url": "https://tempfile.aiquickdraw.com/images/chatgpt/file_00000000f98c720c9bff8a108a9b79f5.png",
+    "task_id": "8de3c9b0130a7745c8e0ef4267c44615"
+  },
+  {
+    "name": "hero",
+    "path": "/Volumes/EVO/EcrinVirtuel-Swift/generated/9x16/hero.png",
+    "url": "https://tempfile.aiquickdraw.com/images/chatgpt/17272054429b3bb6c7521f777e43e3f9_001acd974c3e471b987943aca577bc24.png",
+    "task_id": "17272054429b3bb6c7521f777e43e3f9"
+  }
+]

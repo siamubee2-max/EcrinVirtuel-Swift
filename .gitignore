@@ -1,0 +1,11 @@
+Secrets.xcconfig
+Secrets.xcconfig.bak
+*.xcconfig
+*.bak
+.env
+DerivedData/
+.build/
+*.ipa
+.DS_Store
+*.xcuserstate
+xcuserdata/

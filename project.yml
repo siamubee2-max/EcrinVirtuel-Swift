@@ -1,0 +1,70 @@
+name: EcrinVirtuel
+options:
+  bundleIdPrefix: com.ecrin
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "16.0"
+  generateEmptyDirectories: true
+  defaultConfig: Debug
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    ENABLE_PREVIEWS: YES
+    DEVELOPMENT_TEAM: GG9U76Z4X7
+    IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+packages:
+  RevenueCat:
+    url: https://github.com/RevenueCat/purchases-ios
+    from: "5.0.0"
+  Supabase:
+    url: https://github.com/supabase/supabase-swift
+    from: "2.0.0"
+
+targets:
+  EcrinVirtuel:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    resources:
+      - path: Sources/Resources
+    info:
+      path: Sources/App/Info.plist
+      properties:
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSPhotoLibraryUsageDescription: "L'Écrin Virtuel utilise vos photos pour l'essayage virtuel de bijoux."
+        NSCameraUsageDescription: "L'Écrin Virtuel utilise la caméra pour l'essayage virtuel de bijoux en temps réel."
+        CFBundleDisplayName: "L'Écrin"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        ITSAppUsesNonExemptEncryption: false
+        SUPABASE_URL: "$(SUPABASE_URL)"
+        SUPABASE_ANON_KEY: "$(SUPABASE_ANON_KEY)"
+        REVENUECAT_IOS_KEY: "$(REVENUECAT_IOS_KEY)"
+        NSPrivacyPolicyURL: "https://ecrin.app/privacy"
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLName: com.ecrin.jewelry
+            CFBundleURLSchemes:
+              - ecrin
+    dependencies:
+      - package: RevenueCat
+        product: RevenueCat
+      - package: Supabase
+        product: Supabase
+    configFiles:
+      Debug: Secrets.xcconfig
+      Release: Secrets.xcconfig
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry
+        INFOPLIST_FILE: Sources/App/Info.plist
+        CODE_SIGN_STYLE: Automatic
