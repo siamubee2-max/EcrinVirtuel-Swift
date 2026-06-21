@@ -91,7 +91,9 @@ struct MainTabView: View {
             }
         }
         .task {
-            await ClothingCatalogService.shared.fetchAll(force: true)
+            // force: false — the app boot sequence already calls fetchAll(force: true).
+            // Forcing here triggers a duplicate 3-gender network fetch on every tab switch.
+            await ClothingCatalogService.shared.fetchAll(force: false)
         }
     }
 }

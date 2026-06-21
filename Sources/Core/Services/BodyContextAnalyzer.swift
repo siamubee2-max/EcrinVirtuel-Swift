@@ -366,7 +366,10 @@ final class BodyContextAnalyzer: @unchecked Sendable {
         if let n = neck, let la = leftAnkle, let ra = rightAnkle,
            n.confidence > 0.4, la.confidence > 0.4 {
             let ankleY = (la.location.y + ra.location.y) / 2.0
-            let bodyHeight = n.location.y - ankleY // en coordonnées Vision (y croissant vers le haut)
+            // Use abs() to handle both coordinate orientations (landscape/portrait)
+            // Vision y increases upward in portrait, so neck.y > ankleY normally.
+            // For rotated images the sign can invert; abs() gives a robust ratio.
+            let bodyHeight = abs(n.location.y - ankleY)
             if bodyHeight > 0.65 {
                 heightRange = .tall
             } else if bodyHeight < 0.45 {
@@ -476,13 +479,16 @@ final class BodyContextAnalyzer: @unchecked Sendable {
 
     /// Estimation de la direction lumineuse par comparaison gauche/droite et haut/bas
     private func estimateLightDirection(cgImage: CGImage) -> LightingDirection {
-        let w = cgImage.width
-        let h = cgImage.height
+        // Use CGFloat to avoid integer truncation when dividing pixel dimensions.
+        let wF = CGFloat(cgImage.width)
+        let hF = CGFloat(cgImage.height)
+        let w  = cgImage.width
+        let h  = cgImage.height
 
         // Zones de comparaison : gauche/droite (tiers) + haut/bas
-        let leftRegion  = cgImage.cropping(to: CGRect(x: 0,         y: 0, width: w/3, height: h)) ?? cgImage
-        let rightRegion = cgImage.cropping(to: CGRect(x: w * 2/3,   y: 0, width: w/3, height: h)) ?? cgImage
-        let topRegion   = cgImage.cropping(to: CGRect(x: 0,         y: 0, width: w,   height: h/3)) ?? cgImage
+        let leftRegion  = cgImage.cropping(to: CGRect(x: 0,           y: 0, width: wF / 3,       height: CGFloat(h))) ?? cgImage
+        let rightRegion = cgImage.cropping(to: CGRect(x: wF * 2 / 3,  y: 0, width: wF - wF * 2 / 3, height: CGFloat(h))) ?? cgImage
+        let topRegion   = cgImage.cropping(to: CGRect(x: 0,           y: 0, width: CGFloat(w),   height: hF / 3)) ?? cgImage
 
         let (leftR, leftG, leftB)   = sampleAverageRGB(cgImage: leftRegion,  targetSize: 16)
         let (rightR, rightG, rightB) = sampleAverageRGB(cgImage: rightRegion, targetSize: 16)

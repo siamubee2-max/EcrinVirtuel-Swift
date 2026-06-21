@@ -196,6 +196,15 @@ struct LoginView: View {
     }
 
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
+        // Surface non-cancellation Apple errors to the user instead of silently returning.
+        if case .failure(let err) = result {
+            let nsErr = err as NSError
+            // ASAuthorizationError.canceled == 1001 — user intentionally cancelled, no toast needed
+            if nsErr.code != 1001 {
+                loginError = "Connexion Apple échouée. Réessayez."
+            }
+            return
+        }
         guard case .success(let auth) = result,
               let creds = auth.credential as? ASAuthorizationAppleIDCredential,
               let idTokenData = creds.identityToken,

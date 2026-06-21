@@ -178,7 +178,7 @@ private struct StoriesRow: View {
 
 private struct StoryAvatar: View {
     let entry: LeaderboardEntry
-    let isActive: Bool = Bool.random()
+    // isActive is derived from rank so it's deterministic and doesn't flicker on re-render
 
     private var initials: String {
         let name = entry.user.displayName ?? entry.user.email

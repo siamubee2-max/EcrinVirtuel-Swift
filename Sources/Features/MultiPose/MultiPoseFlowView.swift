@@ -548,8 +548,12 @@ struct MultiPoseFlowView: View {
             ? "\(images.count) vues ajoutées à la garde-robe"
             : "Ajouté à la garde-robe"
 
-        // Dismiss après un court délai pour laisser voir la confirmation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+        // Dismiss après un court délai pour laisser voir la confirmation.
+        // Using structured Task so the work is tied to view lifecycle and can be cancelled;
+        // avoids calling dismiss() on an already-dismissed sheet (DispatchQueue.main.asyncAfter
+        // is not cancellable and can double-dismiss a SwiftUI sheet).
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.2))
             dismiss()
         }
     }
