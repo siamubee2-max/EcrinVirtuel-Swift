@@ -68,3 +68,42 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry
         INFOPLIST_FILE: Sources/App/Info.plist
         CODE_SIGN_STYLE: Automatic
+
+  EcrinVirtuelTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+        excludes:
+          - "UITests/**"
+    dependencies:
+      - target: EcrinVirtuel
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+  EcrinVirtuelUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/UITests
+    dependencies:
+      - target: EcrinVirtuel
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry.uitests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  EcrinVirtuel:
+    build:
+      targets:
+        EcrinVirtuel: all
+        EcrinVirtuelTests: [test]
+        EcrinVirtuelUITests: [test]
+    test:
+      targets:
+        - EcrinVirtuelTests
+        - EcrinVirtuelUITests
+      gatherCoverageData: true
