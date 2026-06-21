@@ -72,6 +72,7 @@
 		6CA38C6BE5A5803998F8DA16 /* EcrinAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E42000337D71F9DF75387FA0 /* EcrinAppIntents.swift */; };
 		6D69117CB116C414149DCB21 /* BrandedShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42928B60E00181FDDC854CD /* BrandedShareSheet.swift */; };
 		6E2480614C1855EFAD8563A5 /* StoneTherapyOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1D7D2198A66DF83CC599ED /* StoneTherapyOverlay.swift */; };
+		73648EA810D22BFD782ECF5E /* AppStateLaunchModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD729EE7CD369D50DEC6A878 /* AppStateLaunchModeTests.swift */; };
 		778FD85E5160754FDC5F8B69 /* BudgetPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2797740709B3E3F532A7CF12 /* BudgetPickerSheet.swift */; };
 		7C3EFA7CCB6FC9FB3B4EB74E /* EarringsPoseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A191A5884C53A34C88BC1F4F /* EarringsPoseView.swift */; };
 		7C62B5575AE5BB612FF970E5 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1367AA73F1D107AB0DC9983E /* PaywallView.swift */; };
@@ -357,6 +358,7 @@
 		DB066189D92435DFDE463BD2 /* AddWardrobeItemSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddWardrobeItemSheet.swift; sourceTree = "<group>"; };
 		DB4D9093FA873CD6EE4E110F /* StoneDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoneDetailView.swift; sourceTree = "<group>"; };
 		DCFCE6CDB691ADC51663B607 /* GoldParticles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoldParticles.swift; sourceTree = "<group>"; };
+		DD729EE7CD369D50DEC6A878 /* AppStateLaunchModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateLaunchModeTests.swift; sourceTree = "<group>"; };
 		DF88764B241C2F614D6C061C /* LookRecommendation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookRecommendation.swift; sourceTree = "<group>"; };
 		E1068593A0FC6851DF272AF8 /* WardrobeAnalyticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeAnalyticsViewModel.swift; sourceTree = "<group>"; };
 		E42000337D71F9DF75387FA0 /* EcrinAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcrinAppIntents.swift; sourceTree = "<group>"; };
@@ -707,6 +709,7 @@
 			isa = PBXGroup;
 			children = (
 				676ED63B498478EA7B2B2CF4 /* AppLaunchEnvironmentTests.swift */,
+				DD729EE7CD369D50DEC6A878 /* AppStateLaunchModeTests.swift */,
 				4454E8068093F3B6D5E1264C /* WeatherConditionTests.swift */,
 				091CD68EE00AD04A315AB318 /* WeatherLookRecommenderTests.swift */,
 			);
@@ -1236,6 +1239,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				694DF4F3FC317AB9C90718C4 /* AppLaunchEnvironmentTests.swift in Sources */,
+				73648EA810D22BFD782ECF5E /* AppStateLaunchModeTests.swift in Sources */,
 				3B025D41EF447C44CACC53BF /* WeatherConditionTests.swift in Sources */,
 				6A89459F3011E97F6DF072A7 /* WeatherLookRecommenderTests.swift in Sources */,
 			);

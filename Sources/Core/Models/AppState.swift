@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum AppPhase {
+enum AppPhase: Equatable {
     case onboarding
     case unauthenticated
     case authenticated
@@ -65,7 +65,23 @@ final class AppState {
         UserDefaults.standard.bool(forKey: WizardConfig.userDefaultsKey)
     }
 
-    init() {
+    /// Default production initializer.
+    convenience init() {
+        self.init(launchArguments: ProcessInfo.processInfo.arguments)
+    }
+
+    /// Testable initializer. `launchArguments` is injected so UI-test mode is
+    /// deterministic and unit-testable without spawning a process.
+    init(launchArguments: [String]) {
+        if AppLaunchEnvironment.isUITesting(launchArguments) {
+            if AppLaunchEnvironment.mockAuthenticated(launchArguments) {
+                currentUser = AppLaunchEnvironment.mockUser
+                phase = .authenticated
+            } else {
+                phase = .onboarding
+            }
+            return
+        }
         if UserDefaults.standard.bool(forKey: AppStorageKey.hasCompletedOnboarding) {
             phase = .unauthenticated
         } else {
