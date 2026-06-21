@@ -72,6 +72,7 @@ struct ProfileView: View {
                             }
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier("profile.premium")
                         .padding(.horizontal, EcrinSpacing.lg)
 
                         // Secondaire : achat à l'unité
@@ -240,7 +241,11 @@ struct ProfileView: View {
             CreditsPackView()
         }
         .task {
-            remainingCredits = try? await SupabaseService.shared.fetchRemainingCredits()
+            if AppLaunchEnvironment.isUITesting {
+                remainingCredits = AppLaunchEnvironment.mockCredits
+            } else {
+                remainingCredits = try? await SupabaseService.shared.fetchRemainingCredits()
+            }
         }
         .confirmationDialog(
             "Retirer votre consentement IA ?",

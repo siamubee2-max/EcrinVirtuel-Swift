@@ -189,7 +189,12 @@ final class PaywallViewModel: ObservableObject {
 
     init() {
         selectedPlan = allPlans.first { $0.id == "premium_monthly" }
-        Task { await loadLiveProducts() }
+        // Skip live product loading in UI-test mode — RC is not configured,
+        // and Purchases.shared.offerings() would fatalError. Static fallback
+        // prices in PaywallPlan are used instead (the paywall UI is fully assertable).
+        if !AppLaunchEnvironment.isUITesting {
+            Task { await loadLiveProducts() }
+        }
     }
 
     // MARK: Display Price (dynamique via RC, fallback statique)
@@ -317,6 +322,7 @@ struct PaywallView: View {
     var body: some View {
         ZStack {
             EcrinColor.background.ignoresSafeArea()
+            // paywall.root accessibility anchor — stable even when RC offerings are empty
 
             // Gold ambient
             Ellipse()
@@ -337,6 +343,7 @@ struct PaywallView: View {
                             .contentShape(Rectangle())
                     }
                     .accessibilityLabel(L10n.Common.close)
+                    .accessibilityIdentifier("paywall.close")
                 }
                 .padding(.horizontal, EcrinSpacing.lg)
                 .padding(.top, 20)
@@ -429,12 +436,14 @@ struct PaywallView: View {
                                 Task { await viewModel.purchase(dismiss: { dismiss() }) }
                             }
                             .disabled(viewModel.isPurchasing)
+                            .accessibilityIdentifier("paywall.cta")
 
                             Button("Restaurer mes achats") {
                                 Task { await viewModel.restore(dismiss: { dismiss() }) }
                             }
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)
+                            .accessibilityIdentifier("paywall.restore")
                         }
                         .padding(.horizontal, EcrinSpacing.lg)
                         .padding(.bottom, EcrinSpacing.xxl)
@@ -442,6 +451,7 @@ struct PaywallView: View {
                 }
             }
         }
+        .accessibilityIdentifier("paywall.root")
         // Mettre à jour AppState dès qu'un achat est confirmé
         .onChange(of: viewModel.purchasedPlan?.id) { _, _ in
             guard let plan = viewModel.purchasedPlan else { return }
