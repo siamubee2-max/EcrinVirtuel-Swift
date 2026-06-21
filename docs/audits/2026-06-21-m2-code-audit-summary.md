@@ -44,6 +44,15 @@ Résultat : des features **paraissent marcher** mais ne persistent jamais rien e
 - **C4** : confirmer la config RevenueCat (un seul entitlement « premium » pour tous les plans, ou un par tier) avant de corriger la clé.
 - **C5/C6/C7/C8 + High** : corrections claires, à appliquer (chacune = petit cycle TDD).
 
+## ✅ Corrections appliquées (vague 1 — criticals de logique)
+
+- **C5** `BodyContextAnalyzer` continuation toujours reprise (do/catch + resume unique sur les 3 sites) — `b03de1c`.
+- **C6** `ARTryOnView` boucle de snapshots cassée (callback `onCaptureFailure` reset `isCapturing`) — `3c85601`.
+- **C7** abonné : tier persisté en UserDefaults sur succès, restauré sur échec réseau (do/catch) + 6 tests — `ee34926`.
+- **C8** crédits : `CreditsManager.shared.sync()` appelé après achat de pack → source unique à jour — `dc15fe4`.
+
+Build + suite verts (25 tests) à chaque étape. Reste : C1/C2/C3 (dérive schéma — fork : aligner Swift sur prod), C4 (config RC à confirmer), et les High.
+
 ## Recommandation
 
 Traiter par vagues : (1) les Critical de **logique** sans fork (C5 hang, C6 boucle AR, C7 abonné, C8 crédits) ; (2) **décider** le fork schéma (C1/C2/C3) puis corriger ; (3) confirmer RC pour C4 ; (4) les High. Chaque correctif vérifié (tests / smoke-test).
