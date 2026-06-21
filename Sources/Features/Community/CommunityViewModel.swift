@@ -118,7 +118,10 @@ final class CommunityViewModel: ObservableObject {
         )
         // Persist asynchronously — fire-and-forget.
         let postId = current.id
-        Task.detached { await SupabaseService.shared.setPostLike(postId: postId, liked: newLiked) }
+        // fire-and-forget like sync; uses only value types, no self capture needed
+        Task {
+            await SupabaseService.shared.setPostLike(postId: postId, liked: newLiked)
+        }
     }
 
     // MARK: - Challenge actions

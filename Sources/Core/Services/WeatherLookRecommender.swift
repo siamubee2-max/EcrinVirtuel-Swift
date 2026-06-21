@@ -332,9 +332,16 @@ struct WeatherLookRecommender: Sendable {
 
     private func seasonMatch(item: CatalogClothingItem, weather: WeatherSnapshot) -> Int {
         let target = weather.weatherSeason.rawValue
-        if item.season.contains(where: { $0.lowercased() == target }) { return 2 }
+        if item.season.contains(where: { seasonsMatch($0, target) }) { return 2 }
         if item.season.isEmpty { return 0 }
         return 0
+    }
+
+    /// Comparaison saison insensible aux diacritiques et à la casse.
+    /// Permet de matcher "été" (catalogue) avec "ete" (rawValue de WeatherSeason).
+    private func seasonsMatch(_ a: String, _ b: String) -> Bool {
+        a.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            == b.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
     }
 
     private func materialBoost(item: CatalogClothingItem, weather: WeatherSnapshot) -> Int {

@@ -124,4 +124,61 @@ final class WeatherLookRecommenderTests: XCTestCase {
         let result = recommender.recommend(weather: weather, gender: .femme, catalog: catalog, limit: 6)
         XCTAssertFalse(result.items.isEmpty)
     }
+
+    // MARK: - H1 : correspondance saison avec diacritiques
+
+    /// Un article dont la saison est "été" (avec accent) doit scorer plus haut
+    /// qu'un article dont la saison est "hiver" lorsque la météo est estivale.
+    func testSeasonMatchAccentedEteBoostsInSummer() {
+        // Météo estivale (juillet)
+        let summerWeather = WeatherSnapshot(
+            latitude: 43.6,
+            longitude: 1.44,
+            cityName: "Toulouse",
+            fetchedAt: Date(timeIntervalSince1970: 1_721_000_000), // juillet 2024
+            temperatureC: 32,
+            feelsLikeC: 34,
+            precipitationMM: 0,
+            windspeedKmh: 5,
+            uvIndex: 9,
+            weatherCode: 0
+        )
+        // Article été avec accent dans le catalogue
+        let summerTop = makeItem(
+            name: "Top estival",
+            gender: .femme,
+            category: "top",
+            season: ["été"]   // accent — c'est le bug H1
+        )
+        // Article hiver pour comparaison
+        let winterCoat = makeItem(
+            name: "Manteau hiver",
+            gender: .femme,
+            category: "coat",
+            season: ["hiver"]
+        )
+
+        let summerScore = recommender.score(item: summerTop, weather: summerWeather, gender: .femme)
+        let winterScore = recommender.score(item: winterCoat, weather: summerWeather, gender: .femme)
+
+        // Le +20 pts saison doit s'appliquer à summerTop (sinon les deux seraient à 0 saison)
+        XCTAssertGreaterThan(summerScore, winterScore,
+            "Un article saison 'été' (accentué) doit scorer plus haut qu'un article 'hiver' par temps estival")
+    }
+
+    // MARK: - H2 : saison calendaire pour automne chaud
+
+    /// Octobre à 22°C doit retourner .automne et non .hiver.
+    func testWarmOctoberIsAutomneNotHiver() {
+        let automne = WeatherSeason.from(month: 10, temperatureC: 22)
+        XCTAssertEqual(automne, .automne,
+            "Octobre à 22°C doit être .automne, pas .hiver")
+    }
+
+    /// Vérification complémentaire : un printemps glacial reste .hiver.
+    func testColdMarchIsHiver() {
+        let season = WeatherSeason.from(month: 3, temperatureC: 2)
+        XCTAssertEqual(season, .hiver,
+            "Mars à 2°C (gelée) doit rester .hiver")
+    }
 }
