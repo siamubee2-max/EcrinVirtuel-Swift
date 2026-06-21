@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "GG9U76Z4X7.com.ecrin.jewelry",
+        "paths": [
+          "/ecrin/login-callback*",
+          "/ecrin/gift/*"
+        ]
+      }
+    ]
+  }
+}

@@ -196,12 +196,6 @@ final class ImageGenerationService: Sendable {
             }
         }
 
-        var request = URLRequest(url: proxyURL)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(userJWT)", forHTTPHeaderField: "Authorization")
-        request.setValue(Secrets.supabaseAnonKey, forHTTPHeaderField: "apikey")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
         var body: [String: Any] = [
             "imageBase64": imageData.base64EncodedString(),
             "prompt": prompt,
@@ -212,6 +206,22 @@ final class ImageGenerationService: Sendable {
         if let referenceImageData {
             body["referenceImageBase64"] = referenceImageData.base64EncodedString()
         }
+
+        // M4 — App Attest: attach attestation/assertion headers best-effort.
+        // With APP_ATTEST_MODE=off (server default) these are silently ignored.
+        // Skipped on Simulator, -uitest, and unsupported devices.
+        let clientDataHash = AttestationService.clientDataHash(from: body)
+        let attestHeaders = await AttestationService.shared.attestationHeaders(clientDataHash: clientDataHash)
+
+        var request = URLRequest(url: proxyURL)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(userJWT)", forHTTPHeaderField: "Authorization")
+        request.setValue(Secrets.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        for (key, value) in attestHeaders {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
         let (data, response) = try await session.data(for: request)

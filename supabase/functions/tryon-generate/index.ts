@@ -4,6 +4,15 @@
 //   preview/standard → gpt-image-2-image-to-image (9:16 natif)
 //   premium          → nano-banana-pro
 // Fallbacks : nano-banana-2 → flux-kontext → gpt4o-image → Gemini → OpenAI
+//
+// M4 — App Attest hook (default OFF, zero overhead when off)
+//   APP_ATTEST_MODE=off    (default) — attestation headers silently ignored.
+//   APP_ATTEST_MODE=log    — verify + log to monitoring_events; never block generation.
+//   APP_ATTEST_MODE=enforce — reject requests that fail attestation (HTTP 401).
+//   INTERNAL_FN_KEY        — if set, forwarded to verify-attestation as x-internal-key.
+//
+// ⚠️ DO NOT set enforce until you see "attestation_ok" from real devices in monitoring_events.
+//    A crypto bug in enforce mode would break ALL paid generation.
 
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4"
@@ -15,6 +24,16 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 const SUPABASE_ANON_KEY         = Deno.env.get("SUPABASE_ANON_KEY")!
 const GOOGLE_API_KEY            = Deno.env.get("GOOGLE_API_KEY")
 const OPENAI_API_KEY            = Deno.env.get("OPENAI_API_KEY")
+
+// M4 App Attest — env vars (no new imports; these are just string reads).
+// APP_ATTEST_MODE: "off" | "log" | "enforce"  (default "off")
+// INTERNAL_FN_KEY: shared secret forwarded to verify-attestation (optional)
+const APP_ATTEST_MODE  = Deno.env.get("APP_ATTEST_MODE") ?? "off"
+const INTERNAL_FN_KEY  = Deno.env.get("INTERNAL_FN_KEY") ?? ""
+// URL of the verify-attestation Edge Function (same project, internal routing).
+// Falls back to a pattern derived from SUPABASE_URL if not explicitly set.
+const VERIFY_ATTEST_URL = Deno.env.get("VERIFY_ATTEST_URL") ??
+  `${SUPABASE_URL}/functions/v1/verify-attestation`
 
 const CORS = {
   "Access-Control-Allow-Origin": "https://ecrin.app",
@@ -77,13 +96,123 @@ serve(async (req) => {
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
   try {
+    // ── M4 App Attest hook ───────────────────────────────────────────────────
+    // When APP_ATTEST_MODE is "off" (the default), this block is entirely skipped.
+    // It adds zero overhead and zero imports when inactive.
+    //
+    // When "log" or "enforce":
+    //   • Read the raw body bytes (needed to compute clientDataHash = SHA-256(body)).
+    //   • Parse JSON from those bytes (same result as req.json() would give).
+    //   • Call verify-attestation server-to-server with the attest headers.
+    //   • On failure: log to monitoring_events; in enforce mode also return 401.
+    //
+    // The try/catch around the entire block CANNOT propagate into the main flow —
+    // any error inside is caught and, unless enforce mode wants to block, ignored.
+    //
+    // ⚠️ UNTESTED — see verify-attestation/index.ts header. Do not enforce in prod
+    //    until "attestation_ok" is confirmed from a real device.
+
+    let rawBodyText: string | undefined
+    let parsedBody: Record<string, unknown> | undefined
+
+    if (APP_ATTEST_MODE !== "off") {
+      // Read body as text so we can hash it AND parse it.
+      rawBodyText = await req.text()
+      try { parsedBody = JSON.parse(rawBodyText) } catch { /* invalid JSON caught below */ }
+
+      // Compute clientDataHash = SHA-256(raw request body bytes).
+      const bodyBytes       = new TextEncoder().encode(rawBodyText)
+      const hashBuffer      = await crypto.subtle.digest("SHA-256", bodyBytes)
+      const clientDataHashB64 = btoa(String.fromCharCode(...new Uint8Array(hashBuffer)))
+
+      const keyId      = req.headers.get("x-attest-keyid")
+      const attestObj  = req.headers.get("x-attest-object")    // base64 CBOR, first call
+      const assertionH = req.headers.get("x-attest-assertion") // base64 CBOR, subsequent
+
+      if (keyId && (attestObj || assertionH)) {
+        // Attempt attestation verification — wrapped in total try/catch so
+        // any bug here can NEVER crash the main generation flow.
+        try {
+          const verifyBody = JSON.stringify({
+            keyId,
+            ...(attestObj  ? { attestation: attestObj   } : {}),
+            ...(assertionH ? { assertion:   assertionH  } : {}),
+            clientDataHashB64,
+          })
+
+          const verifyHeaders: Record<string, string> = {
+            "Content-Type":  "application/json",
+            // Forward service role key so verify-attestation can write to device_attest.
+            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          }
+          if (INTERNAL_FN_KEY) verifyHeaders["x-internal-key"] = INTERNAL_FN_KEY
+
+          const verifyRes = await fetch(VERIFY_ATTEST_URL, {
+            method:  "POST",
+            headers: verifyHeaders,
+            body:    verifyBody,
+            // Short timeout — never let attestation stall generation beyond 3 s.
+            signal:  AbortSignal.timeout(3_000),
+          })
+
+          const verifyJson = await verifyRes.json().catch(() => ({ ok: false, reason: "json_parse" }))
+          const attestOk   = verifyJson?.ok === true
+
+          if (attestOk) {
+            // Fire-and-forget log (same pattern as moderation logging).
+            adminClient.from("monitoring_events").insert({
+              event_type:    "attestation_ok",
+              user_id:       userId,
+              error_domain:  "app_attest",
+              error_message: `keyId=${keyId} mode=${APP_ATTEST_MODE}`,
+              platform:      "edge",
+            }).catch(() => {})
+          } else {
+            const reason = verifyJson?.reason ?? `http_${verifyRes.status}`
+            adminClient.from("monitoring_events").insert({
+              event_type:    "attestation_fail",
+              user_id:       userId,
+              error_domain:  "app_attest",
+              error_message: `keyId=${keyId} reason=${reason} mode=${APP_ATTEST_MODE}`.slice(0, 500),
+              platform:      "edge",
+            }).catch(() => {})
+
+            if (APP_ATTEST_MODE === "enforce") {
+              return jsonError("attestation_required", 401)
+            }
+            // In "log" mode: fall through, allow generation.
+          }
+        } catch (attestErr) {
+          // Network error, timeout, or any other failure — never block generation.
+          console.warn("[tryon-generate] App Attest check error (non-blocking):", attestErr)
+          if (APP_ATTEST_MODE === "enforce") {
+            // In enforce mode even a network error blocks (fail-closed).
+            return jsonError("attestation_required", 401)
+          }
+        }
+      } else if (APP_ATTEST_MODE === "enforce") {
+        // enforce requires attest headers; missing → reject.
+        return jsonError("attestation_required", 401)
+      }
+    }
+    // ── end App Attest hook ─────────────────────────────────────────────────
+
+    // If APP_ATTEST_MODE is active we already parsed the body above; otherwise parse now.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bodyJson: any = parsedBody ?? await req.json()
     const {
       imageBase64,
       prompt,
       model = "standard",
       quality = "medium",
       aspectRatio: aspectRatioRaw,
-    } = await req.json()
+    } = bodyJson as {
+      imageBase64?:  string
+      prompt?:       string
+      model?:        string
+      quality?:      string
+      aspectRatio?:  unknown
+    }
 
     // Validation AVANT tout traitement
     if (!imageBase64 || !prompt)  return jsonError("imageBase64 and prompt required", 400)
