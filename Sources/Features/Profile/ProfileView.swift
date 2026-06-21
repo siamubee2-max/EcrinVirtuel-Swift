@@ -196,6 +196,7 @@ struct ProfileView: View {
                         }
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
+                        .accessibilityIdentifier("profile.signout")
 
                         if let error = deleteError {
                             Text(error)

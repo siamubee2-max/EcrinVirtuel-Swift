@@ -194,6 +194,7 @@ struct CatalogBrowserView: View {
                     .padding(.bottom, EcrinSpacing.xxl)
                 }
                 .refreshable { await catalogService.fetchAll(force: true) }
+                .accessibilityIdentifier("catalog.grid")
             }
         }
     }

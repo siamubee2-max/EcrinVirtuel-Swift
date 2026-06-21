@@ -158,6 +158,7 @@ struct QuickTryOnView: View {
                 showResult = true
             }
         }
+        .accessibilityIdentifier("quicktryon.root")
     }
 
     // MARK: - Header
