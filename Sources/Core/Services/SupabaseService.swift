@@ -129,7 +129,7 @@ extension SupabaseService {
         return user
     }
 
-    /// Lit `preferred_gender` depuis `users` (auth_id = session Supabase Auth).
+    /// Lit `preferred_gender` depuis `users` (id = auth.uid()).
     func fetchPreferredGender(authId: String) async throws -> ClothingGender? {
         struct Row: Decodable {
             let preferred_gender: String?
@@ -137,7 +137,7 @@ extension SupabaseService {
         let rows: [Row] = try await client
             .from(Self.users)
             .select("preferred_gender")
-            .eq("auth_id", value: authId)
+            .eq("id", value: authId)
             .limit(1)
             .execute()
             .value
@@ -145,7 +145,7 @@ extension SupabaseService {
         return ClothingGender(rawValue: raw)
     }
 
-    /// Persiste le genre Look du Jour (upsert profil `users` par auth_id).
+    /// Persiste le genre Look du Jour (upsert profil `users` par id = auth.uid()).
     func updatePreferredGender(_ gender: ClothingGender) async {
         guard let session = try? await auth.session else { return }
         let authId = session.user.id.uuidString
@@ -153,24 +153,22 @@ extension SupabaseService {
         let displayName = session.user.userMetadata["full_name"]?.value as? String
 
         struct UpsertRow: Encodable {
-            let auth_id: String
+            let id: String
             let email: String?
             let display_name: String?
             let preferred_gender: String
-            let updated_at: String
         }
 
         let row = UpsertRow(
-            auth_id: authId,
+            id: authId,
             email: email,
             display_name: displayName,
-            preferred_gender: gender.rawValue,
-            updated_at: ISO8601DateFormatter().string(from: .now)
+            preferred_gender: gender.rawValue
         )
 
         _ = try? await client
             .from(Self.users)
-            .upsert(row, onConflict: "auth_id")
+            .upsert(row, onConflict: "id")
             .execute()
     }
 
@@ -223,8 +221,7 @@ extension SupabaseService {
         try await client.from(Self.communityPosts).delete().eq("user_id", value: userId).execute()
         try await client.from(Self.wardrobeItems).delete().eq("user_id", value: userId).execute()
         try await client.from(Self.userQuotas).delete().eq("user_id", value: userId).execute()
-        // Fix: la table `users` utilise `auth_id` comme clé, pas `id`
-        try await client.from(Self.users).delete().eq("auth_id", value: userId).execute()
+        try await client.from(Self.users).delete().eq("id", value: userId).execute()
 
         // Supprimer le compte auth (nécessite un Edge Function avec service_role)
         try await client.functions.invoke(
