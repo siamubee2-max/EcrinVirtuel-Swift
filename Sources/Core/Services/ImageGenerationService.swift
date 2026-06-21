@@ -41,8 +41,10 @@ final class ImageGenerationService: Sendable {
         }
         proxyURL = url
         let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30   // timeout connexion
-        config.timeoutIntervalForResource = 90  // timeout total (génération IA peut prendre 20-40s)
+        // 180 s couvre le pire cas mesuré : Edge cascade Supabase + polling Kie.ai (~50 s)
+        // + latence modèle premium nano-banana-pro (~105 s end-to-end). Empirique prod v22.
+        config.timeoutIntervalForRequest  = 60   // timeout établissement connexion
+        config.timeoutIntervalForResource = 180  // timeout total ressource
         session = URLSession(configuration: config)
     }
 

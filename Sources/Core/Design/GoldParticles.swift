@@ -4,11 +4,15 @@ import SwiftUI
 
 struct GoldParticlesCanvas: View {
     @State private var particles: [GoldParticle] = []
+    @State private var lastDate: Date? = nil
 
     var body: some View {
         GeometryReader { geo in
-            TimelineView(.animation) { _ in
-                Canvas { ctx, size in
+            // TimelineView(.animation) drives redraws at the display refresh rate.
+            // No Timer.publish — the animation schedule fires on the render thread,
+            // keeping the main runloop free from 60 Hz particle update overhead.
+            TimelineView(.animation) { context in
+                Canvas { ctx, _ in
                     for particle in particles {
                         let age = particle.age
                         guard age < particle.lifetime else { continue }
@@ -27,9 +31,16 @@ struct GoldParticlesCanvas: View {
                         )
                     }
                 }
-                .onAppear { spawnBurst(in: geo.size) }
-                .onReceive(Timer.publish(every: 0.016, on: .main, in: .common).autoconnect()) { _ in
-                    updateParticles()
+                .onChange(of: context.date) { _, newDate in
+                    let dt: CGFloat
+                    if let last = lastDate {
+                        dt = CGFloat(newDate.timeIntervalSince(last))
+                    } else {
+                        dt = 0
+                        spawnBurst(in: geo.size)
+                    }
+                    lastDate = newDate
+                    updateParticles(dt: dt)
                     if particles.count < 60 { spawnParticle(in: geo.size) }
                 }
             }
@@ -55,9 +66,9 @@ struct GoldParticlesCanvas: View {
         ))
     }
 
-    private func updateParticles() {
+    private func updateParticles(dt: CGFloat) {
         particles = particles.compactMap { p in
-            var mp = p; mp.age += 0.016
+            var mp = p; mp.age += dt
             return mp.age < mp.lifetime ? mp : nil
         }
     }
