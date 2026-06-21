@@ -16,8 +16,10 @@ mkdirSync(TMP, { recursive: true });
 const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 // Écran → légende (haut) + sous-ligne. Direction : or #D4AF37 sur fond sombre, titre Didot.
+// 4e champ optionnel : nom du fichier source à utiliser (sinon = nom de l'écran).
+// Slot 1 = vraie génération IA (01-essayage-result), pas la capture mock.
 const SHOTS = [
-  ["01-essayage",   "Essayez sur votre photo",   "Le bijou sur vous, en quelques secondes — par IA"],
+  ["01-essayage",   "Essayez sur votre photo",   "Le bijou sur vous, en quelques secondes — par IA", "01-essayage-result"],
   ["02-garderobe",  "Toute votre garde-robe",    "Numérisez, composez, essayez"],
   ["03-catalogue",  "Un dressing infini",        "Des centaines de pièces à essayer"],
   ["04-communaute", "Progressez en style",       "Défis, badges et niveaux d’élégance"],
@@ -54,8 +56,8 @@ function html(imgPath, title, sub) {
   </body></html>`;
 }
 
-for (const [name, title, sub] of SHOTS) {
-  const raw = resolve(RAW, `${name}.png`);
+for (const [name, title, sub, imgOverride] of SHOTS) {
+  const raw = resolve(RAW, `${imgOverride ?? name}.png`);
   if (!existsSync(raw)) { console.error("MISSING raw:", raw); continue; }
   const htmlPath = resolve(TMP, `${name}.html`);
   const outPath = resolve(OUT, `${name}-framed.png`);
