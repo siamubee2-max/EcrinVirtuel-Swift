@@ -91,6 +91,11 @@ final class CreditsPackViewModel {
 
             currentCredits = newTotal
             purchasedCount = pack.count + pack.bonusCount
+
+            // Refresh the single source of truth so the generation paywall
+            // reads the updated balance immediately (Bug C8).
+            await CreditsManager.shared.sync()
+
             withAnimation(EcrinAnimation.springBounce) {
                 purchaseSuccess = true
             }
