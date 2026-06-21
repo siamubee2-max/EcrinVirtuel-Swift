@@ -122,6 +122,7 @@
 		ADFF69A58F01DA6696B242B0 /* MultiPoseResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7F0DFCEB39ED471EF3D8FAF /* MultiPoseResultView.swift */; };
 		AE5AF6E27CBDCB0A09FF02DE /* CoreJourneysUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B67031608F48A54E5FE614 /* CoreJourneysUITests.swift */; };
 		AF5C9AAB60A235ECF556B761 /* WardrobeItemCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 515D3BF415A31D0CE9CCCEC9 /* WardrobeItemCard.swift */; };
+		B2A68BA4E3DBD37B25ECA241 /* ScreenshotUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB7C5983ADD8C79024835555 /* ScreenshotUITests.swift */; };
 		B3B85247D3E37F691C6FFAEC /* WardrobeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9472107998B0554379C59E8F /* WardrobeView.swift */; };
 		B48D88874BA80848E3D374B7 /* JewelryDetectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7A5C592E81AC6B4C188363E /* JewelryDetectionView.swift */; };
 		B4E3F5C8ED79DAF32961FDF2 /* ImageGenerationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F4B7E9B34631F572FAD7DC /* ImageGenerationService.swift */; };
@@ -345,6 +346,7 @@
 		A5DB6A8BC64770132E347820 /* OccasionVaultViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionVaultViewModel.swift; sourceTree = "<group>"; };
 		A9C8C3832683DA27CFF8F3A7 /* FrameRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameRenderer.swift; sourceTree = "<group>"; };
 		AAFA1D640710C5C54B22EAFD /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
+		AB7C5983ADD8C79024835555 /* ScreenshotUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotUITests.swift; sourceTree = "<group>"; };
 		ACAD56AFFCEF6DBF6D897301 /* ARPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARPermissionView.swift; sourceTree = "<group>"; };
 		AF935755777D3730E1865089 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		B133B9C49A9B14B1472F706B /* LookDuJourViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookDuJourViewModel.swift; sourceTree = "<group>"; };
@@ -661,6 +663,7 @@
 			children = (
 				AAFA1D640710C5C54B22EAFD /* .gitkeep */,
 				88B67031608F48A54E5FE614 /* CoreJourneysUITests.swift */,
+				AB7C5983ADD8C79024835555 /* ScreenshotUITests.swift */,
 				82DAB0F363349B4131F7A21E /* SmokeNavigationUITests.swift */,
 			);
 			name = UITests;
@@ -1282,6 +1285,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE5AF6E27CBDCB0A09FF02DE /* CoreJourneysUITests.swift in Sources */,
+				B2A68BA4E3DBD37B25ECA241 /* ScreenshotUITests.swift in Sources */,
 				2C883A550EDB1BDF68066F34 /* SmokeNavigationUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -109,8 +109,11 @@ schemes:
         EcrinVirtuel: all
         EcrinVirtuelTests: [test]
         EcrinVirtuelUITests: [test]
+    run:
+      storeKitConfiguration: EcrinVirtuel.storekit
     test:
       targets:
         - EcrinVirtuelTests
         - EcrinVirtuelUITests
       gatherCoverageData: true
+      storeKitConfiguration: EcrinVirtuel.storekit
