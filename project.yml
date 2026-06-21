@@ -64,6 +64,12 @@ targets:
     configFiles:
       Debug: Secrets.xcconfig
       Release: Secrets.xcconfig
+    entitlements:
+      path: Sources/App/EcrinVirtuel.entitlements
+      properties:
+        com.apple.developer.associated-domains:
+          - applinks:ecrin.app
+        com.apple.developer.devicecheck.appattest-environment: development
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry

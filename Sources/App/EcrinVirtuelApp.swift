@@ -1,11 +1,13 @@
 import SwiftUI
 import RevenueCat
+import os.log
 
 @main
 struct EcrinVirtuelApp: App {
 
     @State private var appState = AppState()
     @Environment(\.scenePhase) private var scenePhase
+    private let log = Logger(subsystem: "com.ecrin.jewelry", category: "universal-links")
 
     init() {
         if AppLaunchEnvironment.isUITesting { return }
@@ -89,13 +91,29 @@ struct EcrinVirtuelApp: App {
                     Task { await LookNotificationService.shared.rescheduleIfNeeded() }
                 }
                 .onOpenURL { url in
-                    // Lien magique Supabase: ecrin://login-callback#access_token=...
-                    Task { @MainActor in
-                        if let user = await SupabaseService.shared.handleDeepLink(url) {
-                            appState.signIn(user: user)
-                        }
-                    }
+                    // Custom scheme fallback: ecrin://login-callback#access_token=...
+                    handleIncomingURL(url)
                 }
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+                    // Universal Links: https://ecrin.app/ecrin/login-callback#...
+                    //                  https://ecrin.app/ecrin/gift/<id>
+                    guard let url = activity.webpageURL else { return }
+                    handleIncomingURL(url)
+                }
+        }
+    }
+
+    // MARK: - Deep link / Universal Link handler
+
+    /// Handles both the custom-scheme `ecrin://` URL and the Universal Link
+    /// `https://ecrin.app/ecrin/…`. Routes auth callbacks and gift links.
+    @MainActor
+    private func handleIncomingURL(_ url: URL) {
+        log.info("Incoming URL: \(url.absoluteString, privacy: .public)")
+        Task { @MainActor in
+            if let user = await SupabaseService.shared.handleDeepLink(url) {
+                appState.signIn(user: user)
+            }
         }
     }
 }
