@@ -420,40 +420,39 @@ struct TryOnSession: Codable, Identifiable {
 // MARK: - Wardrobe (garde-robe cloud sync)
 
 /// Row Supabase pour la table `wardrobe_items`.
-/// Note : `userPhotoData` n'est pas syncé ici — les photos iront dans Supabase Storage (Phase future).
+/// Schéma prod exact (10 colonnes) : id, user_id, name, type, category, brand,
+/// color, image_url, is_favorite, created_at.
+/// `type` (NOT NULL) = `category` = FashionCategory.rawValue.
+/// Les champs non persistés (subcategory, material, tags, tryOnPrompt, source,
+/// price, purchaseURL) sont reconstruits avec des valeurs par défaut dans `asFashionItem`.
 struct SupabaseWardrobeRow: Codable, Identifiable {
     let id: String
     let user_id: String
     let name: String
+    let type: String       // NOT NULL — requis par le schéma prod
     let category: String
-    let subcategory: String?
     let brand: String?
     let color: String?
-    let material: String?
     let image_url: String?
-    let tags: [String]
-    let try_on_prompt: String
-    let source: String
-    let price: Double?
-    let purchase_url: String?
     let is_favorite: Bool
     let created_at: String
 
     var asFashionItem: FashionItem {
-        FashionItem(
+        let fashionCategory = FashionCategory(rawValue: category) ?? .top
+        return FashionItem(
             id: UUID(uuidString: id) ?? UUID(),
             name: name,
-            category: FashionCategory(rawValue: category) ?? .top,
-            subcategory: subcategory,
+            category: fashionCategory,
+            subcategory: nil,
             brand: brand,
             color: color,
-            material: material,
+            material: nil,
             imageURL: image_url.flatMap { URL(string: $0) },
-            tags: tags,
-            tryOnPrompt: try_on_prompt,
-            source: ItemSource(rawValue: source) ?? .userPhoto,
-            price: price,
-            purchaseURL: purchase_url,
+            tags: [],
+            tryOnPrompt: fashionCategory.defaultPrompt(name: name),
+            source: .userPhoto,
+            price: nil,
+            purchaseURL: nil,
             isFavorite: is_favorite,
             createdAt: ISO8601DateFormatter().date(from: created_at) ?? .now
         )
@@ -478,21 +477,16 @@ extension SupabaseService {
     /// Insère ou met à jour un article de garde-robe (upsert par `id`).
     func saveWardrobeItem(_ item: FashionItem) async throws {
         guard let userId = try? await auth.session.user.id.uuidString else { return }
+        let categoryValue = item.category.rawValue
         let row = SupabaseWardrobeRow(
             id: item.id.uuidString,
             user_id: userId,
             name: item.name,
-            category: item.category.rawValue,
-            subcategory: item.subcategory,
+            type: categoryValue,
+            category: categoryValue,
             brand: item.brand,
             color: item.color,
-            material: item.material,
             image_url: item.imageURL?.absoluteString,
-            tags: item.tags,
-            try_on_prompt: item.tryOnPrompt,
-            source: item.source.rawValue,
-            price: item.price,
-            purchase_url: item.purchaseURL,
             is_favorite: item.isFavorite,
             created_at: ISO8601DateFormatter().string(from: item.createdAt)
         )
@@ -518,12 +512,8 @@ extension SupabaseService {
         guard let userId = try? await auth.session.user.id.uuidString else { return }
         struct FavoriteUpdate: Encodable {
             let is_favorite: Bool
-            let updated_at: String
         }
-        let payload = FavoriteUpdate(
-            is_favorite: isFavorite,
-            updated_at: ISO8601DateFormatter().string(from: .now)
-        )
+        let payload = FavoriteUpdate(is_favorite: isFavorite)
         try await client
             .from(Self.wardrobeItems)
             .update(payload)
