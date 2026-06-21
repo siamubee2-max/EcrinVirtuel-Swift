@@ -84,99 +84,21 @@ final class WeddingViewModel: ObservableObject {
         showToast("Look finalisé !")
     }
 
-    // MARK: - Persistence (Supabase + UserDefaults fallback)
+    // MARK: - Persistence (UserDefaults only — wedding_looks absent from prod)
+    // NOTE: `wedding_looks` table does not exist in prod (migration 009).
+    // All persistence is local via UserDefaults; cloud sync deferred.
 
     private static let storageKey = "weddingLook_v2"
 
-    /// Charge le look depuis Supabase si l'utilisateur est connecté,
-    /// sinon depuis UserDefaults (mode offline / anonyme).
+    /// Loads from UserDefaults (wedding_looks not in prod, no remote load).
     func loadFromRemote() async {
-        isLoading = true
-        defer { isLoading = false }
-        do {
-            guard let userId = try? await SupabaseService.shared.client.auth.session.user.id.uuidString else {
-                weddingLook = WeddingViewModel.loadOrCreate()
-                return
-            }
-
-            struct WeddingRow: Decodable {
-                let id: String
-                let name: String
-                let wedding_date: String?
-                let pieces: String   // JSONB → String en Supabase Swift SDK
-                let bridesmaid_emails: [String]
-                let is_finalized: Bool
-                let created_at: String
-            }
-
-            let rows: [WeddingRow] = try await SupabaseService.shared.client
-                .from(SupabaseService.weddingLooks)
-                .select("id,name,wedding_date,pieces,bridesmaid_emails,is_finalized,created_at")
-                .eq("user_id", value: userId)
-                .order("created_at", ascending: false)
-                .limit(1)
-                .execute()
-                .value
-
-            if let row = rows.first,
-               let piecesData = row.pieces.data(using: .utf8),
-               let pieces = try? JSONDecoder().decode([WeddingPiece].self, from: piecesData) {
-
-                var look = WeddingLook(
-                    id: UUID(uuidString: row.id) ?? UUID(),
-                    name: row.name,
-                    pieces: pieces,
-                    bridesmaidEmails: row.bridesmaid_emails,
-                    isFinalized: row.is_finalized
-                )
-                if let dateStr = row.wedding_date {
-                    let formatter = ISO8601DateFormatter()
-                    look.weddingDate = formatter.date(from: dateStr)
-                }
-                weddingLook = look
-            } else {
-                weddingLook = WeddingViewModel.loadOrCreate()
-            }
-        } catch {
-            weddingLook = WeddingViewModel.loadOrCreate()
-        }
+        weddingLook = WeddingViewModel.loadOrCreate()
     }
 
-    /// Sauvegarde dans UserDefaults (cache local) + Supabase (si connecté).
+    /// Saves to UserDefaults only (no Supabase sync — table absent from prod).
     private func save() {
-        // Cache local immédiat
         if let data = try? JSONEncoder().encode(weddingLook) {
             UserDefaults.standard.set(data, forKey: Self.storageKey)
-        }
-        // Sync Supabase en arrière-plan
-        Task.detached { [look = weddingLook] in
-            guard let userId = try? await SupabaseService.shared.client.auth.session.user.id.uuidString else { return }
-            let piecesJSON = (try? String(data: JSONEncoder().encode(look.pieces), encoding: .utf8)) ?? "[]"
-            struct Row: Encodable {
-                let id: String
-                let user_id: String
-                let name: String
-                let wedding_date: String?
-                let pieces: String
-                let bridesmaid_emails: [String]
-                let is_finalized: Bool
-                let updated_at: String
-            }
-            let iso = ISO8601DateFormatter()
-            let row = Row(
-                id: look.id.uuidString,
-                user_id: userId,
-                name: look.name,
-                wedding_date: look.weddingDate.map { iso.string(from: $0) },
-                pieces: piecesJSON,
-                bridesmaid_emails: look.bridesmaidEmails,
-                is_finalized: look.isFinalized,
-                updated_at: iso.string(from: .now)
-            )
-            _ = try? await SupabaseService.shared.client
-                .from(SupabaseService.weddingLooks)
-                .upsert(row)
-                .execute()
         }
     }
 
