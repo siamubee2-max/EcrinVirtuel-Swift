@@ -8,6 +8,7 @@ struct EcrinVirtuelApp: App {
     @Environment(\.scenePhase) private var scenePhase
 
     init() {
+        if AppLaunchEnvironment.isUITesting { return }
         Purchases.configure(withAPIKey: Secrets.revenueCatAPIKey)
         Purchases.logLevel = .warn
     }
@@ -21,6 +22,11 @@ struct EcrinVirtuelApp: App {
                 .environment(WeatherService.shared)
                 .preferredColorScheme(.dark)
                 .task {
+                    // UI-test mode: no live backend. Seed deterministic state and stop.
+                    if AppLaunchEnvironment.isUITesting {
+                        CreditsManager.shared.remaining = AppLaunchEnvironment.mockCredits
+                        return
+                    }
                     // 1. Restaurer une session Supabase persistée (auto-login).
                     if let user = await SupabaseService.shared.currentUser() {
                         appState.signIn(user: user)
