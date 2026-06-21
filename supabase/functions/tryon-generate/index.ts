@@ -411,8 +411,10 @@ function sleep(ms: number): Promise<void> {
 
 const MODERATION_MODEL    = "omni-moderation-latest"
 const MODERATION_TIMEOUT_MS = 3_000
-// Categories that block generation outright.
-const BLOCK_CATEGORIES = ["sexual/minors", "sexual", "violence/graphic", "illicit"]
+// Categories that block generation outright. "sexual" (broad) is intentionally
+// EXCLUDED: this is a fashion try-on app, so legitimate swimwear/lingerie must pass.
+// "sexual/minors" (CSAM) is always blocked.
+const BLOCK_CATEGORIES = ["sexual/minors", "violence/graphic", "illicit"]
 
 interface ModerationOutcome { blocked: boolean; categories: string[] }
 
