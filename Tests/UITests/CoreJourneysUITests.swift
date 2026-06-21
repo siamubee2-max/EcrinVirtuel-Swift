@@ -7,6 +7,11 @@ final class CoreJourneysUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    override func tearDown() {
+        XCUIApplication().terminate()
+        super.tearDown()
+    }
+
     // MARK: - Test 1: Wardrobe tab shows items grid and add sheet opens
 
     func testWardrobeTabShowsItemsAndAddSheetOpens() {
@@ -21,6 +26,10 @@ final class CoreJourneysUITests: XCTestCase {
         // Use descendants to find regardless of element type
         let grid = app.descendants(matching: .any).matching(identifier: "wardrobe.list").firstMatch
         XCTAssertTrue(grid.waitForExistence(timeout: 12), "wardrobe.list grid should appear")
+
+        // Assert at least one item cell is visible (fails if grid is empty / mock seam not seeded)
+        let firstItem = app.descendants(matching: .any).matching(identifier: "wardrobe.item").firstMatch
+        XCTAssertTrue(firstItem.waitForExistence(timeout: 5), "At least one wardrobe.item cell should be visible in the grid")
 
         // Tap the + FAB in WardrobeView
         let addButton = app.buttons["wardrobe.add"]
@@ -50,6 +59,12 @@ final class CoreJourneysUITests: XCTestCase {
         let catalogueButton = app.buttons["Catalogue"]
         XCTAssertTrue(catalogueButton.waitForExistence(timeout: 5), "Catalogue button should be in toolbar")
         catalogueButton.tap()
+
+        // Wait for the navigation push to complete before querying the grid
+        XCTAssertTrue(
+            app.navigationBars.element.waitForExistence(timeout: 8),
+            "Navigation bar should appear after tapping Catalogue"
+        )
 
         // ScrollView wrapping LazyVGrid
         let catalogGrid = app.scrollViews["catalog.grid"]

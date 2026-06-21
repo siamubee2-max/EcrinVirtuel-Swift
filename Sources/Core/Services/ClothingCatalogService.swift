@@ -95,6 +95,10 @@ final class ClothingCatalogService {
 
     func search(query: String) async -> [CatalogClothingItem] {
         guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return [] }
+        // MOCK SEAM — use in-memory data when running under UI tests (no network call)
+        if AppLaunchEnvironment.isUITesting {
+            return searchLocally(query: query)
+        }
         let term = query.lowercased()
         do {
             let byName: [CatalogClothingItem] = try await client
