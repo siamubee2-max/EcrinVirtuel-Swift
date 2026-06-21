@@ -5,8 +5,8 @@
 //   premium          → nano-banana-pro
 // Fallbacks : nano-banana-2 → flux-kontext → gpt4o-image → Gemini → OpenAI
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4"
 
 const KIE_API_KEY               = Deno.env.get("KIE_API_KEY")!
 const KIE_BASE_URL              = "https://api.kie.ai"
@@ -95,6 +95,13 @@ serve(async (req) => {
     const aspectRatio = normalizeAspectRatio(aspectRatioRaw)
     const generationPrompt = withTryOnFramingPrompt(prompt, aspectRatio)
 
+    // Content moderation (fail-open, logged) — see logSecurityEvent.
+    const mod = await moderate(prompt, adminClient, userId)
+    if (mod.blocked) {
+      await logSecurityEvent(adminClient, userId, "moderation_blocked", mod.categories.join(","))
+      return jsonError("content_rejected", 400)
+    }
+
     // Quota — atomique (sauf comptes fondateur illimités)
     if (!isUnlimitedEmail(user.email)) {
       const { error: consumeError } = await adminClient.rpc("consume_credits", {
@@ -118,11 +125,19 @@ serve(async (req) => {
       .from(STORAGE_BUCKET)
       .upload(tempPath, imageBytes, { contentType: "image/jpeg", upsert: true })
 
-    const publicUrl = uploadError
-      ? null
-      : adminClient.storage.from(STORAGE_BUCKET).getPublicUrl(tempPath).data.publicUrl
-
-    if (uploadError) console.warn("Storage upload failed:", uploadError)
+    let publicUrl: string | null = null
+    if (uploadError) {
+      console.warn("Storage upload failed:", uploadError)
+    } else {
+      const { data: signed, error: signError } =
+        await adminClient.storage.from(STORAGE_BUCKET).createSignedUrl(tempPath, 120)
+      if (signError || !signed?.signedUrl) {
+        console.error("[tryon-generate] createSignedUrl failed:", signError)
+        adminClient.storage.from(STORAGE_BUCKET).remove([tempPath]).catch(() => {})
+        return jsonError("Image generation temporarily unavailable. Please try again.", 503)
+      }
+      publicUrl = signed.signedUrl
+    }
 
     let resultBase64: string | null = null
     let provider = ""
@@ -392,6 +407,60 @@ function bytesToBase64(bytes: Uint8Array): string {
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+const MODERATION_MODEL    = "omni-moderation-latest"
+const MODERATION_TIMEOUT_MS = 3_000
+// Categories that block generation outright.
+const BLOCK_CATEGORIES = ["sexual/minors", "sexual", "violence/graphic", "illicit"]
+
+interface ModerationOutcome { blocked: boolean; categories: string[] }
+
+async function logSecurityEvent(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  eventType: string,
+  message: string,
+): Promise<void> {
+  try {
+    await admin.from("monitoring_events").insert({
+      event_type: eventType,
+      user_id: userId,
+      error_domain: "moderation",
+      error_message: message.slice(0, 500),
+      platform: "edge",
+    })
+  } catch (_e) { /* fire-and-forget */ }
+}
+
+// Returns blocked=true only on a confident flag. On error/timeout: fail-open + log.
+async function moderate(
+  prompt: string,
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+): Promise<ModerationOutcome> {
+  if (!OPENAI_API_KEY) return { blocked: false, categories: [] }
+  const ctrl = new AbortController()
+  const t = setTimeout(() => ctrl.abort(), MODERATION_TIMEOUT_MS)
+  try {
+    const res = await fetch("https://api.openai.com/v1/moderations", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ model: MODERATION_MODEL, input: prompt }),
+      signal: ctrl.signal,
+    })
+    if (!res.ok) throw new Error(`moderation HTTP ${res.status}`)
+    const json = await res.json()
+    const cats = (json.results?.[0]?.categories ?? {}) as Record<string, boolean>
+    const hit = BLOCK_CATEGORIES.filter((c) => cats[c] === true)
+    return { blocked: hit.length > 0, categories: hit }
+  } catch (e) {
+    // Fail-open: do not block generation, but record the gap.
+    await logSecurityEvent(admin, userId, "moderation_unavailable", String(e))
+    return { blocked: false, categories: [] }
+  } finally {
+    clearTimeout(t)
+  }
 }
 
 function jsonError(msg: string, status: number): Response {
