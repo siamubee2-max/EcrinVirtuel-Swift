@@ -5,6 +5,7 @@ import SwiftUI
 struct GoldParticlesCanvas: View {
     @State private var particles: [GoldParticle] = []
     @State private var lastDate: Date? = nil
+    @State private var spawned = false
 
     var body: some View {
         GeometryReader { geo in
@@ -34,10 +35,13 @@ struct GoldParticlesCanvas: View {
                 .onChange(of: context.date) { _, newDate in
                     let dt: CGFloat
                     if let last = lastDate {
-                        dt = CGFloat(newDate.timeIntervalSince(last))
+                        dt = min(CGFloat(newDate.timeIntervalSince(last)), 0.05)
                     } else {
                         dt = 0
-                        spawnBurst(in: geo.size)
+                        if !spawned {
+                            spawned = true
+                            spawnBurst(in: geo.size)
+                        }
                     }
                     lastDate = newDate
                     updateParticles(dt: dt)
