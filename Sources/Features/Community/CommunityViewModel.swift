@@ -118,7 +118,10 @@ final class CommunityViewModel: ObservableObject {
         )
         // Persist asynchronously — fire-and-forget.
         let postId = current.id
-        Task.detached { await SupabaseService.shared.setPostLike(postId: postId, liked: newLiked) }
+        Task { [weak self] in
+            guard self != nil else { return }
+            await SupabaseService.shared.setPostLike(postId: postId, liked: newLiked)
+        }
     }
 
     // MARK: - Challenge actions

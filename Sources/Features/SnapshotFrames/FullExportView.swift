@@ -375,6 +375,10 @@ final class FullExportViewModel: ObservableObject {
         self.tryOnImage = tryOnImage
     }
 
+    deinit {
+        composeTask?.cancel()
+    }
+
     func scheduleCompose() {
         composeTask?.cancel()
         composeTask = Task {
