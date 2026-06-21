@@ -45,24 +45,14 @@ const APP_ID     = "GG9U76Z4X7.com.ecrin.jewelry"  // rpId for App Attest = team
 const TEAM_ID    = "GG9U76Z4X7"
 const BUNDLE_ID  = "com.ecrin.jewelry"
 
-// Apple App Attest Root CA — embedded as PEM constant.
-// Source: https://www.apple.com/certificateauthority/Apple_App_Attest_Root_CA.pem
-// This is the only trust anchor for App Attest cert chains.
-// SHA-256 fingerprint: d5:f5:d9:39:3a:84:61:e7:71:90:1b:c5:97:b4:d1:9b:58:38:d4:e8:6b:e3:f3:0b:4b:ae:5b:9b:35:66:21:e3
-const APPLE_APP_ATTEST_ROOT_CA_PEM = `-----BEGIN CERTIFICATE-----
-MIICITCCAaegAwIBAgIQC/O+DvHN0uD7jG5yH2IXmDAKBggqhkjOPQQDAzBSMSYw
-JAYLK2pkCRxCMEMaIzggpA8GA1UEChMTQXBwbGUgSW5jLjETMBEGA1UECxMKQXBw
-bGUgQ2VydDETMBEGA1UEAxMKQXBwbGUgUm9vdCBDQTAeFw0yMDA0MDgxODM3MTBa
-Fw00NTA0MDgxODM3MTBaMFIxJjAkBgNVBAMMHUFwcGxlIEFwcCBBdHRlc3QgUm9v
-dCBDQSAtIEcxMRMwEQYDVQQKDApBcHBsZSBJbmMuMRMwEQYDVQQIDApDYWxpZm9y
-bmlhMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAERTHhmLW07ATaFQIEVwTtT4dyctdh
-NbJhFs/Ii2FdCgAHGbpphY3+d8qjuDngIN3WVhQUBHAoMeQ/cLiP1sOUtgjqK9au
-Yen1mMEvRq9Sk3Jm5X8U62H+xTD3FE9TgS41o0IwQDAPBgNVHRMBAf8EBTADAQH/
-MB0GA1UdDgQWBBSskRBTM72+aEH/pwyp5frq5eWKoTAOBgNVHQ8BAf8EBAMCAQYw
-CgYIKoZIzj0EAwMDaAAwZQIxAI1vpp+h4OTsW05zipJ/PXhTmI/02h9YHsN1Sv44
-qEwqgxoaqg2mZG3huZPo0VVM7QIwHQLuJpveRex1gy5PF4uenBXap9l2nqxFyrjT
-oBAwpLHiDUz30bGQROnqLFqSFp36
------END CERTIFICATE-----`
+// Apple App Attest Root CA — the ONLY trust anchor for App Attest cert chains.
+// ⚠️ Provided via the `APPLE_APP_ATTEST_ROOT_CA_PEM` Edge secret — NOT hardcoded.
+// Reason: a hardcoded cert reproduced by an AI is dangerous (a wrong/typo'd trust
+// anchor silently breaks or, worse, weakens attestation). Paste the REAL certificate:
+//   curl -s https://www.apple.com/certificateauthority/Apple_App_Attest_Root_CA.pem
+// into the Edge secret `APPLE_APP_ATTEST_ROOT_CA_PEM` (full PEM incl. BEGIN/END lines).
+// Attestation fails CLOSED if this is unset/invalid (see handleAttestation guard).
+const APPLE_APP_ATTEST_ROOT_CA_PEM = Deno.env.get("APPLE_APP_ATTEST_ROOT_CA_PEM") ?? ""
 
 // AAGUID bytes for App Attest (authData bytes 37–52, 16 bytes total).
 // Production: "appattest" + 7 zero bytes (UTF-8: 61 70 70 61 74 74 65 73 74 00 00 00 00 00 00 00)
@@ -190,6 +180,13 @@ async function handleAttestation(
   // against Apple's receipt validation service. For v1 we skip this — receipt
   // validation is an additional defence-in-depth step and requires calling
   // Apple's /attestationData endpoint with your private key.
+
+  // Fail CLOSED if the trust anchor isn't configured — never accept an
+  // attestation without verifying the chain against the real Apple Root CA.
+  if (!APPLE_APP_ATTEST_ROOT_CA_PEM.includes("BEGIN CERTIFICATE")) {
+    console.error("[verify-attestation] APPLE_APP_ATTEST_ROOT_CA_PEM not set — refusing attestation")
+    return jsonErr("server_misconfig: APPLE_APP_ATTEST_ROOT_CA_PEM not configured", 500)
+  }
 
   const credCertDer   = attStmt.x5c[0]
   const intermCertDer = attStmt.x5c[1]

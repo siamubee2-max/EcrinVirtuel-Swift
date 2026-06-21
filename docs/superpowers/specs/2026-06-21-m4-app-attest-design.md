@@ -73,7 +73,13 @@ is false / under `-uitest`.
 
 ### Activation runbook (your steps — agent cannot do these)
 1. Host `web/public/.well-known/apple-app-site-association` at `https://ecrin.app/.well-known/apple-app-site-association` (content-type `application/json`, no redirect).
-2. Confirm the embedded Apple App Attest Root CA PEM in `verify-attestation/index.ts` against https://www.apple.com/certificateauthority/.
+2. **Set the Edge secret `APPLE_APP_ATTEST_ROOT_CA_PEM`** to the REAL Apple App Attest Root CA
+   (the root is NO LONGER hardcoded — an AI-reproduced cert was found fabricated and removed;
+   `verify-attestation` now reads it from env and fails CLOSED if unset):
+   ```bash
+   curl -s https://www.apple.com/certificateauthority/Apple_App_Attest_Root_CA.pem
+   # paste the full PEM into the Edge secret APPLE_APP_ATTEST_ROOT_CA_PEM
+   ```
 3. `supabase functions deploy verify-attestation` and `tryon-generate` (v23, hook stays OFF).
 4. Build a TestFlight/device build (App Attest is simulator-unsupported; `appattest-environment=development` for TestFlight, `production` for App Store).
 5. Set `APP_ATTEST_MODE=log` (Edge secret). Generate from a real device → confirm `monitoring_events` shows `attestation_ok`. Tune the DER-nesting caveat if `attestation_fail` shows parser issues.
