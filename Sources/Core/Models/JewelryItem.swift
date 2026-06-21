@@ -1,6 +1,6 @@
 import Foundation
 
-struct JewelryItem: Identifiable, Codable {
+struct JewelryItem: Identifiable, Codable, Equatable {
     let id: UUID
     let name: String
     let category: JewelryCategory

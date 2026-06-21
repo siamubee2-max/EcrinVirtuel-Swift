@@ -208,7 +208,8 @@ final class PaywallViewModel: ObservableObject {
         do {
             let product = try await fetchProduct(plan)
             let result = try await Purchases.shared.purchase(product: product)
-            if result.customerInfo.entitlements["premium"]?.isActive == true {
+            // Config-agnostic: any active entitlement means success (Elite, Starter, Lifetime, etc.)
+            if !result.customerInfo.entitlements.active.isEmpty {
                 _ = try? await SupabaseService.shared.creditGenerations(
                     productId: plan.rcIdentifier,
                     transactionId: result.transaction?.transactionIdentifier ?? UUID().uuidString
@@ -232,14 +233,40 @@ final class PaywallViewModel: ObservableObject {
 
     // MARK: Restore
 
-    func restore() async {
+    func restore(dismiss: @escaping () -> Void) async {
         isPurchasing = true
         purchaseError = nil
         defer { isPurchasing = false }
         do {
             let info = try await Purchases.shared.restorePurchases()
-            if info.entitlements["premium"]?.isActive != true {
+            // Config-agnostic: restore succeeds if ANY entitlement is now active
+            if info.entitlements.active.isEmpty {
                 purchaseError = "Aucun achat trouvé à restaurer."
+            } else {
+                // Resolve highest active tier (mirrors EcrinVirtuelApp boot mapping).
+                let activeKeys = info.entitlements.active.keys
+                let rcId: String
+                if activeKeys.contains(where: { $0.contains("elite") }) {
+                    rcId = PaywallProductID.eliteMonthly
+                } else if activeKeys.contains(where: { $0.contains("premium") }) {
+                    rcId = PaywallProductID.premiumMonthly
+                } else {
+                    rcId = PaywallProductID.starterMonthly
+                }
+                // Synthetic plan — carries the resolved rcIdentifier so .onChange resolves the tier.
+                let syntheticPlan = PaywallPlan(
+                    id: rcId,
+                    name: "",
+                    price: "",
+                    period: "",
+                    priceDescription: "",
+                    savings: "",
+                    isBestValue: false,
+                    rcIdentifier: rcId,
+                    planPeriod: .monthly
+                )
+                purchasedPlan = syntheticPlan   // triggers .onChange → appState + CreditsManager
+                dismiss()
             }
         } catch {
             MonitoringService.shared.recordRestoreError(error)
@@ -404,7 +431,7 @@ struct PaywallView: View {
                             .disabled(viewModel.isPurchasing)
 
                             Button("Restaurer mes achats") {
-                                Task { await viewModel.restore() }
+                                Task { await viewModel.restore(dismiss: { dismiss() }) }
                             }
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)

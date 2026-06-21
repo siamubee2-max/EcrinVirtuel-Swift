@@ -10,6 +10,8 @@ struct FullExportView: View {
 
     @StateObject private var vm: FullExportViewModel
     @Environment(\.dismiss) private var dismiss
+    /// Used to unlock premium frames for paying subscribers (Fix A).
+    @Environment(AppState.self) private var appState
 
     @State private var showBackgroundPicker = false
     @State private var showFramePicker = false
@@ -17,6 +19,7 @@ struct FullExportView: View {
     init(tryOnImage: UIImage, jewelryName: String = "L'ÉCRIN VIRTUEL") {
         self.tryOnImage = tryOnImage
         self.jewelryName = jewelryName
+        // isPremiumUser is refined in .onAppear once AppState is available.
         _vm = StateObject(wrappedValue: FullExportViewModel(tryOnImage: tryOnImage))
     }
 
@@ -85,6 +88,14 @@ struct FullExportView: View {
         }
         .onChange(of: vm.frameVM.selectedFrame) { _, _ in
             vm.scheduleCompose()
+        }
+        .onAppear {
+            // Fix A: unlock premium frames for paying subscribers.
+            // Uses AppState.subscription (set by RevenueCat at launch) as the source
+            // of truth; CreditsManager.isUnlimited is also accepted as a fallback
+            // (handles grandfathered high-credit accounts).
+            vm.frameVM.isPremiumUser = appState.subscription.isSubscribed
+                || CreditsManager.shared.isUnlimited
         }
     }
 
@@ -371,8 +382,10 @@ final class FullExportViewModel: ObservableObject {
     // SocialFormat convenience
     var outputSize: CGSize { selectedFormat.renderSize }
 
-    init(tryOnImage: UIImage) {
+    init(tryOnImage: UIImage, isPremiumUser: Bool = false) {
         self.tryOnImage = tryOnImage
+        // Propagate subscription status so FrameViewModel can unlock premium frames.
+        frameVM.isPremiumUser = isPremiumUser
     }
 
     deinit {
