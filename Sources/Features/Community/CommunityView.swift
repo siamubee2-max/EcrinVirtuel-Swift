@@ -127,6 +127,7 @@ private struct FeedTab: View {
             }
         }
         .scrollIndicators(.hidden)
+        .accessibilityIdentifier("community.feed")
         .refreshable {
             await vm.refreshFeed()
         }

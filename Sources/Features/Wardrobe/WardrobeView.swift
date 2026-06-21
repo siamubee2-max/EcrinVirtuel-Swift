@@ -252,6 +252,7 @@ struct WardrobeView: View {
             }
         }
         .animation(EcrinAnimation.springSnap, value: viewModel.filteredItems.map { $0.id })
+        .accessibilityIdentifier("wardrobe.list")
     }
 
     // MARK: - Empty State
@@ -274,6 +275,7 @@ struct WardrobeView: View {
             }
         }
         .padding(EcrinSpacing.xl)
+        .accessibilityIdentifier("wardrobe.empty")
     }
 
     // MARK: - FAB
@@ -293,6 +295,7 @@ struct WardrobeView: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("wardrobe.add")
     }
 }
 

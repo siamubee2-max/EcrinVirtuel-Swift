@@ -60,6 +60,11 @@ final class WardrobeViewModel {
 
     // MARK: - Init
     init() {
+        // MOCK SEAM — under UI tests bypass UserDefaults and cloud sync for determinism
+        if AppLaunchEnvironment.isUITesting {
+            items = FashionItem.samples
+            return
+        }
         load()
         if items.isEmpty {
             items = FashionItem.samples

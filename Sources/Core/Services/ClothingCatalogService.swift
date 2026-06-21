@@ -27,6 +27,16 @@ final class ClothingCatalogService {
     // MARK: - Fetch All
 
     func fetchAll(force: Bool = false) async {
+        // MOCK SEAM — no network call when running under UI tests
+        if AppLaunchEnvironment.isUITesting {
+            let samples = CatalogClothingItem.samples
+            womenItems  = samples.filter { $0.gender == .femme }
+            menItems    = samples.filter { $0.gender == .homme }
+            unisexItems = samples.filter { $0.gender == .unisexe }
+            lastFetchedAt = .now
+            return
+        }
+
         if !force, totalCount > 0, lastFetchedAt != nil { return }
         isLoading = true
         lastError = nil
@@ -85,6 +95,10 @@ final class ClothingCatalogService {
 
     func search(query: String) async -> [CatalogClothingItem] {
         guard !query.trimmingCharacters(in: .whitespaces).isEmpty else { return [] }
+        // MOCK SEAM — use in-memory data when running under UI tests (no network call)
+        if AppLaunchEnvironment.isUITesting {
+            return searchLocally(query: query)
+        }
         let term = query.lowercased()
         do {
             let byName: [CatalogClothingItem] = try await client

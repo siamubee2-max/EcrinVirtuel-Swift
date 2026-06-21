@@ -37,6 +37,7 @@
 		2A9E7A8E98ECC52976E3DB17 /* BoutiqueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F4C15B5251438E384029EA /* BoutiqueView.swift */; };
 		2C12F7C9F01FEDDC24661C67 /* SkinToneAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E929EA1D7EB9648292F3F40 /* SkinToneAnalyzer.swift */; };
 		2C883A550EDB1BDF68066F34 /* SmokeNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DAB0F363349B4131F7A21E /* SmokeNavigationUITests.swift */; };
+		C7CC0AD103B847E38524F40D /* CoreJourneysUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59B5CF4833E4C13BCBB6304 /* CoreJourneysUITests.swift */; };
 		2DCF40C9CEB64014953E2900 /* BodyContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9CACBB6476D9F4A3EDCA9A /* BodyContext.swift */; };
 		2E8E74227C556AE27831C677 /* GamingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26AFDAB4907CBB893363665 /* GamingService.swift */; };
 		2EA589397CEC5B57F4F51A88 /* ARTryOnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C824526432FF21FE01897E /* ARTryOnView.swift */; };
@@ -311,6 +312,7 @@
 		8097C476852BE63ED61F7678 /* LookDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookDetailView.swift; sourceTree = "<group>"; };
 		82600B808721F1B1AAE07515 /* PoseVariant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseVariant.swift; sourceTree = "<group>"; };
 		82DAB0F363349B4131F7A21E /* SmokeNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeNavigationUITests.swift; sourceTree = "<group>"; };
+		B59B5CF4833E4C13BCBB6304 /* CoreJourneysUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreJourneysUITests.swift; sourceTree = "<group>"; };
 		8574A3BC7F0A3E3934D86039 /* QuickTryOnEntryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickTryOnEntryButton.swift; sourceTree = "<group>"; };
 		86AADDF2343E57DF1B8AD209 /* PhotoQualityAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoQualityAnalyzer.swift; sourceTree = "<group>"; };
 		86EC357C093EF83989D5FC54 /* CreditsPackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsPackView.swift; sourceTree = "<group>"; };
@@ -648,6 +650,7 @@
 			children = (
 				AAFA1D640710C5C54B22EAFD /* .gitkeep */,
 				82DAB0F363349B4131F7A21E /* SmokeNavigationUITests.swift */,
+				B59B5CF4833E4C13BCBB6304 /* CoreJourneysUITests.swift */,
 			);
 			name = UITests;
 			path = Tests/UITests;
@@ -1261,6 +1264,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2C883A550EDB1BDF68066F34 /* SmokeNavigationUITests.swift in Sources */,
+				C7CC0AD103B847E38524F40D /* CoreJourneysUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
