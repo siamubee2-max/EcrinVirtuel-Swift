@@ -42,6 +42,7 @@ targets:
           - UIInterfaceOrientationPortrait
         NSPhotoLibraryUsageDescription: "L'Écrin Virtuel utilise vos photos pour l'essayage virtuel de bijoux."
         NSCameraUsageDescription: "L'Écrin Virtuel utilise la caméra pour l'essayage virtuel de bijoux en temps réel."
+        NSLocationWhenInUseUsageDescription: "L'Écrin Virtuel utilise votre position pour vous proposer un look adapté à la météo de votre ville."
         CFBundleDisplayName: "L'Écrin"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
