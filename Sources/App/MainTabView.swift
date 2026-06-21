@@ -10,6 +10,7 @@ struct MainTabView: View {
 
                 // Tab 0 — Essayage bijoux IA
                 TryOnView()
+                    .accessibilityIdentifier("screen.essayage")
                     .tabItem { Label("Essayage", systemImage: "sparkles") }
                     .tag(0)
 
@@ -30,11 +31,13 @@ struct MainTabView: View {
                             }
                         }
                 }
+                .accessibilityIdentifier("screen.garderobe")
                 .tabItem { Label("Garde-robe", systemImage: "tshirt.fill") }
                 .tag(1)
 
                 // Tab 2 — Boutique partenaires
                 PartnerStoreView()
+                    .accessibilityIdentifier("screen.boutique")
                     .tabItem { Label("Boutique", systemImage: "bag") }
                     .tag(2)
 
@@ -51,11 +54,13 @@ struct MainTabView: View {
                             }
                         }
                 }
+                .accessibilityIdentifier("screen.communaute")
                 .tabItem { Label("Communauté", systemImage: "person.2") }
                 .tag(3)
 
                 // Tab 4 — Profil
                 ProfileView()
+                    .accessibilityIdentifier("screen.profil")
                     .tabItem { Label("Profil", systemImage: "person.circle") }
                     .tag(4)
             }
@@ -78,6 +83,7 @@ struct MainTabView: View {
             }
             .accessibilityLabel("Essayage rapide")
             .accessibilityHint("Ouvre l'essayage virtuel")
+            .accessibilityIdentifier("fab.quicktryon")
             .offset(y: -28)
             .sheet(isPresented: $showQuickTryOn) {
                 QuickTryOnView()
