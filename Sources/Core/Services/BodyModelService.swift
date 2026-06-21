@@ -3,8 +3,9 @@ import SwiftUI
 import Supabase
 
 // MARK: - BodyModelService
-// Charge les mannequins de référence depuis Supabase (`body_parts`).
-// Distingue les mannequins globaux (user_id NULL) des photos persos de l'utilisateur.
+// Charge les mannequins de référence.
+// NOTE: `body_parts` table absent from prod (migration 009) — fetchAll is a no-op;
+// callers receive an empty list (no models available until table is created).
 
 @MainActor
 final class BodyModelService: ObservableObject {
@@ -21,26 +22,11 @@ final class BodyModelService: ObservableObject {
 
     // MARK: - Fetch
 
-    /// Charge tous les mannequins (globaux + ceux de l'utilisateur courant).
+    /// No-op: `body_parts` table does not exist in prod (migration 009).
+    /// Returns empty model lists; feature is deferred until table is added to prod.
     func fetchAll() async {
-        isLoading = true
-        error = nil
-        defer { isLoading = false }
-
-        do {
-            let all: [BodyModel] = try await client
-                .from(SupabaseService.bodyParts)
-                .select()
-                .order("type")
-                .order("name")
-                .execute()
-                .value
-
-            globalModels = all.filter { $0.isGlobal }
-            userModels   = all.filter { !$0.isGlobal }
-        } catch {
-            self.error = "Impossible de charger les mannequins : \(error.localizedDescription)"
-        }
+        globalModels = []
+        userModels   = []
     }
 
     /// Retourne les mannequins compatibles avec un type de bijou donné.
