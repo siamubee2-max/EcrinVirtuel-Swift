@@ -488,7 +488,7 @@ struct EarringsPoseView: View {
         guard let photo = userPhoto else { return }
         let defaultMode = QuickTryOnMode.allCases.first(where: {
             $0.compatibleCategories.contains(item.fashionCategory)
-        }) ?? QuickTryOnMode.allCases[0]
+        }) ?? .jewelsOnly // safe jewelry default; allCases[0] (.topOnly) is incompatible with earrings
 
         // Analyse réelle de la photo (teint, lumière, morphologie) — indispensable
         // pour que le prompt bijou respecte la zone et le rendu.
