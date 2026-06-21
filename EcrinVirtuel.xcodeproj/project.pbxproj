@@ -49,6 +49,7 @@
 		348BF26D6031FAF472F65D65 /* OccasionVaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DB3B935C866EDBB8E1438AD /* OccasionVaultView.swift */; };
 		3790ACA6F96770F69607993C /* StylisteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66EFF29C25BCE59EE626A200 /* StylisteViewModel.swift */; };
 		3B025D41EF447C44CACC53BF /* WeatherConditionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4454E8068093F3B6D5E1264C /* WeatherConditionTests.swift */; };
+		CF13FC7678B1B5CDF805CD1D /* MoodBoardStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3B9342F5612DF2DBE08E64 /* MoodBoardStoreTests.swift */; };
 		BB22CC33DD44EE55FF6677AA /* UnlimitedAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF66 /* UnlimitedAccessTests.swift */; };
 		CC11DD22EE33FF4400112233 /* SupabaseWardrobeRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD22EE33FF4400112233CC11 /* SupabaseWardrobeRowTests.swift */; };
 		3E9D329CC5894790A60BDAAE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55B37DE6EC1A2411C1BB229D /* Assets.xcassets */; };
@@ -63,6 +64,7 @@
 		5C2FC0C04063E3FB66374BA1 /* AppLaunchEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6880731010569E615F29B622 /* AppLaunchEnvironment.swift */; };
 		5CDB8C56DFFF0FDB2130A268 /* MoodBoardResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB23CD48E0D5DEBA0463A37 /* MoodBoardResultView.swift */; };
 		5EEF3520479AAF410D868D0A /* MoodBoardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06744DF67667D279F7861063 /* MoodBoardService.swift */; };
+		E123FAF1D503AB5AA340F290 /* MoodBoardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 948E0A900916515D62171F0A /* MoodBoardStore.swift */; };
 		621DAD737CABDA7EAA082D6C /* GiftRevealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE64C0A1E536162D969C91 /* GiftRevealView.swift */; };
 		638512DAC373D013102D1FBA /* LookDuJourViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B133B9C49A9B14B1472F706B /* LookDuJourViewModel.swift */; };
 		638ECF2ED87141C761192A8A /* MultiPoseViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDE6D2DB140922E5DE9573E5 /* MultiPoseViewModel.swift */; };
@@ -210,6 +212,7 @@
 		04CE0A51522EFCD3F2E66D66 /* PostCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostCard.swift; sourceTree = "<group>"; };
 		04F4C15B5251438E384029EA /* BoutiqueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoutiqueView.swift; sourceTree = "<group>"; };
 		06744DF67667D279F7861063 /* MoodBoardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodBoardService.swift; sourceTree = "<group>"; };
+		948E0A900916515D62171F0A /* MoodBoardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodBoardStore.swift; sourceTree = "<group>"; };
 		07C0D519C95FC0D2FAD037D3 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		0832D713A1E56971C9B85552 /* WeddingLook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeddingLook.swift; sourceTree = "<group>"; };
 		088539DBC8D327A10153BB5C /* MetalScoreCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalScoreCard.swift; sourceTree = "<group>"; };
@@ -264,6 +267,7 @@
 		3E929EA1D7EB9648292F3F40 /* SkinToneAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinToneAnalyzer.swift; sourceTree = "<group>"; };
 		40DAD57FA9F76CF7AD06E86A /* DressingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DressingView.swift; sourceTree = "<group>"; };
 		4454E8068093F3B6D5E1264C /* WeatherConditionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherConditionTests.swift; sourceTree = "<group>"; };
+		AA3B9342F5612DF2DBE08E64 /* MoodBoardStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodBoardStoreTests.swift; sourceTree = "<group>"; };
 		AA11BB22CC33DD44EE55FF66 /* UnlimitedAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlimitedAccessTests.swift; sourceTree = "<group>"; };
 		DD22EE33FF4400112233CC11 /* SupabaseWardrobeRowTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseWardrobeRowTests.swift; sourceTree = "<group>"; };
 		45107E59A80FE4F40F0D9996 /* SnapshotFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotFrame.swift; sourceTree = "<group>"; };
@@ -452,6 +456,7 @@
 				EC7366F842E10F849E630B9D /* MoodBoardGeneratorView.swift */,
 				4DB23CD48E0D5DEBA0463A37 /* MoodBoardResultView.swift */,
 				06744DF67667D279F7861063 /* MoodBoardService.swift */,
+				948E0A900916515D62171F0A /* MoodBoardStore.swift */,
 			);
 			path = MoodBoard;
 			sourceTree = "<group>";
@@ -721,6 +726,7 @@
 				676ED63B498478EA7B2B2CF4 /* AppLaunchEnvironmentTests.swift */,
 				DD729EE7CD369D50DEC6A878 /* AppStateLaunchModeTests.swift */,
 				4454E8068093F3B6D5E1264C /* WeatherConditionTests.swift */,
+				AA3B9342F5612DF2DBE08E64 /* MoodBoardStoreTests.swift */,
 				091CD68EE00AD04A315AB318 /* WeatherLookRecommenderTests.swift */,
 				AA11BB22CC33DD44EE55FF66 /* UnlimitedAccessTests.swift */,
 				DD22EE33FF4400112233CC11 /* SupabaseWardrobeRowTests.swift */,
@@ -1165,6 +1171,7 @@
 				990C344F31B8D34A7E1CBC73 /* MoodBoardGeneratorView.swift in Sources */,
 				5CDB8C56DFFF0FDB2130A268 /* MoodBoardResultView.swift in Sources */,
 				5EEF3520479AAF410D868D0A /* MoodBoardService.swift in Sources */,
+				E123FAF1D503AB5AA340F290 /* MoodBoardStore.swift in Sources */,
 				9EEA2A8FC1FA6C57B9605F51 /* MultiPoseFlowView.swift in Sources */,
 				ADFF69A58F01DA6696B242B0 /* MultiPoseResultView.swift in Sources */,
 				638ECF2ED87141C761192A8A /* MultiPoseViewModel.swift in Sources */,
@@ -1253,6 +1260,7 @@
 				694DF4F3FC317AB9C90718C4 /* AppLaunchEnvironmentTests.swift in Sources */,
 				73648EA810D22BFD782ECF5E /* AppStateLaunchModeTests.swift in Sources */,
 				3B025D41EF447C44CACC53BF /* WeatherConditionTests.swift in Sources */,
+				CF13FC7678B1B5CDF805CD1D /* MoodBoardStoreTests.swift in Sources */,
 				6A89459F3011E97F6DF072A7 /* WeatherLookRecommenderTests.swift in Sources */,
 				BB22CC33DD44EE55FF6677AA /* UnlimitedAccessTests.swift in Sources */,
 				CC11DD22EE33FF4400112233 /* SupabaseWardrobeRowTests.swift in Sources */,

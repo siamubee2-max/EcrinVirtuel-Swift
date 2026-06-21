@@ -3,11 +3,16 @@ import SwiftUI
 // MARK: - Mood Board Gallery View
 
 struct MoodBoardGalleryView: View {
-    @State private var boards: [MoodBoard]  = MoodBoard.previews
+    @Environment(AppState.self) private var appState
+    @State private var store                = MoodBoardStore.shared
     @State private var showGenerator        = false
     @State private var selectedBoard: MoodBoard?
     @State private var showDetail           = false
+    @State private var showARTryOn          = false
+    @State private var arTryOnJewelry: JewelryItem?
     @State private var headerVisible        = false
+
+    private var boards: [MoodBoard] { store.boards }
 
     // Masonry: 2 columns with varying heights via alternating shorter/taller cards
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
@@ -26,23 +31,7 @@ struct MoodBoardGalleryView: View {
 
                         LazyVGrid(columns: columns, spacing: 12) {
                             ForEach(Array(boards.enumerated()), id: \.element.id) { index, board in
-                                MoodBoardCard(
-                                    board: board,
-                                    isTall: index % 3 == 0   // every 3rd card is taller
-                                )
-                                .onTapGesture {
-                                    selectedBoard = board
-                                    showDetail    = true
-                                }
-                                .contextMenu {
-                                    Button(role: .destructive) {
-                                        withAnimation(EcrinAnimation.springSnap) {
-                                            boards.removeAll { $0.id == board.id }
-                                        }
-                                    } label: {
-                                        Label(L10n.Common.delete, systemImage: "trash")
-                                    }
-                                }
+                                boardCell(board: board, index: index)
                             }
                         }
                         .padding(.top, EcrinSpacing.md)
@@ -56,6 +45,13 @@ struct MoodBoardGalleryView: View {
             fabButton
         }
         .onAppear { headerVisible = true }
+        // React to "Essayer ces bijoux": MoodBoardResultView writes pendingMoodBoardJewelry
+        // into AppState then dismisses. The gallery picks it up here and opens AR try-on.
+        .onChange(of: appState.pendingMoodBoardJewelry) { _, pending in
+            guard let jewelry = pending?.first else { return }
+            arTryOnJewelry = jewelry
+            showARTryOn = true
+        }
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showGenerator) {
             NavigationStack {
@@ -66,6 +62,18 @@ struct MoodBoardGalleryView: View {
         .fullScreenCover(isPresented: $showDetail) {
             if let board = selectedBoard {
                 MoodBoardResultView(board: board)
+            }
+        }
+        .fullScreenCover(isPresented: $showARTryOn, onDismiss: {
+            appState.pendingMoodBoardJewelry = nil
+            arTryOnJewelry = nil
+        }) {
+            if let jewelry = arTryOnJewelry {
+                ARTryOnWrapperView(
+                    jewelry: jewelry,
+                    onDismiss: { showARTryOn = false },
+                    onCapture: { _ in showARTryOn = false }
+                )
             }
         }
     }
@@ -127,6 +135,25 @@ struct MoodBoardGalleryView: View {
                 .padding(.bottom, EcrinSpacing.xxl)
             }
         }
+    }
+
+    // MARK: - Board Cell (extracted to help the type-checker with @Observable store access)
+
+    @ViewBuilder
+    private func boardCell(board: MoodBoard, index: Int) -> some View {
+        MoodBoardCard(board: board, isTall: index % 3 == 0)
+            .onTapGesture {
+                selectedBoard = board
+                showDetail    = true
+            }
+            .contextMenu {
+                Button(role: .destructive) {
+                    let id = board.id
+                    withAnimation(EcrinAnimation.springSnap) { store.delete(id: id) }
+                } label: {
+                    Label(L10n.Common.delete, systemImage: "trash")
+                }
+            }
     }
 
     // MARK: - Empty State

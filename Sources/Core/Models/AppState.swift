@@ -40,6 +40,10 @@ final class AppState {
     /// Dernier contexte corporel analysé (Try-On) — alimente le scoring bijoux par sous-ton de peau.
     var lastBodyContext: BodyContext?
 
+    /// Bijoux sélectionnés depuis un MoodBoard pour essayage AR.
+    /// MoodBoardResultView y écrit puis se dismissit ; MoodBoardGalleryView l'observe et ouvre ARTryOnWrapperView.
+    var pendingMoodBoardJewelry: [JewelryItem]?
+
     /// Genre vestimentaire pour le Look du Jour (UserDefaults + Supabase Phase 5).
     var preferredGender: ClothingGender? {
         get {
