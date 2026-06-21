@@ -208,7 +208,8 @@ final class PaywallViewModel: ObservableObject {
         do {
             let product = try await fetchProduct(plan)
             let result = try await Purchases.shared.purchase(product: product)
-            if result.customerInfo.entitlements["premium"]?.isActive == true {
+            // Config-agnostic: any active entitlement means success (Elite, Starter, Lifetime, etc.)
+            if !result.customerInfo.entitlements.active.isEmpty {
                 _ = try? await SupabaseService.shared.creditGenerations(
                     productId: plan.rcIdentifier,
                     transactionId: result.transaction?.transactionIdentifier ?? UUID().uuidString
@@ -238,7 +239,8 @@ final class PaywallViewModel: ObservableObject {
         defer { isPurchasing = false }
         do {
             let info = try await Purchases.shared.restorePurchases()
-            if info.entitlements["premium"]?.isActive != true {
+            // Config-agnostic: restore succeeds if ANY entitlement is now active
+            if info.entitlements.active.isEmpty {
                 purchaseError = "Aucun achat trouvé à restaurer."
             }
         } catch {
