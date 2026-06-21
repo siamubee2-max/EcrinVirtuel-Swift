@@ -83,9 +83,9 @@ final class CreditsManager {
 
     /// Déclenche un sync en arrière-plan (fire-and-forget).
     func syncDetached() {
-        Task.detached { [weak self] in
-            await self?.sync()
-        }
+        // CreditsManager is a singleton — [weak self] is unnecessary and misleading.
+        // Task (not Task.detached) inherits the caller's actor context where needed.
+        Task { await CreditsManager.shared.sync() }
     }
 
     // MARK: - Subscription update
