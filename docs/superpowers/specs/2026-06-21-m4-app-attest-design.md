@@ -56,6 +56,29 @@ is false / under `-uitest`.
 - App: handle the universal link in `.onContinueUserActivity(NSUserActivityTypeBrowsingWeb)` →
   same `SupabaseService.handleDeepLink`/gift logic. Keep `ecrin://` as fallback.
 
+## Deployment status (2026-06-21) — IMPORTANT
+- ✅ Migration `011_device_attest` APPLIED to prod (additive, safe).
+- ✅ All code COMMITTED in the repo: iOS (`AttestationService`, header wiring, AASA, entitlement,
+  `onContinueUserActivity`); Edge `verify-attestation/index.ts` (665 lines, UNTESTED crypto);
+  `tryon-generate` v23 hook (`APP_ATTEST_MODE`, default off, no new top-level imports, body read once).
+- ⛔ **NOT deployed to the live Edge by the agent — on purpose.** The live `tryon-generate` stays at
+  the verified-working **v22**. Deploying 600+ line functions via lossy inline reproduction (the only
+  channel the agent has) risks a transcription error on the paid revenue path; and the App Attest
+  crypto is untested. Deploy from the repo files instead (exact):
+  ```bash
+  supabase functions deploy verify-attestation --project-ref itjtshfzpknlzownpwte
+  supabase functions deploy tryon-generate    --project-ref itjtshfzpknlzownpwte   # v23 (hook OFF by default)
+  ```
+  Then validate on a real device and flip the mode (see Activation runbook).
+
+### Activation runbook (your steps — agent cannot do these)
+1. Host `web/public/.well-known/apple-app-site-association` at `https://ecrin.app/.well-known/apple-app-site-association` (content-type `application/json`, no redirect).
+2. Confirm the embedded Apple App Attest Root CA PEM in `verify-attestation/index.ts` against https://www.apple.com/certificateauthority/.
+3. `supabase functions deploy verify-attestation` and `tryon-generate` (v23, hook stays OFF).
+4. Build a TestFlight/device build (App Attest is simulator-unsupported; `appattest-environment=development` for TestFlight, `production` for App Store).
+5. Set `APP_ATTEST_MODE=log` (Edge secret). Generate from a real device → confirm `monitoring_events` shows `attestation_ok`. Tune the DER-nesting caveat if `attestation_fail` shows parser issues.
+6. Only once green from real devices: set `APP_ATTEST_MODE=enforce`.
+
 ## Verification limits
 Agent verifies: builds compile (xcodebuild), migration applies, Edge deploys with
 `APP_ATTEST_MODE=off` (no behaviour change — re-smoke-test a real generation stays 200).
