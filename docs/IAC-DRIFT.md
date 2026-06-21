@@ -24,7 +24,11 @@ applied hardening changes. Treat `009_prod_baseline.sql` as the current truth.
 
 `conversations`, `messages` (AI styliste chat), `credit_transactions`,
 `device_tryons`, `jewelry_items`, `outfit_presets`, `post_comments`,
-`post_reports`, `try_on_results`, `partnership_requests`.
+`post_likes`, `post_reports`, `try_on_results`, `partnership_requests`.
+
+Note: `jewelry` (a **public catalogue** table, `SELECT USING(true)`) is a
+**separate** table from `jewelry_items` (per-user, 4 owner-scoped policies) —
+similar names, very different RLS posture. Don't conflate them in M2.
 
 ## Identity model (RESOLVES an earlier audit concern)
 
@@ -32,8 +36,11 @@ The 007 audit flagged a possible `auth_id` vs `users.id` mismatch that could
 break account deletion and inserts. **That concern was an artifact of the
 drifted repo migrations.** In production the model is consistent: `users.id`
 equals `auth.uid()` and every per-user table is keyed and RLS-scoped on
-`auth.uid()`. The Swift code (which passes the auth uid as `user_id`) is
-therefore correct against prod.
+`auth.uid()`. Most tables use a `varchar` key and cast
+(`auth.uid()::text = user_id::text`); **two tables are the exception** —
+`user_quotas.user_id` and `credit_transactions.user_id` are native `uuid`
+keys whose RLS uses `auth.uid() = user_id` with no cast. The Swift code (which
+passes the auth uid as `user_id`) is correct against prod in all cases.
 
 ## New items for the M2 code/security audit
 
