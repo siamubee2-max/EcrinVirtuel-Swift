@@ -27,6 +27,16 @@ final class ClothingCatalogService {
     // MARK: - Fetch All
 
     func fetchAll(force: Bool = false) async {
+        // MOCK SEAM — no network call when running under UI tests
+        if AppLaunchEnvironment.isUITesting {
+            let samples = CatalogClothingItem.samples
+            womenItems  = samples.filter { $0.gender == .femme }
+            menItems    = samples.filter { $0.gender == .homme }
+            unisexItems = samples.filter { $0.gender == .unisexe }
+            lastFetchedAt = .now
+            return
+        }
+
         if !force, totalCount > 0, lastFetchedAt != nil { return }
         isLoading = true
         lastError = nil

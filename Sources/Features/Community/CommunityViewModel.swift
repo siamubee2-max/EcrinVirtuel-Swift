@@ -38,6 +38,8 @@ final class CommunityViewModel: ObservableObject {
     init() {
         // Seed with samples immediately so the feed is never empty on first render.
         loadSampleData()
+        // MOCK SEAM — under UI tests keep static samples, skip all live backend calls
+        guard !AppLaunchEnvironment.isUITesting else { return }
         // Then replace with REAL Moniattitude jewelry + live posts asynchronously.
         Task {
             await loadDynamicSamplesFromMoniattitude()
