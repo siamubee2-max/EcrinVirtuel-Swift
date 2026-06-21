@@ -233,7 +233,7 @@ final class PaywallViewModel: ObservableObject {
 
     // MARK: Restore
 
-    func restore() async {
+    func restore(dismiss: @escaping () -> Void) async {
         isPurchasing = true
         purchaseError = nil
         defer { isPurchasing = false }
@@ -242,6 +242,31 @@ final class PaywallViewModel: ObservableObject {
             // Config-agnostic: restore succeeds if ANY entitlement is now active
             if info.entitlements.active.isEmpty {
                 purchaseError = "Aucun achat trouvé à restaurer."
+            } else {
+                // Resolve highest active tier (mirrors EcrinVirtuelApp boot mapping).
+                let activeKeys = info.entitlements.active.keys
+                let rcId: String
+                if activeKeys.contains(where: { $0.contains("elite") }) {
+                    rcId = PaywallProductID.eliteMonthly
+                } else if activeKeys.contains(where: { $0.contains("premium") }) {
+                    rcId = PaywallProductID.premiumMonthly
+                } else {
+                    rcId = PaywallProductID.starterMonthly
+                }
+                // Synthetic plan — carries the resolved rcIdentifier so .onChange resolves the tier.
+                let syntheticPlan = PaywallPlan(
+                    id: rcId,
+                    name: "",
+                    price: "",
+                    period: "",
+                    priceDescription: "",
+                    savings: "",
+                    isBestValue: false,
+                    rcIdentifier: rcId,
+                    planPeriod: .monthly
+                )
+                purchasedPlan = syntheticPlan   // triggers .onChange → appState + CreditsManager
+                dismiss()
             }
         } catch {
             MonitoringService.shared.recordRestoreError(error)
@@ -406,7 +431,7 @@ struct PaywallView: View {
                             .disabled(viewModel.isPurchasing)
 
                             Button("Restaurer mes achats") {
-                                Task { await viewModel.restore() }
+                                Task { await viewModel.restore(dismiss: { dismiss() }) }
                             }
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)

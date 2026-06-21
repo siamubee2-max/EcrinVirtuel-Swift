@@ -255,7 +255,7 @@ final class FrameViewModel: ObservableObject {
     /// Pragmatic default: premium frames (isPremium=true, isUnlockableByXP=false) are
     /// unlocked for subscribers via CreditsManager.shared.isUnlimited OR
     /// AppState.subscription.isSubscribed.  Caller sets this after init.
-    var isPremiumUser: Bool = false
+    @Published var isPremiumUser: Bool = false
 
     var filteredFrames: [SnapshotFrame] {
         frames.filter { $0.category == selectedCategory }
