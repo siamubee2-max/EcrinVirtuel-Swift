@@ -30,11 +30,11 @@ struct User: Identifiable, Codable {
     }
 }
 
-enum SubscriptionStatus {
-    case free
-    case starter
-    case premium
-    case elite
+enum SubscriptionStatus: String {
+    case free    = "free"
+    case starter = "starter"
+    case premium = "premium"
+    case elite   = "elite"
 
     var trialLimit: Int {
         switch self {

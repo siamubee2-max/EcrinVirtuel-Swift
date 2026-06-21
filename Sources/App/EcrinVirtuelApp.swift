@@ -33,16 +33,33 @@ struct EcrinVirtuelApp: App {
                     }
 
                     // 2. Restaurer le statut d'abonnement depuis RevenueCat.
-                    if let info = try? await Purchases.shared.customerInfo() {
+                    //    On persiste le tier résolu dans UserDefaults pour le restaurer
+                    //    en cas de panne réseau au démarrage (Bug C7).
+                    let subscriptionKey = "lastKnownSubscriptionTier"
+                    do {
+                        let info = try await Purchases.shared.customerInfo()
                         let entitlements = info.entitlements.all
                         let activeIds = entitlements.filter { $0.value.isActive }.keys
+                        let resolved: SubscriptionStatus
                         if activeIds.contains(where: { $0.contains("elite") }) {
-                            appState.subscription = .elite
+                            resolved = .elite
                         } else if activeIds.contains(where: { $0.contains("premium") }) {
-                            appState.subscription = .premium
+                            resolved = .premium
                         } else if activeIds.contains(where: { $0.contains("starter") || $0 == "premium" }) {
-                            appState.subscription = .starter
+                            resolved = .starter
+                        } else {
+                            resolved = .free
                         }
+                        appState.subscription = resolved
+                        UserDefaults.standard.set(resolved.rawValue, forKey: subscriptionKey)
+                    } catch {
+                        // Network/RevenueCat failure — restore last known tier so paying
+                        // subscribers aren't downgraded to .free for the session.
+                        if let raw = UserDefaults.standard.string(forKey: subscriptionKey),
+                           let persisted = SubscriptionStatus(rawValue: raw) {
+                            appState.subscription = persisted
+                        }
+                        // If nothing persisted, appState.subscription stays .free (safe default).
                     }
 
                     // 3. Synchroniser les crédits et le profil gaming depuis Supabase.
