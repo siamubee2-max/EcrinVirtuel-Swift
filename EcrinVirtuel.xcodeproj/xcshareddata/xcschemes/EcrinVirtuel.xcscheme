@@ -114,6 +114,11 @@
             ReferencedContainer = "container:EcrinVirtuel.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+      </CommandLineArguments>
+      <StoreKitConfigurationFileReference
+         identifier = "../../EcrinVirtuel.storekit">
+      </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
