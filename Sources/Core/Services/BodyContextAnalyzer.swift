@@ -193,7 +193,12 @@ final class BodyContextAnalyzer: @unchecked Sendable {
                 continuation.resume(returning: converted)
             }
             let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            try? handler.perform([request])
+            do {
+                try handler.perform([request])
+            } catch {
+                // perform threw — the request completion will NOT fire; resume with fallback (nil faceRect)
+                continuation.resume(returning: nil)
+            }
         }
     }
 
@@ -315,7 +320,16 @@ final class BodyContextAnalyzer: @unchecked Sendable {
             }
 
             let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            try? handler.perform([request])
+            do {
+                try handler.perform([request])
+            } catch {
+                // perform threw — the request completion will NOT fire; resume with default pose values
+                continuation.resume(returning: PoseAnalysisResult(
+                    shape: .hourglass,
+                    height: .medium,
+                    shoulders: .medium
+                ))
+            }
         }
     }
 
@@ -540,7 +554,12 @@ final class BodyContextAnalyzer: @unchecked Sendable {
             }
 
             let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            try? handler.perform([request])
+            do {
+                try handler.perform([request])
+            } catch {
+                // perform threw — the request completion will NOT fire; resume with empty garment list
+                continuation.resume(returning: [])
+            }
         }
     }
 
