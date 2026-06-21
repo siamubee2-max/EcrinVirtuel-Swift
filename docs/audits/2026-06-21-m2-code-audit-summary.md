@@ -51,7 +51,15 @@ Résultat : des features **paraissent marcher** mais ne persistent jamais rien e
 - **C7** abonné : tier persisté en UserDefaults sur succès, restauré sur échec réseau (do/catch) + 6 tests — `ee34926`.
 - **C8** crédits : `CreditsManager.shared.sync()` appelé après achat de pack → source unique à jour — `dc15fe4`.
 
-Build + suite verts (25 tests) à chaque étape. Reste : C1/C2/C3 (dérive schéma — fork : aligner Swift sur prod), C4 (config RC à confirmer), et les High.
+## ✅ Corrections appliquées (vague 2 — dérive schéma, alignée sur prod)
+
+- **C1** `SupabaseWardrobeRow` aligné aux 10 colonnes prod (`type`=`category`=FashionCategory.rawValue ; champs fantômes retirés) + test pinnant le jeu de colonnes exact — `758101e`.
+- **C2** `preferred_gender` via `users.id` (plus `auth_id`), `updated_at` retiré ; même bug `auth_id` corrigé dans `deleteAccount` — `fc4d685`.
+- **C3** Gift honnête local-only (table `gift_cards` absente en prod) : insert/select supprimés, **plus de sample factice** au receive — `2702516`.
+
+Build + suite verts (29 tests) à chaque étape.
+
+**Reste :** C4 (confirmer config RevenueCat avant de corriger la clé d'entitlement) ; les ~27 High.
 
 ## Recommandation
 
