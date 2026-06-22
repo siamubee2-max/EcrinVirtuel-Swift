@@ -1,0 +1,10 @@
+project_id = "itjtshfzpknlzownpwte"
+
+# Edge Function deploy settings (read by `supabase functions deploy`).
+# verify-attestation is called server-to-server by tryon-generate → no user JWT.
+[functions.verify-attestation]
+verify_jwt = false
+
+# tryon-generate is user-facing → keep JWT verification on.
+[functions.tryon-generate]
+verify_jwt = true
