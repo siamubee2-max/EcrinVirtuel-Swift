@@ -1,6 +1,26 @@
 # M4 — Runbook d'activation App Attest (Voie A, depuis le repo)
 
-État : app iOS shippée (envoie les en-têtes App Attest). Côté serveur **pas encore déployé**
+## ✅ ÉTAT RÉEL (fait par l'agent, 22 juin)
+- `verify-attestation` **DÉPLOYÉE** (v1, `verify_jwt=false`).
+- `tryon-generate` **DÉPLOYÉE v24** (avec le hook App Attest) — **génération live vérifiée HTTP 200** (mode log ne casse rien).
+- Secrets **`APP_ATTEST_MODE=log`** + **`INTERNAL_FN_KEY`** posés.
+- ⛔ **RESTE 1 SEULE CHOSE POUR TOI** : poser le secret **`APPLE_APP_ATTEST_ROOT_CA_PEM`** (le vrai cert Apple). L'agent n'a PAS pu le récupérer (apple.com sert du HTML, absent du trousseau système macOS, et reproduire un cert de mémoire = dangereux). Sans lui, `verify-attestation` **fail-closed** → les attestations sont loggées `attestation_fail (server_misconfig)` mais **ne bloquent pas** (mode log).
+- Puis : trafic device réel (ton app shippée) → `attestation_ok` → `enforce`.
+
+### Le seul geste restant
+```bash
+# Récupérer le vrai cert (depuis un navigateur/poste où apple.com sert le PEM, ou le portail développeur Apple)
+#   https://www.apple.com/certificateauthority/Apple_App_Attest_Root_CA.pem
+# puis :
+supabase secrets set --project-ref itjtshfzpknlzownpwte \
+  APPLE_APP_ATTEST_ROOT_CA_PEM="$(cat Apple_App_Attest_Root_CA.pem)"
+```
+Ensuite : me ping → je vérifie via MCP `device_attest` + `attestation_ok` → on passe `enforce`.
+
+---
+
+## (Référence) Procédure complète d'origine
+État initial : app iOS shippée (envoie les en-têtes App Attest). Côté serveur **pas encore déployé**
 (`tryon-generate` en v22 sans hook, `verify-attestation` absente). Suivre ces étapes pour activer.
 
 > Prérequis CLI : `supabase login` (ou `export SUPABASE_ACCESS_TOKEN=...`) une fois.
