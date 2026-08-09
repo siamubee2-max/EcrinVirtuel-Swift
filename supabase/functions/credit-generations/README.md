@@ -13,7 +13,31 @@ via `SupabaseService.shared.creditGenerations(productId:transactionId:)`.
 | Prod actuelle | **v9 — VULNÉRABLE**, aucune vérification d'achat |
 | Ce dépôt | **v10 — correctif d'audit, NON DÉPLOYÉ** |
 | Dépendance | migration `012_credit_generations_atomic.sql` (non appliquée) |
-| Secret requis | `REVENUECAT_SECRET_KEY` (absent en prod) |
+| Secrets | ✅ `REVENUECAT_SECRET_KEY` + `REVENUECAT_PROJECT_ID` **posés le 9 août** |
+
+## ⚠️ API v2, pas v1
+
+Les clés secrètes émises aujourd'hui par RevenueCat sont **v2**, et la doc est explicite :
+« v1 API keys are not compatible with v2 […] generate new v2 secret keys ». Une première
+version de ce correctif visait `/v1/subscribers` — elle aurait renvoyé 401 en permanence,
+donc (la fonction étant fail-closed) **n'aurait crédité aucun achat légitime**.
+
+La v10 cible donc `https://api.revenuecat.com/v2` avec :
+
+| Secret | Valeur |
+|---|---|
+| `REVENUECAT_SECRET_KEY` | clé `supabase-credit-generations` (créée le 9 août) |
+| `REVENUECAT_PROJECT_ID` | `projc8c287c3` — **format v2**, pas le slug d'URL `c8c287c3` |
+
+La clé est en **moindre privilège** : `Purchases → Read only` et `Products → Read only`,
+les 20 autres permissions sur « No access ». Révocable seule.
+
+**Deux appels** sont nécessaires, d'où les deux permissions :
+1. `/v2/projects/{id}/customers/{user_id}/purchases` → retrouver l'achat par
+   `store_purchase_identifier`, vérifier `status === "owned"` et l'environnement ;
+2. `/v2/projects/{id}/products/{product_id}` → résoudre le `store_identifier` et vérifier
+   qu'il correspond au pack réclamé. **Sans ce second appel, la transaction d'un pack à
+   2,99 € permettrait de réclamer les 120 crédits du pack à 29,99 €.**
 
 ## Ce que corrige la v10
 

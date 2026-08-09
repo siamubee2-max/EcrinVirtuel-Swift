@@ -26,12 +26,21 @@ const SUPABASE_URL              = Deno.env.get("SUPABASE_URL")!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 const SUPABASE_ANON_KEY         = Deno.env.get("SUPABASE_ANON_KEY")!
 
-// Clé secrète RevenueCat (Dashboard → API keys → Secret key). OBLIGATOIRE.
+// Clé secrète RevenueCat v2 (Dashboard → API keys → Secret API keys). OBLIGATOIRE.
+// Permissions requises sur la clé :
+//   • customer_information:purchases:read   (lire les achats d'un client)
+//   • project_configuration:products:read   (résoudre product_id → store_identifier)
 const REVENUECAT_SECRET_KEY = Deno.env.get("REVENUECAT_SECRET_KEY") ?? ""
+// Identifiant projet AU FORMAT v2 (Project Settings → Project ID), pas le slug d'URL.
+const RC_PROJECT_ID = Deno.env.get("REVENUECAT_PROJECT_ID") ?? "projc8c287c3"
 // Autoriser les achats sandbox (TestFlight / Xcode). Défaut : NON en production.
 const ALLOW_SANDBOX = (Deno.env.get("ALLOW_SANDBOX_PURCHASES") ?? "false") === "true"
 
-const RC_API_BASE      = "https://api.revenuecat.com/v1"
+// ⚠️ API v2 — les clés secrètes émises aujourd'hui par RevenueCat sont v2, et la doc est
+// explicite : « v1 API keys are not compatible with v2 [...] generate new v2 secret keys ».
+// Viser /v1/subscribers avec une clé v2 exposait à un 401 permanent — donc, la fonction
+// étant fail-closed, à ne créditer AUCUN achat légitime. On cible donc v2 directement.
+const RC_API_BASE      = "https://api.revenuecat.com/v2"
 const RC_TIMEOUT_MS    = 8_000
 const MAX_ID_CHARS     = 256
 // L'app appelle cette fonction immédiatement après l'achat ; RevenueCat n'a parfois pas
@@ -170,38 +179,80 @@ async function verifyPurchase(
   productId: string,
   transactionId: string,
 ): Promise<Verdict> {
+  // ── 1) Les achats de CE client (customer_id = app_user_id = user.id du JWT) ────
+  const purchasesUrl =
+    `${RC_API_BASE}/projects/${encodeURIComponent(RC_PROJECT_ID)}` +
+    `/customers/${encodeURIComponent(appUserId)}/purchases?limit=50`
+
+  const purchases = await rcGet(purchasesUrl)
+  if (!purchases.ok) return { ok: false, reason: purchases.reason }
+
+  const items = purchases.json?.items
+  if (!Array.isArray(items) || items.length === 0) {
+    return { ok: false, reason: "no_purchase_for_product" }
+  }
+
+  // ── 2) Retrouver l'achat par l'identifiant de transaction du store ────────────
+  // Comparaison en chaîne : le champ est numérique chez certains stores.
+  const match = items.find(
+    (p: Record<string, unknown>) => String(p?.store_purchase_identifier) === transactionId,
+  )
+  if (!match) return { ok: false, reason: "transaction_not_found" }
+
+  // ── 3) L'achat doit être détenu, et non remboursé/révoqué ─────────────────────
+  if (match.status !== "owned") {
+    return { ok: false, reason: `purchase_status_${String(match.status)}` }
+  }
+
+  if (match.environment !== "production" && !ALLOW_SANDBOX) {
+    return { ok: false, reason: "sandbox_purchase_rejected" }
+  }
+
+  // ── 4) L'achat doit porter sur le produit RÉCLAMÉ ─────────────────────────────
+  // Indispensable : sans ce contrôle, la transaction d'un pack à 2,99 € permettrait
+  // de réclamer les 120 crédits du pack à 29,99 €. En v2, `product_id` est l'ID
+  // interne RevenueCat — il faut le résoudre pour obtenir le `store_identifier`.
+  const rcProductId = match.product_id
+  if (typeof rcProductId !== "string" || !rcProductId) {
+    return { ok: false, reason: "purchase_without_product" }
+  }
+
+  const product = await rcGet(
+    `${RC_API_BASE}/projects/${encodeURIComponent(RC_PROJECT_ID)}` +
+    `/products/${encodeURIComponent(rcProductId)}`,
+  )
+  if (!product.ok) return { ok: false, reason: `product_lookup: ${product.reason}` }
+
+  if (product.json?.store_identifier !== productId) {
+    return { ok: false, reason: "product_mismatch" }
+  }
+
+  return { ok: true, reason: "verified" }
+}
+
+interface RcResult { ok: boolean; reason: string; json?: Record<string, unknown> }
+
+// Toute erreur réseau/HTTP est un ÉCHEC de vérification, jamais un laissez-passer :
+// une indisponibilité RevenueCat ne vaut pas preuve d'achat.
+async function rcGet(url: string): Promise<RcResult> {
   let res: Response
   try {
-    res = await fetch(`${RC_API_BASE}/subscribers/${encodeURIComponent(appUserId)}`, {
+    res = await fetch(url, {
       headers: { "Authorization": `Bearer ${REVENUECAT_SECRET_KEY}` },
       signal:  AbortSignal.timeout(RC_TIMEOUT_MS),
     })
   } catch (e) {
-    // Fail-closed : indisponibilité RevenueCat ≠ achat valide.
     return { ok: false, reason: `rc_unreachable: ${String(e)}` }
   }
 
   if (res.status === 404) return { ok: false, reason: "subscriber_unknown" }
+  // 401/403 = clé invalide ou permission manquante sur la clé → à corriger côté config,
+  // surtout pas à contourner. Tracé côté serveur par l'appelant.
   if (!res.ok)            return { ok: false, reason: `rc_http_${res.status}` }
 
   const json = await res.json().catch(() => null)
   if (!json) return { ok: false, reason: "rc_bad_json" }
-
-  const nonSubs = json?.subscriber?.non_subscriptions?.[productId]
-  if (!Array.isArray(nonSubs) || nonSubs.length === 0) {
-    return { ok: false, reason: "no_purchase_for_product" }
-  }
-
-  const match = nonSubs.find((p: Record<string, unknown>) =>
-    p?.store_transaction_id === transactionId || p?.id === transactionId
-  )
-  if (!match) return { ok: false, reason: "transaction_not_found" }
-
-  if (match.is_sandbox === true && !ALLOW_SANDBOX) {
-    return { ok: false, reason: "sandbox_purchase_rejected" }
-  }
-
-  return { ok: true, reason: "verified" }
+  return { ok: true, reason: "ok", json }
 }
 
 function jsonError(msg: string, status: number): Response {
