@@ -74,7 +74,13 @@ final class GiftViewModel: ObservableObject {
         defer { isCreatingLink = false }
 
         do {
-            let userId = try? await SupabaseService.shared.client.auth.session.user.id.uuidString
+            // gift_cards.from_user_id references users(id), not auth.uid() —
+            // resolve the profile row id so the insert satisfies the RLS
+            // ownership check (migration 007).
+            var userId: String?
+            if let authId = try? await SupabaseService.shared.client.auth.session.user.id.uuidString {
+                userId = try? await SupabaseService.shared.resolveUsersRowID(authId: authId)
+            }
 
             let giftID = UUID()
             let expiresAt = Calendar.current.date(byAdding: .day, value: 30, to: .now) ?? .now
@@ -170,11 +176,14 @@ final class GiftViewModel: ObservableObject {
                 let created_at: String?
             }
 
+            struct GiftLookupParams: Encodable { let gift_id: String }
+
+            // Single-row RPC (get_gift_card, migration 007) instead of a direct
+            // table select — gift_cards has no public SELECT policy, so an
+            // anonymous recipient can only ever fetch the one gift they hold
+            // the id for, never the whole table.
             let rows: [GiftRow] = try await SupabaseService.shared.client
-                .from(SupabaseService.giftCards)
-                .select("id,from_display_name,from_email,jewelry_json,jewelry_name,jewelry_image_url,message,occasion,is_revealed,expires_at,created_at")
-                .eq("id", value: giftID.uuidString)
-                .limit(1)
+                .rpc("get_gift_card", params: GiftLookupParams(gift_id: giftID.uuidString))
                 .execute()
                 .value
 
@@ -221,14 +230,7 @@ final class GiftViewModel: ObservableObject {
                 expiresAt: expiresAt
             )
 
-            // Mark as revealed
-            struct RevealPatch: Encodable { let is_revealed: Bool }
-            try? await SupabaseService.shared.client
-                .from(SupabaseService.giftCards)
-                .update(RevealPatch(is_revealed: true))
-                .eq("id", value: giftID.uuidString)
-                .execute()
-
+            // get_gift_card() already marks the gift as revealed server-side.
             withAnimation(EcrinAnimation.glassReveal) {
                 revealedGift = gift
             }

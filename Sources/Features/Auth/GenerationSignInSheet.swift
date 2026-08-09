@@ -19,6 +19,7 @@ struct GenerationSignInSheet: View {
 
     @State private var loginError: String?
     @State private var isSigningIn = false
+    @State private var currentAppleNonce: String?
 
     var body: some View {
         ZStack {
@@ -45,7 +46,10 @@ struct GenerationSignInSheet: View {
 
                 VStack(spacing: EcrinSpacing.md) {
                     SignInWithAppleButton(.signIn) { request in
+                        let nonce = AppleSignInNonce.randomNonceString()
+                        currentAppleNonce = nonce
                         request.requestedScopes = [.fullName, .email]
+                        request.nonce = AppleSignInNonce.sha256(nonce)
                     } onCompletion: { result in
                         handleAppleSignIn(result)
                     }
@@ -76,7 +80,8 @@ struct GenerationSignInSheet: View {
         guard case .success(let auth) = result,
               let creds = auth.credential as? ASAuthorizationAppleIDCredential,
               let idTokenData = creds.identityToken,
-              let idToken = String(data: idTokenData, encoding: .utf8) else {
+              let idToken = String(data: idTokenData, encoding: .utf8),
+              let nonce = currentAppleNonce else {
             loginError = "Connexion Apple annulée."
             return
         }
@@ -87,7 +92,6 @@ struct GenerationSignInSheet: View {
         Task {
             defer { isSigningIn = false }
             do {
-                let nonce = UUID().uuidString
                 let user = try await SupabaseService.shared.signInWithApple(idToken: idToken, nonce: nonce)
                 appState.signIn(user: user)
                 await CreditsManager.shared.sync()

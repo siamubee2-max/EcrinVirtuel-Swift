@@ -8,6 +8,7 @@ struct LoginView: View {
     @State private var isLoading = false
     @State private var codeSent = false       // true après envoi du code → affiche le champ code
     @State private var loginError: String?
+    @State private var currentAppleNonce: String?
     @FocusState private var codeFieldFocused: Bool
 
     var body: some View {
@@ -38,7 +39,10 @@ struct LoginView: View {
                 VStack(spacing: EcrinSpacing.md) {
                     // Sign in with Apple
                     SignInWithAppleButton(.signIn) { request in
+                        let nonce = AppleSignInNonce.randomNonceString()
+                        currentAppleNonce = nonce
                         request.requestedScopes = [.fullName, .email]
+                        request.nonce = AppleSignInNonce.sha256(nonce)
                     } onCompletion: { result in
                         handleAppleSignIn(result)
                     }
@@ -199,11 +203,14 @@ struct LoginView: View {
         guard case .success(let auth) = result,
               let creds = auth.credential as? ASAuthorizationAppleIDCredential,
               let idTokenData = creds.identityToken,
-              let idToken = String(data: idTokenData, encoding: .utf8) else { return }
+              let idToken = String(data: idTokenData, encoding: .utf8),
+              let nonce = currentAppleNonce else {
+            loginError = "Connexion Apple échouée. Réessayez."
+            return
+        }
 
         Task {
             do {
-                let nonce = UUID().uuidString
                 let user = try await SupabaseService.shared.signInWithApple(idToken: idToken, nonce: nonce)
                 appState.signIn(user: user)
             } catch {

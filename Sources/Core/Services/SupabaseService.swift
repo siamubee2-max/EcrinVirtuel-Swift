@@ -145,6 +145,20 @@ extension SupabaseService {
         return ClothingGender(rawValue: raw)
     }
 
+    /// Résout l'`id` interne de la table `users` (PK) depuis l'`auth_id` de session.
+    /// Nécessaire pour toute FK `REFERENCES users(id)` — `auth.uid()` ≠ `users.id`.
+    func resolveUsersRowID(authId: String) async throws -> String? {
+        struct Row: Decodable { let id: String }
+        let rows: [Row] = try await client
+            .from(Self.users)
+            .select("id")
+            .eq("auth_id", value: authId)
+            .limit(1)
+            .execute()
+            .value
+        return rows.first?.id
+    }
+
     /// Persiste le genre Look du Jour (upsert profil `users` par auth_id).
     func updatePreferredGender(_ gender: ClothingGender) async {
         guard let session = try? await auth.session else { return }
