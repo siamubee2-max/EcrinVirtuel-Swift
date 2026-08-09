@@ -6,11 +6,13 @@ import RevenueCat
 enum PaywallError: LocalizedError {
     case productNotFound(String)
     case entitlementNotActivated
+    case creditGrantFailed
 
     var errorDescription: String? {
         switch self {
         case .productNotFound(let id): return "Produit introuvable : \(id)"
         case .entitlementNotActivated: return "L'achat n'a pas pu être activé. Essayez 'Restaurer mes achats'."
+        case .creditGrantFailed: return "Votre achat a bien été validé, mais vos crédits n'ont pas encore été ajoutés. Ils arrivent sous peu — utilisez 'Restaurer mes achats' si le solde ne se met pas à jour."
         }
     }
 }
@@ -27,17 +29,17 @@ enum PlanPeriod: String, CaseIterable {
 
 enum PaywallProductID {
     // ── Abonnements mensuels ──────────────────────────────────────────
-    static let starterMonthly   = "ecrin_starter_monthly"
-    static let premiumMonthly   = "ecrin_premium_monthly"
-    static let eliteMonthly     = "ecrin_elite_monthly"
+    static let starterMonthly   = "ecrin.starter.monthly"
+    static let premiumMonthly   = "ecrin.premium.month"   // ecrin.premium.monthly locked by legacy app
+    static let eliteMonthly     = "ecrin.elite.monthly"
 
     // ── Abonnements annuels ───────────────────────────────────────────
-    static let starterYearly    = "ecrin_starter_yearly"
-    static let premiumYearly    = "ecrin_premium_yearly"
-    static let eliteYearly      = "ecrin_elite_yearly"
+    static let starterYearly    = "ecrin.starter.yearly"
+    static let premiumYearly    = "ecrin.premium.year"    // ecrin.premium.yearly locked by legacy app
+    static let eliteYearly      = "ecrin.elite.yearly"
 
     // ── Accès à vie ───────────────────────────────────────────────────
-    static let founderLifetime  = "ecrin_founder_lifetime"
+    static let founderLifetime  = "ecrin.founder.lifetime"
 }
 
 // MARK: - Models
@@ -215,10 +217,34 @@ final class PaywallViewModel: ObservableObject {
             let result = try await Purchases.shared.purchase(product: product)
             // Config-agnostic: any active entitlement means success (Elite, Starter, Lifetime, etc.)
             if !result.customerInfo.entitlements.active.isEmpty {
-                _ = try? await SupabaseService.shared.creditGenerations(
-                    productId: plan.rcIdentifier,
-                    transactionId: result.transaction?.transactionIdentifier ?? UUID().uuidString
-                )
+                // L'identifiant de transaction DOIT venir d'Apple : le serveur le confronte
+                // à RevenueCat. L'ancien `?? UUID().uuidString` fabriquait un identifiant
+                // aléatoire — jamais vérifiable, donc achat payé et crédits jamais accordés.
+                guard let txnId = result.transaction?.transactionIdentifier else {
+                    MonitoringService.shared.recordCreditGrantFailure(
+                        nil, productId: plan.rcIdentifier, transactionId: nil
+                    )
+                    purchaseError = PaywallError.creditGrantFailed.errorDescription
+                    return
+                }
+
+                do {
+                    _ = try await SupabaseService.shared.creditGenerations(
+                        productId: plan.rcIdentifier,
+                        transactionId: txnId
+                    )
+                } catch {
+                    // L'achat Apple a abouti mais l'octroi a échoué : ne PAS fermer en
+                    // silence (l'ancien `try?` masquait ce cas). L'entitlement reste actif,
+                    // donc l'accès n'est pas bloqué ; seuls les crédits manquent.
+                    MonitoringService.shared.recordCreditGrantFailure(
+                        error, productId: plan.rcIdentifier, transactionId: txnId
+                    )
+                    await CreditsManager.shared.sync()
+                    purchaseError = PaywallError.creditGrantFailed.errorDescription
+                    return
+                }
+
                 purchasedPlan = plan          // ← notifie la vue
                 await CreditsManager.shared.sync() // ← rafraîchit le compteur
                 dismiss()
@@ -444,6 +470,22 @@ struct PaywallView: View {
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)
                             .accessibilityIdentifier("paywall.restore")
+
+                            // Mentions abonnement + liens légaux (App Store 3.1.2)
+                            VStack(spacing: 6) {
+                                Text("Abonnement à renouvellement automatique. Le paiement est débité sur votre compte Apple. L'abonnement se renouvelle sauf annulation au moins 24 h avant la fin de la période. Gérez-le dans vos réglages App Store.")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(EcrinColor.textMuted.opacity(0.8))
+                                    .multilineTextAlignment(.center)
+                                HStack(spacing: 4) {
+                                    Link("CGU", destination: URL(string: "https://inferencevision.store/ecrin/terms")!)
+                                    Text("·").foregroundStyle(EcrinColor.textMuted)
+                                    Link("Confidentialité", destination: URL(string: "https://inferencevision.store/ecrin/privacy")!)
+                                }
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(EcrinColor.gold.opacity(0.7))
+                            }
+                            .padding(.top, EcrinSpacing.sm)
                         }
                         .padding(.horizontal, EcrinSpacing.lg)
                         .padding(.bottom, EcrinSpacing.xxl)

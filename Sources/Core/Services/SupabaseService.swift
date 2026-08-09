@@ -51,6 +51,18 @@ extension SupabaseService {
         (try? await auth.session) != nil
     }
 
+    /// Crée une session anonyme silencieuse (3 essais offerts sans compte).
+    /// Le trigger `handle_new_user` crédite 3 essais côté serveur.
+    /// Retourne false si la création échoue (hors-ligne, feature désactivée).
+    func signInAnonymously() async -> Bool {
+        do {
+            _ = try await auth.signInAnonymously()
+            return true
+        } catch {
+            return false
+        }
+    }
+
     func signInWithApple(idToken: String, nonce: String) async throws -> User {
         let session = try await auth.signInWithIdToken(
             credentials: .init(provider: .apple, idToken: idToken, nonce: nonce)
@@ -252,6 +264,51 @@ extension SupabaseService {
                                 error_domain: domain, error_code: code, error_message: message)
         _ = try? await client.from(Self.monitoringEvents).insert(row).execute()
     }
+
+    /// Consomme un lien de parrainage : +3 essais pour la filleule ET la marraine
+    /// (RPC `redeem_referral`, SECURITY DEFINER — anti-abus côté serveur).
+    /// Retourne le nouveau solde de la filleule.
+    func redeemReferral(referrerID: UUID) async throws -> Int {
+        struct Params: Encodable { let p_referrer: String }
+        let remaining: Int = try await client
+            .rpc("redeem_referral", params: Params(p_referrer: referrerID.uuidString))
+            .execute()
+            .value
+        return remaining
+    }
+
+    /// Enregistre (ou efface) l'horodatage du consentement IA côté serveur (RGPD).
+    /// Best-effort : silencieux si pas de session ou en cas d'échec réseau.
+    func setAIConsent(granted: Bool) async {
+        guard let userID = try? await auth.session.user.id.uuidString else { return }
+        struct ConsentUpdate: Encodable { let ai_consent_at: String? }
+        let iso = granted ? ISO8601DateFormatter().string(from: Date()) : nil
+        _ = try? await client.from(Self.users)
+            .update(ConsentUpdate(ai_consent_at: iso))
+            .eq("id", value: userID)
+            .execute()
+    }
+
+    /// Signale un post à la modération (table `post_reports`, RLS : reporter = auth.uid()).
+    /// App Store guideline 1.2 — mécanisme de signalement de contenu UGC.
+    func reportPost(postID: UUID, reason: String) async {
+        guard let reporterID = try? await auth.session.user.id.uuidString else { return }
+        struct ReportRow: Encodable {
+            let id: String
+            let post_id: String
+            let reporter_id: String
+            let reason: String
+            let status: String
+        }
+        let row = ReportRow(
+            id: UUID().uuidString,
+            post_id: postID.uuidString,
+            reporter_id: reporterID,
+            reason: reason,
+            status: "pending"
+        )
+        _ = try? await client.from("post_reports").insert(row).execute()
+    }
 }
 
 final class MonitoringService: @unchecked Sendable {
@@ -272,6 +329,23 @@ final class MonitoringService: @unchecked Sendable {
 
     func recordEntitlementMismatch(productId: String) {
         Task.detached { await SupabaseService.shared.insertMonitoringEvent(type: "entitlement_mismatch", productId: productId, domain: "Paywall", code: -1, message: "Purchase succeeded but premium entitlement not active") }
+    }
+
+    /// L'achat Apple a réussi mais l'octroi des crédits a échoué : l'utilisateur a payé
+    /// sans rien recevoir. Événement à surveiller en priorité — auparavant l'échec était
+    /// avalé par un `try?` côté paywall et n'apparaissait nulle part.
+    func recordCreditGrantFailure(_ error: Error?, productId: String, transactionId: String?) {
+        let ns = error as NSError?
+        let message = "credit-generations KO — txn=\(transactionId ?? "nil") — \(error?.localizedDescription ?? "transactionIdentifier manquant")"
+        Task.detached {
+            await SupabaseService.shared.insertMonitoringEvent(
+                type: "credit_grant_failed",
+                productId: productId,
+                domain: ns?.domain ?? "Paywall",
+                code: ns?.code ?? -2,
+                message: message
+            )
+        }
     }
 }
 

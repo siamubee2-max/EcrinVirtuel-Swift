@@ -69,10 +69,23 @@ const KIE_MODELS: Record<string, KieModel> = {
   premium:  { api: "market_task",  model: "nano-banana-pro",            costUSD: 0.060 },
 }
 
+// Primaire par CATÉGORIE d'essayage — le « bon générateur » selon le type d'article.
+//   bijoux     → flux-kontext   (édition locale précise, gros plan zone, rapide, peu cher)
+//   vêtements  → nano-banana-pro (meilleure fidélité tissu/coupe)
+//   chaussures → gpt-image-2     (bon compromis pieds/sol)
+// Catégorie absente/inconnue → fallback sur KIE_MODELS[model] (comportement v24 inchangé).
+const CATEGORY_PRIMARY: Record<string, KieModel> = {
+  jewelry:  { api: "flux_kontext", model: "flux-kontext",                costUSD: 0.020 },
+  clothing: { api: "market_task",  model: "nano-banana-pro",            costUSD: 0.060 },
+  shoes:    { api: "market_task",  model: "gpt-image-2-image-to-image", costUSD: 0.030 },
+}
+
+// Fallback Kie.ai réduit à UN seul modèle rapide et fiable : gpt4o-image (lent, 0.08$)
+// et le doublon flux-kontext ont été retirés pour que la cascade tienne dans le budget
+// wall-clock de l'Edge Function (~150 s) — sinon la fonction était tuée et renvoyait
+// « échec » alors qu'un fallback aurait pu réussir. Gemini + OpenAI restent en secours final.
 const KIE_FALLBACK_MODELS: KieModel[] = [
   { api: "market_task",  model: "nano-banana-2", costUSD: 0.030 },
-  { api: "flux_kontext", model: "flux-kontext",  costUSD: 0.020 },
-  { api: "gpt4o_image",  model: "gpt4o-image",   costUSD: 0.080 },
 ]
 
 const TRYON_ASPECT_RATIO = "9:16"
@@ -205,12 +218,14 @@ serve(async (req) => {
       prompt,
       model = "standard",
       quality = "medium",
+      category: categoryRaw,
       aspectRatio: aspectRatioRaw,
     } = bodyJson as {
       imageBase64?:  string
       prompt?:       string
       model?:        string
       quality?:      string
+      category?:     unknown
       aspectRatio?:  unknown
     }
 
@@ -221,11 +236,13 @@ serve(async (req) => {
     if (typeof imageBase64 !== "string" || imageBase64.length > MAX_IMAGE_BASE64_CHARS)
       return jsonError("image too large", 400)
 
+    const category    = typeof categoryRaw === "string" ? categoryRaw.toLowerCase() : ""
     const aspectRatio = normalizeAspectRatio(aspectRatioRaw)
-    const generationPrompt = withTryOnFramingPrompt(prompt, aspectRatio)
+    const generationPrompt = withTryOnFramingPrompt(prompt, aspectRatio, category)
 
-    // Content moderation (fail-open, logged) — see logSecurityEvent.
-    const mod = await moderate(prompt, adminClient, userId)
+    // Modération du PROMPT seul (fail-open, loggée). La photo est modérée plus bas,
+    // une fois l'URL signée disponible — voir le bloc « modération de l'image ».
+    const mod = await moderate(prompt, undefined, adminClient, userId)
     if (mod.blocked) {
       await logSecurityEvent(adminClient, userId, "moderation_blocked", mod.categories.join(","))
       return jsonError("content_rejected", 400)
@@ -246,7 +263,8 @@ serve(async (req) => {
       }
     }
 
-    const kieConfig  = KIE_MODELS[model] ?? KIE_MODELS.standard
+    // Choix du primaire : catégorie d'abord (le « bon générateur »), sinon tier `model`.
+    const kieConfig  = CATEGORY_PRIMARY[category] ?? KIE_MODELS[model] ?? KIE_MODELS.standard
     const imageBytes = base64ToBytes(imageBase64)
     const tempPath   = `${userId}/${Date.now()}.jpg`
 
@@ -266,6 +284,34 @@ serve(async (req) => {
         return jsonError("Image generation temporarily unavailable. Please try again.", 503)
       }
       publicUrl = signed.signedUrl
+
+      // ── Modération de l'IMAGE (audit 007) ────────────────────────────────────
+      // Jusqu'ici seul le prompt texte était filtré : un utilisateur pouvait envoyer
+      // la photo d'un tiers non consentant avec un prompt anodin, sans aucun contrôle.
+      // On réutilise l'URL signée (la doc OpenAI recommande image_url plutôt qu'un
+      // base64 de plusieurs Mo) — l'URL vit 120 s, largement assez pour l'appel.
+      //
+      // ⚠️ PORTÉE RÉELLE — à ne pas surestimer : `sexual/minors` et `illicit` sont des
+      // catégories TEXTE UNIQUEMENT chez omni-moderation (score 0 sur une image seule).
+      // Ce contrôle attrape donc `violence/graphic` sur l'image, et rend visibles les
+      // scores `sexual`/`self-harm`, mais il NE constitue PAS une détection CSAM.
+      // Une vraie couverture exige un service dédié (PhotoDNA, Thorn Safer,
+      // Cloudflare CSAM Scanning Tool). Voir docs/AUDIT-007-2026-08-09.md.
+      const imgMod = await moderate(prompt, publicUrl, adminClient, userId)
+      if (imgMod.blocked) {
+        await logSecurityEvent(adminClient, userId, "moderation_blocked_image", imgMod.categories.join(","))
+        adminClient.storage.from(STORAGE_BUCKET).remove([tempPath]).catch(() => {})
+        return jsonError("content_rejected", 400)
+      }
+      // Signal sans blocage : `sexual` est volontairement hors des catégories bloquantes
+      // (maillot de bain / lingerie sont légitimes ici), mais un score élevé mérite d'être
+      // tracé pour repérer un détournement de l'app.
+      if (imgMod.sexualScore !== undefined && imgMod.sexualScore >= SEXUAL_SCORE_ALERT) {
+        await logSecurityEvent(
+          adminClient, userId, "moderation_image_sexual_high",
+          `score=${imgMod.sexualScore.toFixed(3)}`,
+        )
+      }
     }
 
     let resultBase64: string | null = null
@@ -279,9 +325,26 @@ serve(async (req) => {
       }
       cascade.push(...KIE_FALLBACK_MODELS)
 
-      for (const cfg of cascade) {
+      // Dédup par nom de modèle — évite de re-tenter (et potentiellement re-facturer)
+      // le même modèle quand le primaire catégorie figure déjà en fallback.
+      const seenModels = new Set<string>()
+      const dedupedCascade = cascade.filter((c) => {
+        if (seenModels.has(c.model)) return false
+        seenModels.add(c.model)
+        return true
+      })
+
+      // Budget wall-clock : on garde ~40 s de marge sous la limite Edge (~150 s) pour
+      // laisser Gemini/OpenAI tenter en secours rapide. On ne DÉMARRE pas un modèle Kie
+      // s'il ne peut plus finir dans le budget, et chaque polling s'arrête à cette échéance.
+      const kieDeadline = Date.now() + 110_000
+      for (const cfg of dedupedCascade) {
+        if (Date.now() >= kieDeadline) {
+          errors.push("Kie.ai cascade: budget wall-clock épuisé, bascule secours")
+          break
+        }
         try {
-          resultBase64 = await generateWithKie(cfg, publicUrl, generationPrompt, quality, aspectRatio)
+          resultBase64 = await generateWithKie(cfg, publicUrl, generationPrompt, quality, aspectRatio, kieDeadline)
           provider = cfg.model
           break
         } catch (err) {
@@ -333,7 +396,7 @@ serve(async (req) => {
   }
 })
 
-async function generateWithKie(cfg: KieModel, imageUrl: string, prompt: string, _quality: string, aspectRatio: string): Promise<string> {
+async function generateWithKie(cfg: KieModel, imageUrl: string, prompt: string, _quality: string, aspectRatio: string, deadline?: number): Promise<string> {
   let taskId: string
   if (cfg.api === "flux_kontext") {
     taskId = await startFluxKontext(imageUrl, prompt, aspectRatio)
@@ -342,7 +405,7 @@ async function generateWithKie(cfg: KieModel, imageUrl: string, prompt: string, 
   } else {
     taskId = await startMarketTask(cfg.model, imageUrl, prompt, aspectRatio)
   }
-  return await pollForResult(taskId)
+  return await pollForResult(taskId, deadline)
 }
 
 function normalizeAspectRatio(raw: unknown): string {
@@ -353,8 +416,31 @@ function normalizeAspectRatio(raw: unknown): string {
   return TRYON_ASPECT_RATIO
 }
 
-function withTryOnFramingPrompt(prompt: string, aspectRatio: string): string {
-  return `${prompt}\n\nOUTPUT FRAMING: Vertical ${aspectRatio} portrait (mobile story). Full-body head-to-toe when outfit try-on applies. Do not output a square 1:1 crop.`
+// Cadrage par catégorie : bijoux → gros plan de la zone (la pièce doit dominer le cadre),
+// vêtements/chaussures → plein corps tête-aux-pieds. Réglé côté serveur pour contrer
+// le défaut « bague minuscule dans un portrait plein corps ».
+function withTryOnFramingPrompt(prompt: string, aspectRatio: string, category: string): string {
+  // PRESERVATION is the priority: the result must look like the user's OWN photo
+  // (mannequin or selfie) with the jewelry/garment simply added — same background,
+  // same lighting, same colours, same skin tone, same mood. And the piece must be
+  // rendered at REALISTIC, true-to-life scale — never oversized or distorted.
+  const preserve =
+    `PRESERVE the input photo exactly: keep the same person, face, pose, skin tone and complexion, ` +
+    `the same background, the same lighting, white balance, colours and overall mood/ambiance of the original. ` +
+    `Do NOT relight, recolour, beautify, stylise or replace the background. ` +
+    `Only add the item to the person so the result looks like the SAME photo with the item now worn. ` +
+    `Photorealistic and seamlessly composited.`
+
+  if (category === "jewelry") {
+    return `${prompt}\n\nOUTPUT FRAMING: Vertical ${aspectRatio} portrait, framed on the body zone where the jewelry sits ` +
+      `— hand & fingers for rings and bracelets, neckline & décolleté for necklaces, ears & side of the face for earrings, ` +
+      `wrist for watches — so the piece is clearly visible. Render the jewelry at REALISTIC, true-to-life scale and ` +
+      `proportions: correctly sized for the body, natural thickness, never oversized, stretched or distorted. ` +
+      `Keep the metal colour and gemstone colours faithful to the reference jewelry. ${preserve}`
+  }
+  return `${prompt}\n\nOUTPUT FRAMING: Vertical ${aspectRatio} portrait (mobile story), full-body head-to-toe so the whole ` +
+    `outfit/shoes are visible, at realistic human proportions and correct garment fit. ${preserve} ` +
+    `Do not output a square 1:1 crop.`
 }
 
 async function startFluxKontext(imageUrl: string, prompt: string, aspectRatio: string): Promise<string> {
@@ -397,11 +483,16 @@ async function startMarketTask(model: string, imageUrl: string, prompt: string, 
   return taskId as string
 }
 
-async function pollForResult(taskId: string): Promise<string> {
+async function pollForResult(taskId: string, deadline?: number): Promise<string> {
   const DONE = new Set(["success", "completed", "finish", "succeeded", "finished"])
   const FAIL = new Set(["failed", "error", "timeout", "cancelled", "canceled"])
 
   for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
+    // Respecte le budget wall-clock de la cascade : on abandonne ce modèle si l'échéance
+    // approche, pour laisser un fallback rapide (Gemini/OpenAI) tenter avant la limite Edge.
+    if (deadline && Date.now() + POLL_INTERVAL_MS >= deadline) {
+      throw new Error(`Kie.ai job ${taskId} abandonné (budget cascade atteint)`)
+    }
     await sleep(POLL_INTERVAL_MS)
     const res    = await kieGet(`/api/v1/jobs/recordInfo?taskId=${encodeURIComponent(taskId)}`)
     const data   = res.data ?? {}
@@ -545,10 +636,27 @@ const MODERATION_TIMEOUT_MS = 3_000
 // "sexual/minors" (CSAM) is always blocked.
 const BLOCK_CATEGORIES = ["sexual/minors", "violence/graphic", "illicit"]
 
-interface ModerationOutcome { blocked: boolean; categories: string[] }
+// `ReturnType<typeof createClient>` résout les génériques vers leurs DÉFAUTS
+// (`unknown, never, …`), alors que `createClient(url, key)` produit `<any, "public", any>` :
+// d'où un TS2345 à chaque appel. Le déploiement Supabase ne type-checke pas, donc la prod
+// v30 embarque déjà 7 de ces erreurs. On corrige ici la signature partagée plutôt que de
+// caster à chaque site d'appel.
+// deno-lint-ignore no-explicit-any
+type AdminClient = ReturnType<typeof createClient<any, "public", any>>
+
+// Au-delà de ce score `sexual` sur l'image, on trace (sans bloquer) — cf. appel plus haut.
+const SEXUAL_SCORE_ALERT = 0.85
+// L'appel avec image transite par une URL : plus lent qu'un simple prompt.
+const MODERATION_IMAGE_TIMEOUT_MS = 10_000
+
+interface ModerationOutcome {
+  blocked: boolean
+  categories: string[]
+  sexualScore?: number
+}
 
 async function logSecurityEvent(
-  admin: ReturnType<typeof createClient>,
+  admin: AdminClient,
   userId: string,
   eventType: string,
   message: string,
@@ -565,29 +673,44 @@ async function logSecurityEvent(
 }
 
 // Returns blocked=true only on a confident flag. On error/timeout: fail-open + log.
+// `imageUrl` optionnelle : si fournie, la photo est jointe à l'analyse (multimodal).
 async function moderate(
   prompt: string,
-  admin: ReturnType<typeof createClient>,
+  imageUrl: string | undefined,
+  admin: AdminClient,
   userId: string,
 ): Promise<ModerationOutcome> {
   if (!OPENAI_API_KEY) return { blocked: false, categories: [] }
   const ctrl = new AbortController()
-  const t = setTimeout(() => ctrl.abort(), MODERATION_TIMEOUT_MS)
+  const t = setTimeout(
+    () => ctrl.abort(),
+    imageUrl ? MODERATION_IMAGE_TIMEOUT_MS : MODERATION_TIMEOUT_MS,
+  )
   try {
+    // Format multimodal officiel : tableau de parts typées.
+    const input: unknown[] = [{ type: "text", text: prompt }]
+    if (imageUrl) input.push({ type: "image_url", image_url: { url: imageUrl } })
+
     const res = await fetch("https://api.openai.com/v1/moderations", {
       method: "POST",
       headers: { "Authorization": `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ model: MODERATION_MODEL, input: prompt }),
+      body: JSON.stringify({ model: MODERATION_MODEL, input }),
       signal: ctrl.signal,
     })
     if (!res.ok) throw new Error(`moderation HTTP ${res.status}`)
     const json = await res.json()
-    const cats = (json.results?.[0]?.categories ?? {}) as Record<string, boolean>
+    const result = json.results?.[0] ?? {}
+    const cats   = (result.categories ?? {}) as Record<string, boolean>
+    const scores = (result.category_scores ?? {}) as Record<string, number>
     const hit = BLOCK_CATEGORIES.filter((c) => cats[c] === true)
-    return { blocked: hit.length > 0, categories: hit }
+    return { blocked: hit.length > 0, categories: hit, sexualScore: scores["sexual"] }
   } catch (e) {
-    // Fail-open: do not block generation, but record the gap.
-    await logSecurityEvent(admin, userId, "moderation_unavailable", String(e))
+    // Fail-open : on ne bloque pas la génération, mais on trace le trou de couverture.
+    await logSecurityEvent(
+      admin, userId,
+      imageUrl ? "moderation_image_unavailable" : "moderation_unavailable",
+      String(e),
+    )
     return { blocked: false, categories: [] }
   } finally {
     clearTimeout(t)
