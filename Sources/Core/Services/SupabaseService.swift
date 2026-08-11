@@ -663,8 +663,10 @@ extension SupabaseService {
                 .value
 
             // Determine which posts the signed-in user has liked (best-effort).
+            // post_likes.user_id references users(id), not auth.uid() — resolve it.
             var likedIDs: Set<String> = []
-            if let userId = try? await auth.session.user.id.uuidString {
+            if let authId = try? await auth.session.user.id.uuidString,
+               let userId = try? await resolveUsersRowID(authId: authId) {
                 struct LikeRow: Decodable { let post_id: String }
                 if let likes: [LikeRow] = try? await client
                     .from(Self.postLikes)
@@ -685,7 +687,10 @@ extension SupabaseService {
     /// Persists a like toggle.  Fire-and-forget — does not throw.
     /// `liked: true` → upsert into post_likes; `liked: false` → delete.
     func setPostLike(postId: UUID, liked: Bool) async {
-        guard let userId = try? await auth.session.user.id.uuidString else { return }
+        // post_likes.user_id references users(id) (FK + RLS) — passing auth.uid()
+        // made every insert fail silently under try?.
+        guard let authId = try? await auth.session.user.id.uuidString,
+              let userId = try? await resolveUsersRowID(authId: authId) else { return }
         if liked {
             struct LikeRow: Encodable { let post_id: String; let user_id: String }
             _ = try? await client
@@ -712,7 +717,9 @@ extension SupabaseService {
         tags: [String],
         author: User
     ) async throws {
-        guard let userId = try? await auth.session.user.id.uuidString else { return }
+        // community_posts.user_id references users(id) — same resolution as post_likes.
+        guard let authId = try? await auth.session.user.id.uuidString,
+              let userId = try? await resolveUsersRowID(authId: authId) else { return }
         let row = SupabaseCommunityPostInsert(
             id: UUID().uuidString,
             user_id: userId,

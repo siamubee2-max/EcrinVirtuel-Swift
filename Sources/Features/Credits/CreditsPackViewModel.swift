@@ -77,6 +77,9 @@ final class CreditsPackViewModel {
         do {
             let result = try await Purchases.shared.purchase(product: storeProduct)
 
+            // RevenueCat 5.x ne throw pas sur l'annulation utilisateur — il la signale ici.
+            if result.userCancelled { return }
+
             // Récupérer l'ID de transaction Apple pour l'idempotence
             guard let transactionId = result.transaction?.transactionIdentifier else {
                 errorMessage = "Achat incomplet. Contactez le support."
@@ -90,6 +93,10 @@ final class CreditsPackViewModel {
             )
 
             currentCredits = newTotal
+            // Répercuter immédiatement sur le solde global : sans cela, l'utilisateur
+            // à 0 crédit qui vient de payer retombe sur le paywall jusqu'au relaunch.
+            CreditsManager.shared.remaining = newTotal
+            CreditsManager.shared.syncDetached()
             purchasedCount = pack.count + pack.bonusCount
             withAnimation(EcrinAnimation.springBounce) {
                 purchaseSuccess = true

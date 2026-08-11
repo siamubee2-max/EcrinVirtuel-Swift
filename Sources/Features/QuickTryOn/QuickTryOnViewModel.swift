@@ -262,6 +262,7 @@ final class QuickTryOnViewModel {
     // MARK: - Generation
 
     func generate(showPaywall: () -> Void) async {
+        guard !isGenerating else { return }
         guard let photo = userPhoto, !selectedItems.isEmpty else { return }
         guard let mode = selectedMode else { return }
 
@@ -279,21 +280,25 @@ final class QuickTryOnViewModel {
                     item: primaryItem,
                     mode: mode
                 )
-                result = generated
                 lastBodyContext = context
 
+                // N'assigner `result` qu'une seule fois : la vue observe onChange(result)
+                // pour ouvrir le cover et ajouter à SessionCreationsStore — publier le
+                // résultat intermédiaire du flow multi-articles l'affichait comme final
+                // et créait un doublon.
+                var finalImages = generated
                 if selectedItems.count > 1 {
                     let fullPrompt = buildEnrichedMultiItemPrompt(
                         mode: mode,
                         items: selectedItems,
                         bodyContext: context
                     )
-                    let finalResult = try await imageService.tryOnQuick(
+                    finalImages = try await imageService.tryOnQuick(
                         photo: generated,
                         prompt: fullPrompt
                     )
-                    result = finalResult
                 }
+                result = finalImages
                 CreditsManager.shared.syncDetached()
                 // Enregistrer la session Try-On en arrière-plan (sans bloquer l'UI)
                 Task {

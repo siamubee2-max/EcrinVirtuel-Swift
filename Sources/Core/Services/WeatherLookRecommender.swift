@@ -331,9 +331,10 @@ struct WeatherLookRecommender: Sendable {
     }
 
     private func seasonMatch(item: CatalogClothingItem, weather: WeatherSnapshot) -> Int {
-        let target = weather.weatherSeason.rawValue
-        if item.season.contains(where: { $0.lowercased() == target }) { return 2 }
-        if item.season.isEmpty { return 0 }
+        // Le catalogue tague en anglais + "all" (cf. WeatherSeason.seasonTags) :
+        // comparer au rawValue français ("ete"…) ne matchait jamais en production.
+        let targets = Set(weather.weatherSeason.seasonTags.map { $0.lowercased() })
+        if item.season.contains(where: { targets.contains($0.lowercased()) }) { return 2 }
         return 0
     }
 

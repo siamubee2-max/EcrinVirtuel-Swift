@@ -41,6 +41,8 @@
 	<string>L'Écrin Virtuel utilise la caméra pour l'essayage virtuel de bijoux en temps réel.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>L'Écrin Virtuel utilise vos photos pour l'essayage virtuel de bijoux.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>L'Écrin Virtuel enregistre vos essayages virtuels dans votre photothèque lorsque vous le demandez.</string>
 	<key>NSPrivacyPolicyURL</key>
 	<string>https://ecrin.app/privacy</string>
 	<key>REVENUECAT_IOS_KEY</key>

@@ -1,5 +1,6 @@
 import SwiftUI
 import RevenueCat
+import UserNotifications
 
 @main
 struct EcrinVirtuelApp: App {
@@ -63,7 +64,12 @@ struct EcrinVirtuelApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     guard phase == .active else { return }
-                    Task { await LookNotificationService.shared.rescheduleIfNeeded() }
+                    Task {
+                        // La notif quotidienne pose badge=1 ; sans ce reset, la
+                        // pastille restait affichée en permanence après la 1re notif.
+                        try? await UNUserNotificationCenter.current().setBadgeCount(0)
+                        await LookNotificationService.shared.rescheduleIfNeeded()
+                    }
                 }
                 .onOpenURL { url in
                     // Lien magique Supabase: ecrin://login-callback#access_token=...

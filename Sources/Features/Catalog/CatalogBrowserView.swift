@@ -414,7 +414,7 @@ struct CatalogItemCard: View {
                         item.cardBackgroundColor
                             .brightness(0.05)
 
-                        if let url = item.imageURL {
+                        if let url = item.displayImageURL {
                             AsyncImage(url: url) { phase in
                                 switch phase {
                                 case .success(let image):

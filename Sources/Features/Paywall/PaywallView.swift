@@ -59,6 +59,9 @@ struct PaywallPlan: Identifiable {
         if id.contains("elite")   { return .elite }
         if id.contains("premium") { return .premium }
         if id.contains("starter") { return .starter }
+        // Plan Fondateur à vie : accès maximal — sans ce mapping, l'acheteur
+        // du lifetime retombait en .free avec 3 crédits.
+        if id.contains("founder") || id.contains("lifetime") { return .elite }
         return .free
     }
 }
@@ -208,6 +211,9 @@ final class PaywallViewModel: ObservableObject {
         do {
             let product = try await fetchProduct(plan)
             let result = try await Purchases.shared.purchase(product: product)
+            // RevenueCat 5.x ne throw pas sur l'annulation utilisateur — sans ce check,
+            // annuler affichait « L'achat n'a pas pu être activé » + un faux mismatch.
+            if result.userCancelled { return }
             if result.customerInfo.entitlements["premium"]?.isActive == true {
                 _ = try? await SupabaseService.shared.creditGenerations(
                     productId: plan.rcIdentifier,
