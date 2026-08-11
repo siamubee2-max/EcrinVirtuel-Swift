@@ -18,7 +18,14 @@ final class WardrobeViewModel {
     var isSyncing: Bool = false
 
     // MARK: Persistence key
-    private let storageKey = "ecrin_wardrobe_items_v2"
+    // Les données d'un compte connecté sont stockées sous une clé scoppée par
+    // user id : sans cela, un changement de compte sur le même appareil
+    // montrait la garde-robe du compte précédent.
+    private let baseStorageKey = "ecrin_wardrobe_items_v2"
+    private var userScope: String?
+    private var storageKey: String {
+        userScope.map { "\(baseStorageKey)_\($0)" } ?? baseStorageKey
+    }
     private let supabase = SupabaseService.shared
 
     // MARK: Computed
@@ -111,6 +118,38 @@ final class WardrobeViewModel {
         }
     }
 
+    // MARK: - Account scope
+
+    /// Bascule la garde-robe sur le compte donné (`nil` = anonyme) :
+    /// persiste l'état du scope courant, charge celui du nouveau scope,
+    /// puis resynchronise depuis le cloud pour un compte connecté.
+    /// À la première connexion d'un compte sur cet appareil (scope vide),
+    /// les items construits en anonyme sont repris pour ne rien perdre —
+    /// c'est le comportement historique de la clé unique, mais borné à
+    /// cette transition anonyme → compte.
+    func switchUser(to userId: String?) {
+        guard userId != userScope else {
+            if userId != nil { Task { await syncFromCloud() } }
+            return
+        }
+        save() // persiste les items du scope quitté sous son ancienne clé
+        let carryOver = userScope == nil ? items : []
+        userScope = userId
+        items = []
+        load()
+        if items.isEmpty {
+            if userId != nil {
+                items = carryOver
+            } else {
+                items = FashionItem.samples
+            }
+            save()
+        }
+        if userId != nil {
+            Task { await syncFromCloud() }
+        }
+    }
+
     // MARK: - Cloud sync
 
     /// Récupère la garde-robe depuis Supabase et fusionne avec le local.
@@ -119,10 +158,21 @@ final class WardrobeViewModel {
         isSyncing = true
         defer { isSyncing = false }
         guard let cloudItems = try? await supabase.fetchWardrobeItems(), !cloudItems.isEmpty else { return }
-        // Merge : conserver les items locaux sans uuid cloud, puis ajouter les cloud
+        // Merge : conserver les items locaux sans uuid cloud, puis ajouter les cloud.
+        // Les lignes cloud ne portent jamais userPhotoData (volontairement non
+        // synchronisé) — recopier la photo locale sur l'item cloud correspondant,
+        // sinon chaque sync efface les photos de l'utilisateur.
+        let localByID = Dictionary(items.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let merged = cloudItems.map { cloudItem in
+            var patched = cloudItem
+            if patched.userPhotoData == nil {
+                patched.userPhotoData = localByID[cloudItem.id]?.userPhotoData
+            }
+            return patched
+        }
         let cloudIDs = Set(cloudItems.map(\.id))
         let localOnly = items.filter { !cloudIDs.contains($0.id) }
-        items = cloudItems + localOnly
+        items = merged + localOnly
         save()
     }
 

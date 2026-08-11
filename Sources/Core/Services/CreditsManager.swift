@@ -93,6 +93,16 @@ final class CreditsManager {
         }
     }
 
+    /// Réinitialise l'état après une déconnexion : le solde — y compris le
+    /// statut fondateur illimité — du compte précédent ne doit pas rester
+    /// affiché pour l'utilisateur suivant sur le même appareil.
+    func resetForSignOut() {
+        isUnlimited = false
+        remaining = 0
+        hasLoaded = false
+        syncDetached() // ré-évalue l'état anonyme (essais gratuits)
+    }
+
     // MARK: - Subscription update
 
     /// Appelé après un achat RevenueCat : met à jour l'affichage local

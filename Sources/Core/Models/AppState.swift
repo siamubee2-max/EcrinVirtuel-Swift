@@ -88,11 +88,21 @@ final class AppState {
             preferredGender = gender
         }
         phase = .authenticated
+        // Basculer la garde-robe sur le scope de ce compte et resynchroniser
+        // depuis le cloud — l'init de WardrobeViewModel tourne avant la
+        // restauration de session, son sync initial ne voit jamais le cloud.
+        wardrobe.switchUser(to: user.id.uuidString)
+        CreditsManager.shared.syncDetached()
     }
 
     func signOut() {
         currentUser = nil
         subscription = .free
         phase = .unauthenticated
+        // Aucune donnée du compte précédent ne doit rester visible pour le
+        // prochain utilisateur de cet appareil.
+        SessionCreationsStore.reset()
+        CreditsManager.shared.resetForSignOut()
+        wardrobe.switchUser(to: nil)
     }
 }
