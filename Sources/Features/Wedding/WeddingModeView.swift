@@ -78,12 +78,12 @@ struct WeddingModeView: View {
                 .foregroundStyle(EcrinColor.gold.opacity(0.7))
                 .padding(.top, EcrinSpacing.lg)
 
-            Text("VOTRE JOUR PARFAIT")
+            Text(L10n.WeddingUI.yourPerfectDay)
                 .font(EcrinFont.label)
                 .kerning(4)
                 .foregroundStyle(EcrinColor.gold)
 
-            Text("Look de Mariée")
+            Text(L10n.WeddingUI.bridalLook)
                 .font(EcrinFont.heroTitle)
                 .foregroundStyle(EcrinColor.ivory)
         }
@@ -111,7 +111,7 @@ struct WeddingModeView: View {
                                     .font(EcrinFont.body)
                                     .foregroundStyle(EcrinColor.textPrimary)
                             } else {
-                                Text("Définir la date du mariage")
+                                Text(L10n.WeddingUI.setWeddingDate)
                                     .font(EcrinFont.body)
                                     .foregroundStyle(EcrinColor.textSecondary)
                             }
@@ -152,7 +152,7 @@ struct WeddingModeView: View {
                         .colorScheme(.dark)
                         .labelsHidden()
 
-                        GoldButton(title: "Confirmer") {
+                        GoldButton(title: L10n.WeddingUI.confirm) {
                             viewModel.setWeddingDate(pickerDate)
                             withAnimation(EcrinAnimation.springSnap) {
                                 dateCardExpanded = false
@@ -210,7 +210,7 @@ struct WeddingModeView: View {
             }
 
             VStack(alignment: .leading, spacing: EcrinSpacing.xs) {
-                Text("COMPLÉTION")
+                Text(L10n.WeddingUI.completionLabel)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -224,7 +224,7 @@ struct WeddingModeView: View {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 12))
                             .foregroundStyle(EcrinColor.gold)
-                        Text("Look complet !")
+                        Text(L10n.WeddingUI.lookComplete)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.gold)
                     }
@@ -245,7 +245,7 @@ struct WeddingModeView: View {
 
     private var slotsSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("LES EMPLACEMENTS")
+            Text(L10n.WeddingUI.placementsLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -275,7 +275,7 @@ struct WeddingModeView: View {
     // MARK: - Share Button
 
     private var shareButton: some View {
-        GhostButton(title: "Partager avec mes demoiselles") {
+        GhostButton(title: L10n.WeddingUI.shareWithBridesmaids) {
             showShareSheet = true
         }
         .frame(maxWidth: .infinity)
@@ -349,7 +349,7 @@ private struct DatePickerSheet: View {
         ZStack {
             EcrinColor.background.ignoresSafeArea()
             VStack(spacing: EcrinSpacing.lg) {
-                Text("Date du Mariage")
+                Text(L10n.WeddingUI.weddingDate)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .padding(.top, EcrinSpacing.xl)
@@ -360,7 +360,7 @@ private struct DatePickerSheet: View {
                     .colorScheme(.dark)
                     .padding(.horizontal)
 
-                GoldButton(title: "Confirmer") {
+                GoldButton(title: L10n.WeddingUI.confirm) {
                     onSave()
                     dismiss()
                 }
@@ -389,7 +389,7 @@ private struct JewelryPickerSheet: View {
                     .padding(.top, EcrinSpacing.md)
 
                 VStack(spacing: 4) {
-                    Text("Choisir un bijou")
+                    Text(L10n.WeddingUI.chooseJewel)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
                     Text(slot.rawValue)

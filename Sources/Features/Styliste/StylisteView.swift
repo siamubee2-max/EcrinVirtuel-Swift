@@ -34,10 +34,10 @@ struct StylisteView: View {
                     .foregroundStyle(EcrinColor.gold)
             }
             VStack(alignment: .leading, spacing: 1) {
-                Text("IA Styliste")
+                Text(L10n.StylisteUI.aiStylist)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
-                Text("Conseils personnalisés")
+                Text(L10n.StylisteUI.personalizedAdvice)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
             }
@@ -87,7 +87,7 @@ struct StylisteView: View {
 
     private var inputBar: some View {
         HStack(spacing: EcrinSpacing.sm) {
-            TextField("Posez votre question…", text: $viewModel.inputText, axis: .vertical)
+            TextField(L10n.StylisteUI.askQuestionPlaceholder, text: $viewModel.inputText, axis: .vertical)
                 .font(EcrinFont.body)
                 .foregroundStyle(EcrinColor.textPrimary)
                 .lineLimit(1...4)

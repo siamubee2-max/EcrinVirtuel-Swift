@@ -85,7 +85,7 @@ struct EarringsPoseView: View {
             Spacer()
 
             VStack(spacing: 3) {
-                Text("ESSAYAGE · BOUCLES D'OREILLES")
+                Text(L10n.MultiPoseUI.earringsTryOnTitle)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.gold)
@@ -137,10 +137,10 @@ struct EarringsPoseView: View {
                                 Image(systemName: "person.crop.circle.badge.plus")
                                     .font(.system(size: 44, weight: .thin))
                                     .foregroundStyle(EcrinColor.textMuted)
-                                Text("Ajouter votre photo")
+                                Text(L10n.MultiPoseUI.addYourPhoto)
                                     .font(EcrinFont.body)
                                     .foregroundStyle(EcrinColor.textMuted)
-                                Text("Portrait face / 3/4 — oreilles visibles")
+                                Text(L10n.MultiPoseUI.portraitEarsVisible)
                                     .font(EcrinFont.caption)
                                     .foregroundStyle(EcrinColor.textMuted.opacity(0.6))
                             }
@@ -173,7 +173,7 @@ struct EarringsPoseView: View {
         GlassCard(cornerRadius: 14) {
             VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
                 HStack {
-                    Text("VUES GÉNÉRÉES")
+                    Text(L10n.MultiPoseUI.generatedViews)
                         .font(EcrinFont.label)
                         .kerning(2)
                         .foregroundStyle(EcrinColor.textMuted)
@@ -241,7 +241,7 @@ struct EarringsPoseView: View {
             }
 
             VStack(spacing: EcrinSpacing.sm) {
-                Text("Génération en cours…")
+                Text(L10n.MultiPoseUI.generationInProgress)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
 
@@ -362,7 +362,7 @@ struct EarringsPoseView: View {
                     // share
                 }
 
-                GoldButton(title: "Sauvegarder") {
+                GoldButton(title: L10n.OutfitBuilderUI.save) {
                     for result in vm.results {
                         if let img = result.image {
                             UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)

@@ -56,7 +56,7 @@ struct WardrobeItemCard: View {
             if item.source == .catalog {
                 VStack {
                     HStack {
-                        Text("BOUTIQUE")
+                        Text(L10n.WardrobeUI.shopCaps)
                             .font(.system(size: 7, weight: .semibold))
                             .kerning(0.5)
                             .foregroundStyle(EcrinColor.background)
@@ -170,7 +170,7 @@ struct WardrobeItemContextMenu: View {
                 Button {
                     completeLook()
                 } label: {
-                    Label("Complète ce look", systemImage: "person.crop.rectangle.stack.fill")
+                    Label(L10n.WardrobeUI.completesThisLook, systemImage: "person.crop.rectangle.stack.fill")
                 }
             }
 

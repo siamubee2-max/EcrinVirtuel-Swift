@@ -83,16 +83,16 @@ struct PartnerApplicationView: View {
 
     private var formHeader: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Label("DEVENIR PARTENAIRE", systemImage: "hands.and.sparkles")
+            Label(L10n.PartnerUI.becomePartner, systemImage: "hands.and.sparkles")
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.gold)
 
-            Text("Rejoignez L'Écrin Virtuel")
+            Text(L10n.PartnerUI.joinEcrin)
                 .font(EcrinFont.heroTitle)
                 .foregroundStyle(EcrinColor.textPrimary)
 
-            Text("Faites découvrir vos créations à des milliers de passionnés de bijoux. Complétez ce formulaire — notre équipe vous répondra sous 72 h.")
+            Text(L10n.PartnerUI.applyIntro)
                 .font(EcrinFont.body)
                 .foregroundStyle(EcrinColor.textSecondary)
                 .lineSpacing(4)
@@ -115,7 +115,7 @@ struct PartnerApplicationView: View {
 
                 // Catégorie
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Catégorie *")
+                    Text(L10n.PartnerUI.categoryField)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .kerning(0.5)
@@ -184,7 +184,7 @@ struct PartnerApplicationView: View {
     private var pitchSection: some View {
         formSection(title: "VOTRE PITCH", icon: "text.alignleft") {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Décrivez votre univers créatif *")
+                Text(L10n.PartnerUI.describeCreativeUniverse)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
                     .kerning(0.5)
@@ -204,7 +204,7 @@ struct PartnerApplicationView: View {
                             .strokeBorder(EcrinColor.glassStroke, lineWidth: 0.5)
                     )
 
-                Text("Savoir-faire, matières, inspiration, valeurs… 3-5 phrases suffisent.")
+                Text(L10n.PartnerUI.describeHint)
                     .font(.system(size: 11))
                     .foregroundStyle(EcrinColor.textMuted)
             }
@@ -268,7 +268,7 @@ struct PartnerApplicationView: View {
             }
 
             VStack(spacing: EcrinSpacing.md) {
-                Text("Candidature envoyée !")
+                Text(L10n.PartnerUI.applicationSent)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
 

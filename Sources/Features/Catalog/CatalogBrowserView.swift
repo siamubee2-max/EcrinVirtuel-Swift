@@ -50,11 +50,11 @@ struct CatalogBrowserView: View {
 
     private var catalogHeader: some View {
         VStack(spacing: 4) {
-            Text("CATALOGUE")
+            Text(L10n.CatalogUI.catalogCaps)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.textPrimary)
                 .kerning(4)
-            Text("Inspirations look")
+            Text(L10n.CatalogUI.lookInspirations)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.gold)
                 .kerning(2)
@@ -121,7 +121,7 @@ struct CatalogBrowserView: View {
                 .foregroundStyle(EcrinColor.textSecondary)
                 .font(.system(size: 14, weight: .regular))
 
-            TextField("Rechercher un article, une marque…", text: $searchText)
+            TextField(L10n.CatalogUI.searchItemBrand, text: $searchText)
                 .font(EcrinFont.body)
                 .foregroundStyle(EcrinColor.textPrimary)
                 .tint(EcrinColor.gold)
@@ -204,7 +204,7 @@ struct CatalogBrowserView: View {
         VStack(spacing: EcrinSpacing.md) {
             ProgressView()
                 .tint(EcrinColor.gold)
-            Text("Chargement du catalogue…")
+            Text(L10n.CatalogUI.loadingCatalog)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textSecondary)
         }
@@ -375,7 +375,7 @@ struct CatalogItemCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "wand.and.sparkles")
                             .font(.system(size: 10, weight: .medium))
-                        Text("ESSAYER")
+                        Text(L10n.CatalogUI.tryOnCaps)
                             .font(EcrinFont.label)
                             .kerning(1.5)
                     }
@@ -440,7 +440,7 @@ struct CatalogItemCard: View {
                             HStack {
                                 Spacer()
                                 if item.isFeatured {
-                                    Text("VEDETTE")
+                                    Text(L10n.CatalogUI.featuredCaps)
                                         .font(EcrinFont.label)
                                         .kerning(1)
                                         .foregroundStyle(EcrinColor.background)
@@ -513,7 +513,7 @@ struct TryOnFromCatalogSheet: View {
 
                 // Prompt preview
                 VStack(alignment: .leading, spacing: EcrinSpacing.xs) {
-                    Text("PROMPT D'ESSAYAGE")
+                    Text(L10n.CatalogUI.tryOnPromptCaps)
                         .font(EcrinFont.label)
                         .kerning(2)
                         .foregroundStyle(EcrinColor.textMuted)
@@ -545,7 +545,7 @@ struct TryOnFromCatalogSheet: View {
 
                     if let urlString = item.purchaseURL, let url = URL(string: urlString) {
                         Link(destination: url) {
-                            Text("Voir l'article en boutique")
+                            Text(L10n.CatalogUI.viewItemInShop)
                                 .font(EcrinFont.cta)
                                 .kerning(1.5)
                                 .foregroundStyle(EcrinColor.gold)

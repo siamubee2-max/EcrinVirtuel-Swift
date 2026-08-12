@@ -87,7 +87,7 @@ struct WardrobeView: View {
                 }
                 // Visible uniquement pour les vêtements (pas les bijoux/accessoires seuls)
                 if item.category.group == .clothing || item.category.group == .shoes {
-                    Button("Complète ce look") {
+                    Button(L10n.WardrobeUI.completesThisLook) {
                         itemToCompleteLook = item
                     }
                 }
@@ -131,11 +131,11 @@ struct WardrobeView: View {
     private var wardrobeHeader: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("MA GARDE-ROBE")
+                Text(L10n.WardrobeUI.myWardrobeCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Virtuelle")
+                Text(L10n.WardrobeUI.virtual)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                 Text("\(viewModel.totalCount) pièces")
@@ -264,7 +264,7 @@ struct WardrobeView: View {
                 .foregroundStyle(viewModel.selectedGroup.color.opacity(0.4))
 
             VStack(spacing: EcrinSpacing.sm) {
-                Text("Aucune pièce")
+                Text(L10n.WardrobeUI.noPieces)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textPrimary)
                 Text("Ajoutez vos \(viewModel.selectedGroup.rawValue.lowercased()) avec le bouton +")

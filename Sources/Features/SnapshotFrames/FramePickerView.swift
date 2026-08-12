@@ -54,11 +54,11 @@ struct FramePickerView: View {
     private var sheetHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
-                Text("SNAPSHOT FRAME")
+                Text(L10n.SnapshotFramesUI.snapshotFrameCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Cadres artistiques L99")
+                Text(L10n.SnapshotFramesUI.artisticFramesL99)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textPrimary)
             }
@@ -206,7 +206,7 @@ struct FramePickerView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "slider.horizontal.3")
                             .font(.system(size: 13))
-                        Text("Personnaliser")
+                        Text(L10n.SnapshotFramesUI.customize)
                             .font(EcrinFont.cta)
                             .kerning(1.5)
                     }
@@ -221,7 +221,7 @@ struct FramePickerView: View {
             }
 
             HStack(spacing: EcrinSpacing.md) {
-                GhostButton(title: "Sans cadre") {
+                GhostButton(title: L10n.SnapshotFramesUI.noFrame) {
                     viewModel.clearFrame()
                     dismiss()
                 }

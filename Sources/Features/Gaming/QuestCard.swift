@@ -108,7 +108,7 @@ struct QuestCard: View {
                 HStack(spacing: EcrinSpacing.xs) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 12))
-                    Text("Récompense réclamée")
+                    Text(L10n.GamingUI.rewardClaimed)
                         .font(EcrinFont.caption)
                 }
                 .foregroundStyle(questColor.opacity(0.8))
@@ -119,7 +119,7 @@ struct QuestCard: View {
                     HStack(spacing: EcrinSpacing.xs) {
                         Image(systemName: "gift.fill")
                             .font(.system(size: 11))
-                        Text("Réclamer la récompense")
+                        Text(L10n.GamingUI.claimReward)
                             .font(EcrinFont.cta)
                             .kerning(1.5)
                     }

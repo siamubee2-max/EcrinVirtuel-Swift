@@ -32,10 +32,10 @@ struct GenerationSignInSheet: View {
                     Image(systemName: "sparkles")
                         .font(.system(size: 32))
                         .foregroundStyle(EcrinColor.gold)
-                    Text("Connexion requise")
+                    Text(L10n.AuthUI.signInRequired)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("Connectez-vous avec Apple pour lancer votre essayage virtuel et synchroniser vos crédits.")
+                    Text(L10n.AuthUI.signInWithApplePrompt)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .multilineTextAlignment(.center)
@@ -65,7 +65,7 @@ struct GenerationSignInSheet: View {
                             .multilineTextAlignment(.center)
                     }
 
-                    Button("Plus tard") { dismiss() }
+                    Button(L10n.CommunityUI.later) { dismiss() }
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                 }

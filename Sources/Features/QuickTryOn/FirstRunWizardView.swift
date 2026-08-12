@@ -134,13 +134,13 @@ struct FirstRunWizardView: View {
             VStack(alignment: .leading, spacing: EcrinSpacing.lg) {
 
                 // Header label
-                Text("Étape 1 sur 3 · Votre photo")
+                Text(L10n.QuickTryOnUI.step1YourPhoto)
                     .font(EcrinFont.label)
                     .kerning(1.5)
                     .foregroundStyle(EcrinColor.gold)
 
                 // Title
-                Text("La bonne photo\nfait tout")
+                Text(L10n.QuickTryOnUI.rightPhotoMatters)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -170,17 +170,17 @@ struct FirstRunWizardView: View {
                         if quality == .poor {
                             // Warn but allow continue
                             VStack(spacing: EcrinSpacing.sm) {
-                                Text("Photo difficile à traiter, mais vous pouvez continuer.")
+                                Text(L10n.QuickTryOnUI.photoHardToProcess)
                                     .font(EcrinFont.caption)
                                     .foregroundStyle(Color.red.opacity(0.8))
                                     .multilineTextAlignment(.center)
 
-                                GoldButton(title: "SUIVANT →") {
+                                GoldButton(title: L10n.QuickTryOnUI.nextCta) {
                                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                                     withAnimation(EcrinAnimation.springSnap) { step = 1 }
                                 }
 
-                                Button("Continuer quand même") {
+                                Button(L10n.OutfitBuilderUI.continueAnyway) {
                                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                     withAnimation(EcrinAnimation.springSnap) { step = 1 }
                                 }
@@ -188,7 +188,7 @@ struct FirstRunWizardView: View {
                                 .foregroundStyle(EcrinColor.textMuted)
                             }
                         } else {
-                            GoldButton(title: "SUIVANT →") {
+                            GoldButton(title: L10n.QuickTryOnUI.nextCta) {
                                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                                 withAnimation(EcrinAnimation.springSnap) { step = 1 }
                             }
@@ -198,7 +198,7 @@ struct FirstRunWizardView: View {
                         HStack(spacing: EcrinSpacing.sm) {
                             ProgressView()
                                 .tint(EcrinColor.gold)
-                            Text("Analyse en cours…")
+                            Text(L10n.JewelryDetectionUI.analyzing)
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -244,7 +244,7 @@ struct FirstRunWizardView: View {
                 VStack(spacing: EcrinSpacing.sm) {
                     Text("📷")
                         .font(.system(size: 32))
-                    Text("Appuyez pour choisir\nou prendre une photo")
+                    Text(L10n.QuickTryOnUI.tapToChoosePhoto)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .multilineTextAlignment(.center)
@@ -302,12 +302,12 @@ struct FirstRunWizardView: View {
         VStack(alignment: .leading, spacing: EcrinSpacing.lg) {
 
             VStack(alignment: .leading, spacing: EcrinSpacing.xs) {
-                Text("Étape 2 sur 3 · Votre bijou")
+                Text(L10n.QuickTryOnUI.step2YourJewel)
                     .font(EcrinFont.label)
                     .kerning(1.5)
                     .foregroundStyle(EcrinColor.gold)
 
-                Text("Nos coups de cœur\ndu moment")
+                Text(L10n.QuickTryOnUI.currentFavorites)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -348,7 +348,7 @@ struct FirstRunWizardView: View {
                 Image(systemName: "star.fill")
                     .font(.system(size: 10))
                     .foregroundStyle(EcrinColor.gold)
-                Text("pré-sélectionné pour votre premier essayage")
+                Text(L10n.QuickTryOnUI.preselectedFirstTryOn)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
             }
@@ -356,7 +356,7 @@ struct FirstRunWizardView: View {
 
             Spacer()
 
-            GoldButton(title: "GÉNÉRER →") {
+            GoldButton(title: L10n.QuickTryOnUI.generateCta) {
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
                 withAnimation(EcrinAnimation.springSnap) { step = 2 }
             }
@@ -415,7 +415,7 @@ struct FirstRunWizardView: View {
 
                 // STAR badge
                 if isStar {
-                    Text("STAR ✦")
+                    Text(L10n.QuickTryOnUI.starBadge)
                         .font(EcrinFont.label)
                         .kerning(1)
                         .foregroundStyle(EcrinColor.background)
@@ -466,7 +466,7 @@ struct FirstRunWizardView: View {
 
             VStack(spacing: EcrinSpacing.md) {
                 // Main label
-                Text("CRÉATION EN COURS")
+                Text(L10n.QuickTryOnUI.creationInProgress)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.gold)
@@ -496,7 +496,7 @@ struct FirstRunWizardView: View {
                     .fill(EcrinColor.gold.opacity(0.3))
                     .frame(width: 24, height: 1)
 
-                Text("Chaque bijou est placé avec précision pour respecter votre morphologie et votre teinte de peau")
+                Text(L10n.QuickTryOnUI.preciseJewelPlacement)
                     .font(EcrinFont.caption)
                     .italic()
                     .foregroundStyle(EcrinColor.textMuted)

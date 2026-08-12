@@ -32,7 +32,7 @@ struct FullExportView: View {
 
                 // Section title
                 HStack {
-                    Text("CRÉER MON SNAPSHOT")
+                    Text(L10n.SnapshotFramesUI.createMySnapshot)
                         .font(.custom("Cormorant", size: 20))
                         .fontWeight(.light)
                         .kerning(4)
@@ -73,7 +73,7 @@ struct FullExportView: View {
         .alert("Enregistré", isPresented: $vm.savedSuccess) {
             Button(L10n.Common.ok, role: .cancel) {}
         } message: {
-            Text("Votre snapshot a été enregistré dans la Photothèque.")
+            Text(L10n.SnapshotFramesUI.savedToPhotoLibrary)
         }
         .alert("Erreur", isPresented: $vm.showError) {
             Button(L10n.Common.ok, role: .cancel) {}
@@ -106,7 +106,7 @@ struct FullExportView: View {
             Spacer()
 
             VStack(spacing: 2) {
-                Text("SNAPSHOT")
+                Text(L10n.SnapshotFramesUI.snapshotCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
@@ -264,7 +264,7 @@ struct FullExportView: View {
         VStack(spacing: EcrinSpacing.md) {
             // Format selector
             HStack(spacing: EcrinSpacing.sm) {
-                Text("FORMAT")
+                Text(L10n.SocialExportUI.formatLabel)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)

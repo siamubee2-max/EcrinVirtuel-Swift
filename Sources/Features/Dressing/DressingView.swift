@@ -5,7 +5,7 @@ struct DressingView: View {
         ZStack {
             EcrinColor.background.ignoresSafeArea()
             VStack {
-                Text("Dressing")
+                Text(L10n.MultiPoseUI.dressing)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
             }

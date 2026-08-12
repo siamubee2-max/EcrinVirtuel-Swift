@@ -65,7 +65,7 @@ struct LevelUpCelebrationView: View {
 
                 // Congratulation & new level
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("Félicitations !")
+                    Text(L10n.GamingUI.congratulations)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
                         .kerning(3)
@@ -120,7 +120,7 @@ struct LevelUpCelebrationView: View {
                 // Perks unlocked
                 if perksVisible {
                     VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                        Text("Avantages débloqués")
+                        Text(L10n.GamingUI.unlockedPerks)
                             .font(EcrinFont.label)
                             .foregroundStyle(EcrinColor.textSecondary)
                             .kerning(2)
@@ -142,7 +142,7 @@ struct LevelUpCelebrationView: View {
                 if buttonVisible {
                     Button(action: onDismiss) {
                         HStack(spacing: EcrinSpacing.sm) {
-                            Text("Célébrer !")
+                            Text(L10n.GamingUI.celebrate)
                                 .font(EcrinFont.cta)
                                 .kerning(2.5)
                                 .textCase(.uppercase)

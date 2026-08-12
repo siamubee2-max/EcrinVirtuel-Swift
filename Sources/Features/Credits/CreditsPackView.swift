@@ -93,11 +93,11 @@ struct CreditsPackView: View {
                     .foregroundStyle(EcrinColor.gold)
             }
 
-            Text("Recharger mes essais")
+            Text(L10n.CreditsUI.topUpMyTries)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.textPrimary)
 
-            Text("Achetez des essais supplémentaires\nsans changer d'abonnement.")
+            Text(L10n.CreditsUI.buyExtraTriesSubtitle)
                 .font(EcrinFont.caption)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(EcrinColor.textSecondary)
@@ -115,7 +115,7 @@ struct CreditsPackView: View {
                             .tint(EcrinColor.gold)
                             .scaleEffect(0.8)
                     } else {
-                        Text("Solde actuel : ")
+                        Text(L10n.CreditsUI.currentBalance)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                         +
@@ -169,7 +169,7 @@ struct CreditsPackView: View {
             .disabled(vm.isPurchasing || vm.selectedPack == nil)
             .padding(.horizontal, EcrinSpacing.lg)
 
-            Text("Achat unique · Non renouvelable · Géré par Apple")
+            Text(L10n.CreditsUI.oneTimePurchaseNote)
                 .font(.system(size: 10))
                 .foregroundStyle(EcrinColor.textDecorative)
         }
@@ -317,7 +317,7 @@ struct PurchaseSuccessOverlay: View {
                 .frame(width: 120, height: 120)
 
                 VStack(spacing: 8) {
-                    Text("Recharge effectuée !")
+                    Text(L10n.CreditsUI.topUpDone)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
                     Text("+\(count) essai\(count > 1 ? "s" : "") ajouté\(count > 1 ? "s" : "") à votre compte")
@@ -325,7 +325,7 @@ struct PurchaseSuccessOverlay: View {
                         .foregroundStyle(EcrinColor.textSecondary)
                 }
 
-                GoldButton(title: "Commencer à essayer") {
+                GoldButton(title: L10n.CreditsUI.startTrying) {
                     onDismiss()
                 }
                 .padding(.horizontal, EcrinSpacing.xxl)

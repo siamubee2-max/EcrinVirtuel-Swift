@@ -28,7 +28,7 @@ struct WardrobeAnalyticsView: View {
                     .padding(.top, EcrinSpacing.md)
                 }
             }
-            .navigationTitle("Analytiques")
+            .navigationTitle(L10n.WardrobeUI.analytics)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

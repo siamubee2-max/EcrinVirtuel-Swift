@@ -29,17 +29,17 @@ struct LookDuJourCard: View {
             await viewModel.refresh(appState: appState, force: true)
         }
         .alert("Localisation pour votre look", isPresented: $viewModel.showLocationPreAlert) {
-            Button("Continuer") {
+            Button(L10n.WeatherUI.continueAction) {
                 Task { await viewModel.confirmLocationPermission(appState: appState) }
             }
-            Button("Saisir ma ville") {
+            Button(L10n.WeatherUI.enterMyCity) {
                 viewModel.showLocationPreAlert = false
                 viewModel.showCitySearch = true
             }
             Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
             Text(
-                "L'Écrin Virtuel utilise votre position pour vous proposer un look adapté à la météo de votre ville. Vos coordonnées ne sont jamais stockées sur nos serveurs."
+                L10n.WeatherUI.locationPrivacyNotice
             )
         }
         .sheet(isPresented: $viewModel.showGenderPicker) {
@@ -136,7 +136,7 @@ struct LookDuJourCard: View {
                         .foregroundStyle(EcrinColor.gold)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Actualiser le look")
+                .accessibilityLabel(L10n.WeatherUI.refreshLook)
             }
         }
     }
@@ -599,7 +599,7 @@ private struct LookHeroWardrobeImage: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 // Badge "Ma garde-robe"
-                Label("Ma garde-robe", systemImage: "checkmark.seal.fill")
+                Label(L10n.WeatherUI.myWardrobe, systemImage: "checkmark.seal.fill")
                     .font(.system(size: 8, weight: .semibold))
                     .foregroundStyle(EcrinColor.gold)
                     .padding(.horizontal, 6).padding(.vertical, 3)

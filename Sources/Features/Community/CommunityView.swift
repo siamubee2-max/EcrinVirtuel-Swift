@@ -44,10 +44,10 @@ struct CommunityView: View {
     private var communityHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Communauté")
+                Text(L10n.AppUI.community)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
-                Text("Inspirez et soyez inspirée")
+                Text(L10n.CommunityUI.inspireBeInspired)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textSecondary)
             }
@@ -191,7 +191,7 @@ private struct StoriesRow: View {
                     }
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Partager un look")
+                .accessibilityLabel(L10n.CommunityUI.shareALook)
 
                 // Story items
                 ForEach(entries.prefix(12)) { entry in
@@ -282,7 +282,7 @@ private struct ChallengesTab: View {
 
                     // Section title
                     HStack {
-                        Text("Tous les défis")
+                        Text(L10n.CommunityUI.allChallenges)
                             .font(EcrinFont.sectionHead)
                             .foregroundStyle(EcrinColor.textPrimary)
                         Spacer()
@@ -399,7 +399,7 @@ private struct ParticipateSheet: View {
 
                     // Récompense — bloc visible et engageant
                     VStack(spacing: EcrinSpacing.sm) {
-                        Text("VOTRE RÉCOMPENSE")
+                        Text(L10n.CommunityUI.yourRewardCaps)
                             .font(EcrinFont.label)
                             .kerning(2)
                             .foregroundStyle(EcrinColor.textMuted)
@@ -430,7 +430,7 @@ private struct ParticipateSheet: View {
                             Text("\(challenge.participantCount)")
                                 .font(EcrinFont.sans(20, weight: .semibold))
                                 .foregroundStyle(EcrinColor.textPrimary)
-                            Text("Participantes")
+                            Text(L10n.CommunityUI.participantsTitle)
                                 .font(EcrinFont.label)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -439,7 +439,7 @@ private struct ParticipateSheet: View {
                             Text(countdown)
                                 .font(EcrinFont.sans(20, weight: .semibold))
                                 .foregroundStyle(EcrinColor.gold)
-                            Text("Restant")
+                            Text(L10n.CommunityUI.remaining)
                                 .font(EcrinFont.label)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -448,11 +448,11 @@ private struct ParticipateSheet: View {
 
                     VStack(spacing: EcrinSpacing.md) {
                         if challenge.isParticipating {
-                            GoldButton(title: "Essayer un bijou maintenant", action: onTryOn)
-                            GhostButton(title: "Retirer mon inscription", action: onConfirm)
+                            GoldButton(title: L10n.CommunityUI.tryJewelNow, action: onTryOn)
+                            GhostButton(title: L10n.CommunityUI.leaveChallenge, action: onConfirm)
                         } else {
-                            GoldButton(title: "Rejoindre ce défi", action: onConfirm)
-                            GhostButton(title: "Plus tard", action: { dismiss() })
+                            GoldButton(title: L10n.CommunityUI.joinChallenge, action: onConfirm)
+                            GhostButton(title: L10n.CommunityUI.later, action: { dismiss() })
                         }
                     }
                     .padding(.horizontal, EcrinSpacing.md)

@@ -72,11 +72,11 @@ struct OccasionVaultView: View {
     private var headerSection: some View {
         HStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("MON DRESSING")
+                Text(L10n.OccasionVaultUI.myDressingTitle)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Vos looks sauvegardés")
+                Text(L10n.OccasionVaultUI.yourSavedLooks)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
             }
@@ -181,13 +181,13 @@ struct OccasionVaultView: View {
                 Text("Aucun look \(viewModel.selectedOccasion.rawValue.lowercased())")
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textSecondary)
-                Text("Essayez des bijoux et sauvegardez\nvotre look pour cette occasion.")
+                Text(L10n.OccasionVaultUI.emptyVaultHint)
                     .font(EcrinFont.body)
                     .foregroundStyle(EcrinColor.textMuted)
                     .multilineTextAlignment(.center)
             }
 
-            GoldButton(title: "Créer un look") {
+            GoldButton(title: L10n.OutfitBuilderUI.createALook) {
                 showSaveLookSheet = true
             }
         }

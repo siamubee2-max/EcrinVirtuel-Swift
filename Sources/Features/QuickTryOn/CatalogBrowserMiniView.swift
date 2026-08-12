@@ -130,7 +130,7 @@ struct CatalogBrowserMiniView: View {
         VStack(spacing: EcrinSpacing.md) {
             ProgressView()
                 .tint(EcrinColor.gold)
-            Text("Chargement du catalogue…")
+            Text(L10n.CatalogUI.loadingCatalog)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textSecondary)
         }
@@ -143,10 +143,10 @@ struct CatalogBrowserMiniView: View {
             Image(systemName: "diamond")
                 .font(.system(size: 36, weight: .thin))
                 .foregroundStyle(EcrinColor.textMuted)
-            Text("Mode « Bijoux seuls »")
+            Text(L10n.QuickTryOnUI.jewelryOnlyMode)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textPrimary)
-            Text("Le catalogue vêtements ne s'applique pas à ce mode.\nUtilisez Ma garde-robe ou la Boutique.")
+            Text(L10n.QuickTryOnUI.clothingCatalogNotApplicable)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
                 .multilineTextAlignment(.center)

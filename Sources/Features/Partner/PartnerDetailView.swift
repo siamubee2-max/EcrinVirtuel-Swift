@@ -183,7 +183,7 @@ struct PartnerDetailView: View {
             if isLoadingCatalog {
                 catalogSkeleton
             } else if catalog.isEmpty {
-                Text("Catalogue en cours de chargement…")
+                Text(L10n.PartnerUI.catalogLoading)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
                     .padding(.horizontal, EcrinSpacing.lg)
@@ -246,7 +246,7 @@ struct PartnerDetailView: View {
         GlassCard(cornerRadius: 20) {
             HStack(spacing: EcrinSpacing.md) {
                 VStack(alignment: .leading, spacing: EcrinSpacing.xs) {
-                    Text("Découvrir la boutique")
+                    Text(L10n.PartnerUI.discoverShop)
                         .font(EcrinFont.cardTitle)
                         .foregroundStyle(EcrinColor.textPrimary)
                     if let url = brand.websiteURL {
@@ -262,7 +262,7 @@ struct PartnerDetailView: View {
                     openBrandWebsite()
                 } label: {
                     HStack(spacing: EcrinSpacing.xs) {
-                        Text("VISITER")
+                        Text(L10n.PartnerUI.visit)
                             .font(EcrinFont.cta)
                             .kerning(2)
                         Image(systemName: "arrow.up.right")
@@ -412,7 +412,7 @@ private struct JewelryCatalogCard: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.up.right")
                                     .font(.system(size: 10, weight: .semibold))
-                                Text("Acheter")
+                                Text(L10n.PartnerUI.buy)
                                     .font(EcrinFont.cta)
                                     .kerning(1)
                             }

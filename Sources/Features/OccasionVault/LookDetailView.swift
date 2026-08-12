@@ -65,7 +65,7 @@ struct LookDetailView: View {
             ActivitySheet(items: [buildShareText()])
         }
         .confirmationDialog(
-            "Supprimer ce look ?",
+            L10n.OccasionVaultUI.deleteLookConfirm,
             isPresented: $showDeleteConfirm,
             titleVisibility: .visible
         ) {
@@ -146,7 +146,7 @@ struct LookDetailView: View {
     private var jewelrySection: some View {
         if !resolvedJewelry.isEmpty {
             VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-                Text("BIJOUX DU LOOK")
+                Text(L10n.OccasionVaultUI.lookJewelsLabel)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -169,7 +169,7 @@ struct LookDetailView: View {
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
             HStack {
-                Text("NOTES")
+                Text(L10n.OccasionVaultUI.notesLabel)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -225,7 +225,7 @@ struct LookDetailView: View {
 
     private var tagsSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("TAGS")
+            Text(L10n.OccasionVaultUI.tagsLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -271,7 +271,7 @@ struct LookDetailView: View {
                             Image(systemName: "plus")
                                 .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(EcrinColor.gold.opacity(0.6))
-                            TextField("Tag", text: $tagInput)
+                            TextField(L10n.OccasionVaultUI.tagPlaceholder, text: $tagInput)
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.textPrimary)
                                 .frame(width: 60)

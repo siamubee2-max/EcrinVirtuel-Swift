@@ -79,7 +79,7 @@ struct PostCard: View {
                     Image(systemName: "wand.and.stars")
                         .font(.system(size: 8, weight: .semibold))
                         .foregroundStyle(EcrinColor.gold)
-                    Text("a essayé virtuellement")
+                    Text(L10n.CommunityUI.triedVirtually)
                         .font(EcrinFont.label)
                         .foregroundStyle(EcrinColor.textSecondary)
                     if let location = post.location {
@@ -117,21 +117,21 @@ struct PostCard: View {
                         Button(role: .destructive) {
                             showDeleteConfirmation = true
                         } label: {
-                            Label("Supprimer mon post", systemImage: "trash")
+                            Label(L10n.CommunityUI.deleteMyPost, systemImage: "trash")
                         }
                     } else {
                         if onReport != nil {
                             Button(role: .destructive) {
                                 showReportConfirmation = true
                             } label: {
-                                Label("Signaler ce contenu", systemImage: "exclamationmark.bubble")
+                                Label(L10n.CommunityUI.reportContent, systemImage: "exclamationmark.bubble")
                             }
                         }
                         if let onHide {
                             Button {
                                 onHide()
                             } label: {
-                                Label("Masquer", systemImage: "eye.slash")
+                                Label(L10n.CommunityUI.hide, systemImage: "eye.slash")
                             }
                         }
                     }
@@ -143,23 +143,23 @@ struct PostCard: View {
                         .padding(.vertical, 10)
                         .contentShape(Rectangle())
                 }
-                .accessibilityLabel("Options du post")
+                .accessibilityLabel(L10n.CommunityUI.postOptions)
             }
         }
         .padding(.horizontal, EcrinSpacing.md)
         .padding(.vertical, EcrinSpacing.sm + 4)
         .confirmationDialog(
-            "Signaler ce contenu ?",
+            L10n.CommunityUI.reportContentConfirm,
             isPresented: $showReportConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Signaler", role: .destructive) { onReport?() }
+            Button(L10n.CommunityUI.report, role: .destructive) { onReport?() }
             Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
-            Text("Le contenu sera masqué immédiatement et examiné par notre équipe sous 24 h.")
+            Text(L10n.CommunityUI.reportReviewNotice)
         }
         .confirmationDialog(
-            "Supprimer ce post ?",
+            L10n.CommunityUI.deletePostConfirm,
             isPresented: $showDeleteConfirmation,
             titleVisibility: .visible
         ) {
@@ -195,7 +195,7 @@ struct PostCard: View {
                         Image(systemName: "wand.and.stars")
                             .font(.system(size: 9, weight: .semibold))
                             .foregroundStyle(EcrinColor.gold)
-                        Text("ESSAYAGE VIRTUEL")
+                        Text(L10n.CommunityUI.virtualTryOnCaps)
                             .font(EcrinFont.label)
                             .kerning(1.8)
                             .foregroundStyle(.white)
@@ -444,7 +444,7 @@ struct PostCard: View {
                 HStack(spacing: 5) {
                     Image(systemName: "wand.and.stars")
                         .font(.system(size: 12, weight: .semibold))
-                    Text("Essayer aussi")
+                    Text(L10n.CommunityUI.tryItToo)
                         .font(EcrinFont.sans(12, weight: .semibold))
                         .kerning(0.3)
                 }
@@ -455,7 +455,7 @@ struct PostCard: View {
                 .clipShape(Capsule())
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Essayer ce bijou en essayage virtuel")
+            .accessibilityLabel(L10n.CommunityUI.tryJewelVirtually)
 
             // Share
             Image(systemName: "paperplane")

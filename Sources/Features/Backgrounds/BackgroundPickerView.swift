@@ -68,11 +68,11 @@ struct BackgroundPickerView: View {
     private var sheetHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
-                Text("ARRIÈRE-PLAN")
+                Text(L10n.BackgroundsUI.backgroundCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Choisir le décor")
+                Text(L10n.BackgroundsUI.chooseBackdrop)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textPrimary)
             }
@@ -212,10 +212,10 @@ struct BackgroundPickerView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Mon fond personnel")
+                    Text(L10n.BackgroundsUI.myPersonalBackground)
                         .font(EcrinFont.cardTitle)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("Utilisez une de vos photos comme décor")
+                    Text(L10n.BackgroundsUI.usePhotoAsBackdrop)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
                         .lineLimit(2)
@@ -267,7 +267,7 @@ struct BackgroundPickerView: View {
     // MARK: Bottom Bar
     private var bottomBar: some View {
         HStack(spacing: EcrinSpacing.md) {
-            GhostButton(title: "Sans fond") {
+            GhostButton(title: L10n.BackgroundsUI.noBackground) {
                 viewModel.clearBackground()
                 dismiss()
             }

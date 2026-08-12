@@ -51,7 +51,7 @@ struct OutfitBuilderView: View {
             OutfitGalleryView(vm: vm)
         }
         .alert("Conflits détectés", isPresented: $vm.showConflictWarning) {
-            Button("Continuer quand même") { vm.showConflictWarning = false }
+            Button(L10n.OutfitBuilderUI.continueAnyway) { vm.showConflictWarning = false }
             Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
             Text(vm.conflicts.joined(separator: "\n"))
@@ -87,7 +87,7 @@ struct OutfitBuilderView: View {
             Spacer()
 
             VStack(spacing: 2) {
-                Text("Outfit Builder")
+                Text(L10n.OutfitBuilderUI.outfitBuilder)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.ivory)
                 // Occasion badge
@@ -172,7 +172,7 @@ struct OutfitBuilderView: View {
                 }
 
                 if items.isEmpty {
-                    Text("Aucun article dans cette catégorie")
+                    Text(L10n.OutfitBuilderUI.noItemsInCategory)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .padding(.horizontal, EcrinSpacing.lg)
@@ -289,7 +289,7 @@ struct SilhouetteCanvas: View {
                     VStack(spacing: EcrinSpacing.sm) {
                         Image(systemName: "hand.point.down.fill")
                             .font(.system(size: 20))
-                        Text("Sélectionnez vos pièces ci-dessous")
+                        Text(L10n.OutfitBuilderUI.selectPiecesBelow)
                             .font(EcrinFont.caption)
                     }
                     .foregroundStyle(EcrinColor.textMuted)
@@ -510,7 +510,7 @@ struct CompletionBadge: View {
             Text("\(score)%")
                 .font(EcrinFont.sans(13, weight: .bold))
                 .foregroundStyle(score >= 70 ? EcrinColor.gold : EcrinColor.textSecondary)
-            Text("Tenue")
+            Text(L10n.OutfitBuilderUI.outfit)
                 .font(EcrinFont.label)
                 .foregroundStyle(EcrinColor.textMuted)
         }

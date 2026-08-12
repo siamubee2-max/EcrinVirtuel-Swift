@@ -19,11 +19,11 @@ struct ProfileView: View {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: EcrinSpacing.xl) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("PROFIL")
+                        Text(L10n.ProfileUI.profileTitle)
                             .font(EcrinFont.label)
                             .kerning(3)
                             .foregroundStyle(EcrinColor.gold)
-                        Text("Mon Espace")
+                        Text(L10n.ProfileUI.mySpace)
                             .font(EcrinFont.sectionHead)
                             .foregroundStyle(EcrinColor.textPrimary)
                     }
@@ -46,15 +46,15 @@ struct ProfileView: View {
                                         .foregroundStyle(EcrinColor.gold)
                                 }
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Essais épuisés")
+                                    Text(L10n.ProfileUI.triesExhausted)
                                         .font(EcrinFont.cardTitle)
                                         .foregroundStyle(EcrinColor.textPrimary)
-                                    Text("Passez à Premium pour continuer")
+                                    Text(L10n.ProfileUI.upgradeToContinue)
                                         .font(EcrinFont.caption)
                                         .foregroundStyle(EcrinColor.gold.opacity(0.85))
                                 }
                                 Spacer()
-                                Text("S'abonner")
+                                Text(L10n.ProfileUI.subscribe)
                                     .font(.system(size: 11, weight: .semibold))
                                     .foregroundStyle(EcrinColor.background)
                                     .padding(.horizontal, 12)
@@ -77,7 +77,7 @@ struct ProfileView: View {
 
                         // Secondaire : achat à l'unité
                         Button { showCreditsShop = true } label: {
-                            Text("Ou acheter des essais à l'unité →")
+                            Text(L10n.ProfileUI.orBuySingleTries)
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -96,7 +96,7 @@ struct ProfileView: View {
                                         .foregroundStyle(EcrinColor.gold)
                                 }
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Essais disponibles")
+                                    Text(L10n.ProfileUI.triesAvailable)
                                         .font(EcrinFont.cardTitle)
                                         .foregroundStyle(EcrinColor.textPrimary)
                                     if let credits = remainingCredits {
@@ -110,7 +110,7 @@ struct ProfileView: View {
                                     }
                                 }
                                 Spacer()
-                                Text("Recharger")
+                                Text(L10n.ProfileUI.topUp)
                                     .font(.system(size: 11, weight: .semibold))
                                     .foregroundStyle(EcrinColor.background)
                                     .padding(.horizontal, 12)
@@ -149,10 +149,10 @@ struct ProfileView: View {
                             }
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Offrir un bijou")
+                                Text(L10n.ProfileUI.giftAJewel)
                                     .font(EcrinFont.cardTitle)
                                     .foregroundStyle(EcrinColor.textPrimary)
-                                Text("Créer un cadeau à partager")
+                                Text(L10n.ProfileUI.createGiftToShare)
                                     .font(EcrinFont.caption)
                                     .foregroundStyle(EcrinColor.textSecondary)
                             }
@@ -175,7 +175,7 @@ struct ProfileView: View {
                     }
                     .buttonStyle(.plain)
                     .padding(.horizontal, EcrinSpacing.lg)
-                    .accessibilityLabel("Offrir un bijou. Ouvre le créateur de cadeau")
+                    .accessibilityLabel(L10n.ProfileUI.giftAJewelA11y)
 
                     // Stone Guide entry point
                     Button {
@@ -192,10 +192,10 @@ struct ProfileView: View {
                             }
 
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Guide des Pierres")
+                                Text(L10n.StoneTherapyUI.stoneGuide)
                                     .font(EcrinFont.cardTitle)
                                     .foregroundStyle(EcrinColor.textPrimary)
-                                Text("Lithothérapie & vertus")
+                                Text(L10n.ProfileUI.stoneTherapyVirtues)
                                     .font(EcrinFont.caption)
                                     .foregroundStyle(EcrinColor.textSecondary)
                             }
@@ -223,7 +223,7 @@ struct ProfileView: View {
 
                     // MARK: - Consentement IA (RGPD — droit de retrait)
                     if AIConsentModal.isGranted {
-                        Button("Retirer mon consentement IA") {
+                        Button(L10n.ProfileUI.withdrawAiConsent) {
                             showRevokeConsentConfirmation = true
                         }
                         .font(EcrinFont.caption)
@@ -233,7 +233,7 @@ struct ProfileView: View {
 
                     // MARK: - Déconnexion + Suppression (Apple Guideline 5.1.1(v) — obligatoire)
                     VStack(spacing: EcrinSpacing.sm) {
-                        Button("Se déconnecter") {
+                        Button(L10n.ProfileUI.signOut) {
                             Task {
                                 try? await SupabaseService.shared.signOut()
                                 appState.signOut()
@@ -258,10 +258,10 @@ struct ProfileView: View {
                                     ProgressView()
                                         .tint(.red.opacity(0.7))
                                         .scaleEffect(0.8)
-                                    Text("Suppression…")
+                                    Text(L10n.ProfileUI.deleting)
                                 }
                             } else {
-                                Text("Supprimer mon compte")
+                                Text(L10n.ProfileUI.deleteMyAccount)
                             }
                         }
                         .font(EcrinFont.caption)
@@ -290,28 +290,28 @@ struct ProfileView: View {
             remainingCredits = try? await SupabaseService.shared.fetchRemainingCredits()
         }
         .confirmationDialog(
-            "Retirer votre consentement IA ?",
+            L10n.ProfileUI.withdrawAiConsentQuestion,
             isPresented: $showRevokeConsentConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Retirer le consentement", role: .destructive) {
+            Button(L10n.ProfileUI.withdrawConsent, role: .destructive) {
                 AIConsentModal.revoke()
             }
             Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
-            Text("Vos photos ne seront plus envoyées à Google ou OpenAI. Vous pouvez le réaccorder lors du prochain essayage.")
+            Text(L10n.ProfileUI.aiConsentWithdrawInfo)
         }
         .confirmationDialog(
-            "Supprimer définitivement votre compte ?",
+            L10n.ProfileUI.deleteAccountQuestion,
             isPresented: $showDeleteConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Supprimer mon compte", role: .destructive) {
+            Button(L10n.ProfileUI.deleteMyAccount, role: .destructive) {
                 Task { await deleteAccount() }
             }
             Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
-            Text("Toutes vos données seront supprimées définitivement : looks sauvegardés, historique d'essayage et informations personnelles. Cette action est irréversible.")
+            Text(L10n.ProfileUI.deleteAccountWarning)
         }
     }
 

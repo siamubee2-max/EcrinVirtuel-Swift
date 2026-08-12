@@ -349,12 +349,12 @@ struct PaywallView: View {
                                 .font(.system(size: 32))
                                 .foregroundStyle(EcrinColor.gold)
 
-                            Text("L'Écrin\nPremium")
+                            Text(L10n.PaywallUI.ecrinPremiumTitle)
                                 .font(EcrinFont.heroTitle)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(EcrinColor.textPrimary)
 
-                            Text("Essayage illimité · Styliste IA · Dressing premium")
+                            Text(L10n.PaywallUI.premiumFeaturesLine)
                                 .font(EcrinFont.caption)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(EcrinColor.textSecondary)
@@ -430,7 +430,7 @@ struct PaywallView: View {
                             }
                             .disabled(viewModel.isPurchasing)
 
-                            Button("Restaurer mes achats") {
+                            Button(L10n.PaywallUI.restorePurchases) {
                                 Task { await viewModel.restore() }
                             }
                             .font(EcrinFont.caption)
@@ -476,7 +476,7 @@ struct PlanCard: View {
                             .foregroundStyle(EcrinColor.textPrimary)
 
                         if plan.isBestValue {
-                            Text("MEILLEURE OFFRE")
+                            Text(L10n.PaywallUI.bestOffer)
                                 .font(.system(size: 8, weight: .semibold))
                                 .kerning(1.5)
                                 .foregroundStyle(EcrinColor.background)

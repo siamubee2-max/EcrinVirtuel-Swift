@@ -102,7 +102,7 @@ private struct GiftLoadingView: View {
                     .font(.system(size: 44, weight: .thin))
                     .foregroundStyle(EcrinColor.gold)
             }
-            Text("Ouverture du cadeau…")
+            Text(L10n.GiftUI.openingGift)
                 .font(EcrinFont.serif(20, weight: .light))
                 .foregroundStyle(EcrinColor.textSecondary)
         }
@@ -132,7 +132,7 @@ private struct RevealedGiftContent: View {
                 if !isBoxOpen {
                     // Pre-open state
                     VStack(spacing: EcrinSpacing.lg) {
-                        Text("Un cadeau vous attend")
+                        Text(L10n.GiftUI.giftAwaitsYou)
                             .font(EcrinFont.sectionHead)
                             .foregroundStyle(EcrinColor.textPrimary)
                             .multilineTextAlignment(.center)
@@ -141,7 +141,7 @@ private struct RevealedGiftContent: View {
                             .font(EcrinFont.body)
                             .foregroundStyle(EcrinColor.textSecondary)
 
-                        GoldButton(title: "Ouvrir le cadeau") { onOpenBox() }
+                        GoldButton(title: L10n.GiftUI.openGift) { onOpenBox() }
                     }
                     .padding(.top, EcrinSpacing.xl)
                     .padding(.horizontal, EcrinSpacing.lg)
@@ -194,9 +194,9 @@ private struct RevealedGiftContent: View {
 
                         // CTAs
                         VStack(spacing: EcrinSpacing.md) {
-                            GoldButton(title: "Essayer sur moi ✨") { onTryOn() }
+                            GoldButton(title: L10n.GiftUI.tryOnMe) { onTryOn() }
 
-                            GhostButton(title: "L'acheter maintenant") { onBuy() }
+                            GhostButton(title: L10n.GiftUI.buyItNow) { onBuy() }
                         }
                         .padding(.bottom, EcrinSpacing.xxl)
                     }

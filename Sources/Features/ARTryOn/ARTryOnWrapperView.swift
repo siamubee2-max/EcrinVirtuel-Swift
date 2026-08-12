@@ -230,7 +230,7 @@ struct ARTryOnWrapperView: View {
                     .fill(EcrinColor.textMuted)
                     .frame(width: 36, height: 4)
 
-                Text("Changer de bijou")
+                Text(L10n.ArTryOnUI.changeJewel)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
 
@@ -268,7 +268,7 @@ struct ARTryOnWrapperView: View {
             Color.black.opacity(0.8).ignoresSafeArea()
 
             VStack(spacing: EcrinSpacing.lg) {
-                Text("Look capturé")
+                Text(L10n.ArTryOnUI.lookCaptured)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
 
@@ -279,7 +279,7 @@ struct ARTryOnWrapperView: View {
                     .padding(.horizontal, EcrinSpacing.xl)
 
                 HStack(spacing: EcrinSpacing.lg) {
-                    GhostButton(title: "Reprendre") {
+                    GhostButton(title: L10n.ArTryOnUI.retake) {
                         withAnimation(EcrinAnimation.springSnap) { showCapturePreview = false }
                     }
                     GoldButton(title: L10n.Common.save) {
@@ -303,17 +303,17 @@ struct ARTryOnWrapperView: View {
                 .foregroundStyle(EcrinColor.textMuted)
 
             VStack(spacing: EcrinSpacing.sm) {
-                Text("AR non disponible")
+                Text(L10n.ArTryOnUI.arUnavailable)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
-                Text("L'essayage AR nécessite un iPhone compatible. Utilise l'essayage photo classique pour continuer.")
+                Text(L10n.ArTryOnUI.arRequiresCompatibleIphone)
                     .font(EcrinFont.body)
                     .foregroundStyle(EcrinColor.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, EcrinSpacing.xl)
             }
 
-            GoldButton(title: "Essayage Photo") { onDismiss() }
+            GoldButton(title: L10n.ArTryOnUI.photoTryOn) { onDismiss() }
 
             GhostButton(title: L10n.Common.close) { onDismiss() }
 

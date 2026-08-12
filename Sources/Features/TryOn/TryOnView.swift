@@ -32,11 +32,11 @@ struct TryOnView: View {
                     // Header
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("ESSAYAGE")
+                            Text(L10n.WardrobeUI.tryOnCaps)
                                 .font(EcrinFont.label)
                                 .kerning(3)
                                 .foregroundStyle(EcrinColor.gold)
-                            Text("Virtuel")
+                            Text(L10n.TryOnUI.virtual)
                                 .font(EcrinFont.sectionHead)
                                 .foregroundStyle(EcrinColor.textPrimary)
                         }
@@ -100,7 +100,7 @@ struct TryOnView: View {
 
                         // Option multi-vues pour tous les bijoux
                         if viewModel.selectedJewelry != nil && viewModel.userPhoto != nil && !isEarrings {
-                            GhostButton(title: "Multi-vues (choisir les angles)") {
+                            GhostButton(title: L10n.TryOnUI.multiViewChooseAngles) {
                                 showMultiPose = true
                             }
                         }
@@ -185,14 +185,14 @@ struct TryOnView: View {
             }
         }
         .alert("Accès caméra refusé", isPresented: $cameraDenied) {
-            Button("Ouvrir Réglages") {
+            Button(L10n.TryOnUI.openSettings) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
             }
             Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
-            Text("Autorisez l'accès à la caméra dans Réglages pour prendre une photo dans l'app.")
+            Text(L10n.TryOnUI.cameraAccessSettingsHint)
         }
     }
 
@@ -299,7 +299,7 @@ struct PhotoDropZone: View {
                         Image(systemName: "person.crop.rectangle.badge.plus")
                             .font(.system(size: 40, weight: .thin))
                             .foregroundStyle(EcrinColor.textMuted)
-                        Text("Ajouter votre photo")
+                        Text(L10n.MultiPoseUI.addYourPhoto)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)
                             .kerning(1)
@@ -309,7 +309,7 @@ struct PhotoDropZone: View {
             .frame(height: 320)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Ajouter votre photo")
+        .accessibilityLabel(L10n.MultiPoseUI.addYourPhoto)
         .accessibilityHint("Ouvre la photothèque")
     }
 }
@@ -321,7 +321,7 @@ struct JewelryPickerRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("CHOISIR UN BIJOU")
+            Text(L10n.TryOnUI.chooseAJewel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -423,7 +423,7 @@ struct ResultCarousel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("RÉSULTAT")
+            Text(L10n.WardrobeUI.resultCaps)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)

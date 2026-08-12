@@ -75,7 +75,7 @@ struct MoodBoardGalleryView: View {
     private var headerSection: some View {
         HStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("GALERIE")
+                Text(L10n.MoodBoardUI.galleryTitle)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
@@ -83,7 +83,7 @@ struct MoodBoardGalleryView: View {
                     .offset(x: headerVisible ? 0 : -10)
                     .animation(EcrinAnimation.easeSlide, value: headerVisible)
 
-                Text("Mes looks sauvegardés")
+                Text(L10n.MoodBoardUI.mySavedLooks)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .opacity(headerVisible ? 1 : 0)
@@ -111,7 +111,7 @@ struct MoodBoardGalleryView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "plus")
                             .font(.system(size: 13, weight: .semibold))
-                        Text("Nouveau look")
+                        Text(L10n.MoodBoardUI.newLook)
                             .font(EcrinFont.cta)
                             .kerning(1.5)
                     }
@@ -154,10 +154,10 @@ struct MoodBoardGalleryView: View {
                 .frame(height: 140)
 
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("Votre galerie est vide")
+                    Text(L10n.MoodBoardUI.emptyGallery)
                         .font(EcrinFont.cardTitle)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("Créez votre premier mood board pour composer votre style signature.")
+                    Text(L10n.MoodBoardUI.firstMoodBoardHint)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
                         .multilineTextAlignment(.center)
@@ -165,7 +165,7 @@ struct MoodBoardGalleryView: View {
                         .padding(.horizontal, 40)
                 }
 
-                GoldButton(title: "Créer mon premier look") {
+                GoldButton(title: L10n.MoodBoardUI.createFirstLook) {
                     showGenerator = true
                 }
             }

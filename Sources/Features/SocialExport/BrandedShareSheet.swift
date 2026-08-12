@@ -40,7 +40,7 @@ struct BrandedShareSheet: View {
                 shareTargetsRow
 
                 // ── CTA principal ──────────────────────────────────────
-                GoldButton(title: "PARTAGER MAINTENANT") {
+                GoldButton(title: L10n.SocialExportUI.shareNow) {
                     showSystemShare = true
                 }
                 .padding(.horizontal, EcrinSpacing.xl)
@@ -85,7 +85,7 @@ struct BrandedShareSheet: View {
 
             // Watermark bas-droite
             VStack(alignment: .trailing, spacing: 2) {
-                Text("L'ÉCRIN VIRTUEL")
+                Text(L10n.OnboardingUI.brandName)
                     .font(EcrinFont.serif(11))
                     .kerning(2)
                     .foregroundStyle(EcrinColor.gold)

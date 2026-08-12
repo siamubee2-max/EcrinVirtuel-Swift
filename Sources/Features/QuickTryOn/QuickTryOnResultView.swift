@@ -67,7 +67,7 @@ struct QuickTryOnResultView: View {
                         .foregroundStyle(EcrinColor.gold)
 
                     // Primaire — partage
-                    GoldButton(title: "PARTAGER →") {
+                    GoldButton(title: L10n.QuickTryOnUI.shareCta) {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         showBrandedShare = true
                     }
@@ -95,7 +95,7 @@ struct QuickTryOnResultView: View {
                         if let onNextJewelry {
                             Button(action: onNextJewelry) {
                                 HStack(spacing: 4) {
-                                    Text("Bijou suivant")
+                                    Text(L10n.QuickTryOnUI.nextJewel)
                                     Text("→")
                                 }
                                 .font(EcrinFont.caption)
@@ -117,7 +117,7 @@ struct QuickTryOnResultView: View {
                     }
 
                     Button(action: handleClose) {
-                        Text("FERMER")
+                        Text(L10n.QuickTryOnUI.closeCaps)
                             .font(EcrinFont.cta)
                             .kerning(2.5)
                             .foregroundStyle(EcrinColor.textSecondary)
@@ -214,7 +214,7 @@ private struct PostResultNudgeView: View {
     var body: some View {
         VStack(spacing: EcrinSpacing.sm) {
             HStack {
-                Text("Encore un ?")
+                Text(L10n.QuickTryOnUI.oneMore)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textPrimary)
                 Spacer()

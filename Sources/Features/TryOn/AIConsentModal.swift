@@ -62,7 +62,7 @@ struct AIConsentModal: View {
                         .padding(.top, EcrinSpacing.lg)
 
                         // Titre
-                        Text("Essayage par Intelligence Artificielle")
+                        Text(L10n.TryOnUI.aiPoweredTryOn)
                             .font(EcrinFont.sectionHead)
                             .multilineTextAlignment(.center)
                             .foregroundStyle(EcrinColor.textPrimary)
@@ -96,7 +96,7 @@ struct AIConsentModal: View {
 
                         // Actions
                         VStack(spacing: EcrinSpacing.sm) {
-                            GoldButton(title: "Accepter et essayer") {
+                            GoldButton(title: L10n.TryOnUI.acceptAndTry) {
                                 AIConsentStorage.grant()
                                 withAnimation(EcrinAnimation.springSnap) {
                                     isPresented = false
@@ -104,7 +104,7 @@ struct AIConsentModal: View {
                                 onAccept()
                             }
 
-                            Button("Refuser") {
+                            Button(L10n.TryOnUI.decline) {
                                 withAnimation(EcrinAnimation.springSnap) {
                                     isPresented = false
                                 }

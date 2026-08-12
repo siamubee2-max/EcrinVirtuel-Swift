@@ -15,10 +15,10 @@ struct LeaderboardView: View {
                 VStack(spacing: EcrinSpacing.lg) {
                     // Header
                     VStack(spacing: 4) {
-                        Text("Classement")
+                        Text(L10n.CommunityUI.leaderboard)
                             .font(EcrinFont.sectionHead)
                             .foregroundStyle(EcrinColor.textPrimary)
-                        Text("Les membres les plus actifs ce mois-ci")
+                        Text(L10n.CommunityUI.topMembersThisMonth)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                     }
@@ -84,7 +84,7 @@ struct LeaderboardView: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Votre classement")
+                Text(L10n.CommunityUI.yourRanking)
                     .font(EcrinFont.label)
                     .foregroundStyle(EcrinColor.textSecondary)
                 Text(entry?.user.displayName ?? "Vous")

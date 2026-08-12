@@ -113,7 +113,7 @@ struct MultiPoseFlowView: View {
             Spacer()
 
             VStack(spacing: 2) {
-                Text("MULTI-VUES")
+                Text(L10n.MultiPoseUI.multiViewsCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
@@ -258,7 +258,7 @@ struct MultiPoseFlowView: View {
                                 Image(systemName: "person.crop.rectangle.badge.plus")
                                     .font(.system(size: 40, weight: .thin))
                                     .foregroundStyle(EcrinColor.textMuted)
-                                Text("Ajouter votre photo")
+                                Text(L10n.MultiPoseUI.addYourPhoto)
                                     .font(EcrinFont.caption)
                                     .foregroundStyle(EcrinColor.textMuted)
                                 Text(mode.photoTip)
@@ -300,7 +300,7 @@ struct MultiPoseFlowView: View {
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                     if allItems.count >= 2 {
-                        Text("NB Pro")
+                        Text(L10n.MultiPoseUI.nbPro)
                             .font(.system(size: 9, weight: .medium))
                             .kerning(1.2)
                             .foregroundStyle(EcrinColor.gold.opacity(0.8))
@@ -320,7 +320,7 @@ struct MultiPoseFlowView: View {
             generatingPulse
 
             VStack(spacing: EcrinSpacing.sm) {
-                Text("Génération multi-vues…")
+                Text(L10n.MultiPoseUI.multiViewGenerating)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
 
@@ -574,7 +574,7 @@ struct MultiViewToggle: View {
                     .foregroundStyle(isEnabled ? EcrinColor.gold : EcrinColor.textSecondary)
 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Multi-vues")
+                    Text(L10n.MultiPoseUI.multiViews)
                         .font(EcrinFont.body)
                         .foregroundStyle(isEnabled ? EcrinColor.textPrimary : EcrinColor.textSecondary)
                     Text(isEnabled ? "\(poseCount) pose\(poseCount > 1 ? "s" : "") sélectionnée\(poseCount > 1 ? "s" : "")" : "1 vue par défaut")

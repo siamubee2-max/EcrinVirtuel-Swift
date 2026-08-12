@@ -43,17 +43,17 @@ struct WeddingShareView: View {
 
     private var headerSection: some View {
         VStack(spacing: EcrinSpacing.sm) {
-            Text("DEMOISELLES D'HONNEUR")
+            Text(L10n.WeddingUI.bridesmaidsLabel)
                 .font(EcrinFont.label)
                 .kerning(3)
                 .foregroundStyle(EcrinColor.gold)
                 .padding(.top, EcrinSpacing.sm)
 
-            Text("Partagez votre look")
+            Text(L10n.WeddingUI.shareYourLook)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.textPrimary)
 
-            Text("Vos demoiselles pourront voir votre sélection\net essayer chaque bijou sur elles-mêmes.")
+            Text(L10n.WeddingUI.bridesmaidsTryHint)
                 .font(EcrinFont.body)
                 .foregroundStyle(EcrinColor.textSecondary)
                 .multilineTextAlignment(.center)
@@ -66,7 +66,7 @@ struct WeddingShareView: View {
     private var lookPreviewSection: some View {
         if !viewModel.weddingLook.pieces.isEmpty {
             VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                Text("VOTRE SÉLECTION")
+                Text(L10n.WeddingUI.yourSelection)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -93,7 +93,7 @@ struct WeddingShareView: View {
 
     private var addEmailSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("AJOUTER PAR EMAIL")
+            Text(L10n.WeddingUI.addByEmail)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -104,7 +104,7 @@ struct WeddingShareView: View {
                         .font(.system(size: 16, weight: .thin))
                         .foregroundStyle(EcrinColor.gold.opacity(0.7))
 
-                    TextField("email@exemple.com", text: $newEmail)
+                    TextField(L10n.WeddingUI.emailPlaceholder, text: $newEmail)
                         .font(EcrinFont.body)
                         .foregroundStyle(EcrinColor.textPrimary)
                         .keyboardType(.emailAddress)
@@ -162,14 +162,14 @@ struct WeddingShareView: View {
 
     private var sendSection: some View {
         VStack(spacing: EcrinSpacing.md) {
-            GoldButton(title: "Envoyer les invitations") {
+            GoldButton(title: L10n.WeddingUI.sendInvitations) {
                 showActivitySheet = true
             }
             .disabled(viewModel.weddingLook.bridesmaidEmails.isEmpty)
             .opacity(viewModel.weddingLook.bridesmaidEmails.isEmpty ? 0.4 : 1.0)
 
             if !viewModel.weddingLook.bridesmaidEmails.isEmpty {
-                Text("Voici mon look mariage, vous pouvez essayer chaque bijou !")
+                Text(L10n.WeddingUI.shareLookMessage)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
                     .multilineTextAlignment(.center)

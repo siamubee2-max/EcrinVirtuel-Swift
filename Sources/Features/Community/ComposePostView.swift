@@ -44,7 +44,7 @@ struct ComposePostView: View {
                             TextField(
                                 "",
                                 text: $caption,
-                                prompt: Text("Racontez votre look…").foregroundStyle(EcrinColor.textMuted),
+                                prompt: Text(L10n.CommunityUI.tellYourLookPlaceholder).foregroundStyle(EcrinColor.textMuted),
                                 axis: .vertical
                             )
                             .foregroundStyle(EcrinColor.textPrimary)
@@ -85,7 +85,7 @@ struct ComposePostView: View {
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
             Spacer()
-            Text("Partager un look")
+            Text(L10n.CommunityUI.shareALook)
                 .font(EcrinFont.cardTitle)
                 .foregroundStyle(EcrinColor.textPrimary)
             Spacer()

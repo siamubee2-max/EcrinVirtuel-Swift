@@ -45,7 +45,7 @@ struct CinematicOnboardingView: View {
                 VStack {
                     HStack {
                         Spacer()
-                        Button("Ignorer") {
+                        Button(L10n.OnboardingUI.dismiss) {
                             withAnimation(EcrinAnimation.easeSlide) {
                                 currentPage = 3
                             }
@@ -113,7 +113,7 @@ private struct SplashScreen: View {
                     .font(EcrinFont.serif(24))
                     .foregroundStyle(EcrinColor.gold)
 
-                Text("L'ÉCRIN VIRTUEL")
+                Text(L10n.OnboardingUI.brandName)
                     .font(EcrinFont.label)
                     .kerning(4)
                     .foregroundStyle(EcrinColor.gold)
@@ -175,7 +175,7 @@ private struct BeforeAfterScreen: View {
                             Image(systemName: "person.fill")
                                 .font(.system(size: 72))
                                 .foregroundStyle(EcrinColor.textMuted)
-                            Text("Sans bijou")
+                            Text(L10n.OnboardingUI.withoutJewel)
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -208,7 +208,7 @@ private struct BeforeAfterScreen: View {
                                     .font(.system(size: 36))
                                     .foregroundStyle(EcrinColor.background)
                             }
-                            Text("Avec bijou IA")
+                            Text(L10n.OnboardingUI.withAiJewel)
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.gold)
                         }
@@ -221,17 +221,17 @@ private struct BeforeAfterScreen: View {
                 .simultaneousGesture(DragGesture(minimumDistance: 1).onChanged { _ in interacted = true })
 
                 VStack(spacing: EcrinSpacing.xs) {
-                    Text("Essayez avant d'acheter")
+                    Text(L10n.OnboardingUI.tryBeforeYouBuy)
                         .font(EcrinFont.cardTitle)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("IA en 8 secondes · Glissez pour comparer")
+                    Text(L10n.OnboardingUI.aiEightSecondsSwipe)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                 }
                 .padding(.horizontal, EcrinSpacing.md)
 
                 if showNextButton {
-                    Button("Suivant →") { onNext() }
+                    Button(L10n.OnboardingUI.nextCta) { onNext() }
                         .font(EcrinFont.cta)
                         .kerning(1.5)
                         .foregroundStyle(EcrinColor.gold)
@@ -278,7 +278,7 @@ private struct CategoryGridScreen: View {
             VStack(spacing: EcrinSpacing.lg) {
                 Spacer().frame(height: EcrinSpacing.xxl + EcrinSpacing.md)
 
-                Text("Tous les bijoux, sur vous")
+                Text(L10n.OnboardingUI.allJewelryOnYou)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .multilineTextAlignment(.center)
@@ -358,22 +358,22 @@ private struct CTAScreen: View {
                     .font(.system(size: 36))
                     .foregroundStyle(EcrinColor.gold)
 
-                Text("PRÊTE À ESSAYER ?")
+                Text(L10n.OnboardingUI.readyToTry)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
 
-                Text("3 essais offerts · Aucune carte requise")
+                Text(L10n.OnboardingUI.freeTrialsNoCard)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
 
                 Spacer().frame(height: EcrinSpacing.sm)
 
-                GoldButton(title: "ESSAYER MAINTENANT →") {
+                GoldButton(title: L10n.OnboardingUI.tryNowCta) {
                     appState.markOnboardingComplete()
                 }
 
-                Button("Se connecter") {
+                Button(L10n.OnboardingUI.signIn) {
                     appState.markOnboardingComplete()
                 }
                 .font(EcrinFont.caption)

@@ -33,7 +33,7 @@ struct MainTabView: View {
                             }
                         }
                 }
-                .tabItem { Label("Garde-robe", systemImage: "tshirt.fill") }
+                .tabItem { Label(L10n.AppUI.wardrobe, systemImage: "tshirt.fill") }
                 .tag(1)
 
                 // Tab 2 — Boutique partenaires
@@ -50,16 +50,16 @@ struct MainTabView: View {
                                     Image(systemName: "trophy.fill")
                                         .foregroundStyle(EcrinColor.gold)
                                 }
-                                .accessibilityLabel("Tableau de bord")
+                                .accessibilityLabel(L10n.AppUI.dashboard)
                             }
                         }
                 }
-                .tabItem { Label("Communauté", systemImage: "person.2") }
+                .tabItem { Label(L10n.AppUI.community, systemImage: "person.2") }
                 .tag(3)
 
                 // Tab 4 — Profil
                 ProfileView()
-                    .tabItem { Label("Profil", systemImage: "person.circle") }
+                    .tabItem { Label(L10n.AppUI.profile, systemImage: "person.circle") }
                     .tag(4)
             }
             .tint(EcrinColor.gold)
@@ -79,7 +79,7 @@ struct MainTabView: View {
                         .foregroundStyle(EcrinColor.background)
                 }
             }
-            .accessibilityLabel("Essayage rapide")
+            .accessibilityLabel(L10n.AppUI.quickTryOn)
             .accessibilityHint("Ouvre l'essayage virtuel")
             .offset(y: -28)
             .sheet(isPresented: $showQuickTryOn) {

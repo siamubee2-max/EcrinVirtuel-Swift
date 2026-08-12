@@ -110,7 +110,7 @@ struct WatermarkOverlay: View {
                     .foregroundStyle(Color(hex: "#CA8A04").opacity(0.7))
             }
 
-            Text("L'ÉCRIN VIRTUEL")
+            Text(L10n.OnboardingUI.brandName)
                 .font(.custom("Cormorant", size: 13 * scale))
                 .fontWeight(.light)
                 .kerning(3 * scale)

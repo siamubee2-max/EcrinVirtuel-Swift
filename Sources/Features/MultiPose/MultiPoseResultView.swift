@@ -93,7 +93,7 @@ struct MultiPoseResultView: View {
             Spacer()
 
             VStack(spacing: 2) {
-                Text("VOS ESSAYAGES")
+                Text(L10n.MultiPoseUI.yourTryOns)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
@@ -201,7 +201,7 @@ struct MultiPoseResultView: View {
                 Button {
                     UIImageWriteToSavedPhotosAlbum(img, nil, nil, nil)
                 } label: {
-                    Label("Sauvegarder", systemImage: "square.and.arrow.down")
+                    Label(L10n.OutfitBuilderUI.save, systemImage: "square.and.arrow.down")
                 }
                 Button {
                     shareImages = [img]
@@ -267,7 +267,7 @@ struct MultiPoseResultView: View {
                         .foregroundStyle(.white)
                     Spacer()
                     if result.pose.isMotion {
-                        Text("Mouvement")
+                        Text(L10n.MultiPoseUI.movement)
                             .font(.system(size: 9, weight: .medium))
                             .foregroundStyle(EcrinColor.gold.opacity(0.8))
                             .kerning(1)
@@ -291,7 +291,7 @@ struct MultiPoseResultView: View {
 
     private var bottomActions: some View {
         HStack(spacing: EcrinSpacing.md) {
-            GhostButton(title: "Tout partager") {
+            GhostButton(title: L10n.MultiPoseUI.shareAll) {
                 let images = doneResults.compactMap(\.image)
                 if !images.isEmpty {
                     shareImages = images
@@ -299,7 +299,7 @@ struct MultiPoseResultView: View {
                 }
             }
 
-            GoldButton(title: "Dressing") {
+            GoldButton(title: L10n.MultiPoseUI.dressing) {
                 onSaveToDressing?()
             }
         }
@@ -312,7 +312,7 @@ struct MultiPoseResultView: View {
             Image(systemName: "photo.on.rectangle.angled")
                 .font(.system(size: 40, weight: .thin))
                 .foregroundStyle(EcrinColor.textMuted)
-            Text("Aucune vue disponible")
+            Text(L10n.MultiPoseUI.noViewAvailable)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
         }

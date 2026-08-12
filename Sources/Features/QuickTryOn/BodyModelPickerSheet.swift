@@ -67,7 +67,7 @@ struct BodyModelPickerSheet: View {
                     .padding(.bottom, EcrinSpacing.xxl)
                 }
             }
-            .navigationTitle("Choisir un mannequin")
+            .navigationTitle(L10n.QuickTryOnUI.chooseModel)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -100,7 +100,7 @@ struct BodyModelPickerSheet: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("MANNEQUINS DE RÉFÉRENCE")
+            Text(L10n.QuickTryOnUI.referenceModels)
                 .font(EcrinFont.label)
                 .kerning(3)
                 .foregroundStyle(EcrinColor.gold)
@@ -119,7 +119,7 @@ struct BodyModelPickerSheet: View {
                 .background(EcrinColor.gold.opacity(0.08))
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             } else {
-                Text("Pas de photo ? Choisissez un mannequin pour votre essayage.")
+                Text(L10n.QuickTryOnUI.noPhotoChooseModel)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textSecondary)
             }
@@ -176,7 +176,7 @@ struct BodyModelPickerSheet: View {
             Image(systemName: "person.crop.rectangle.badge.xmark")
                 .font(.system(size: 40, weight: .thin))
                 .foregroundStyle(EcrinColor.textMuted)
-            Text("Aucun mannequin disponible")
+            Text(L10n.QuickTryOnUI.noModelAvailable)
                 .font(EcrinFont.body)
                 .foregroundStyle(EcrinColor.textMuted)
             if let err = service.error {
@@ -195,7 +195,7 @@ struct BodyModelPickerSheet: View {
             Color.black.opacity(0.6).ignoresSafeArea()
             VStack(spacing: EcrinSpacing.md) {
                 ProgressView().tint(EcrinColor.gold)
-                Text("Téléchargement…")
+                Text(L10n.QuickTryOnUI.downloading)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textPrimary)
             }

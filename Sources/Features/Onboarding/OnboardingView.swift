@@ -40,7 +40,7 @@ struct OnboardingView: View {
             VStack(spacing: 0) {
                 // Logo
                 VStack(spacing: 4) {
-                    Text("L'ÉCRIN VIRTUEL")
+                    Text(L10n.OnboardingUI.brandName)
                         .font(EcrinFont.label)
                         .kerning(4)
                         .foregroundStyle(EcrinColor.gold)
@@ -75,7 +75,7 @@ struct OnboardingView: View {
                 // CTA
                 VStack(spacing: 16) {
                     if currentPage == pages.count - 1 {
-                        GoldButton(title: "Commencer") {
+                        GoldButton(title: L10n.OnboardingUI.getStarted) {
                             withAnimation(EcrinAnimation.easeSlide) {
                                 appState.markOnboardingComplete()
                             }
@@ -89,7 +89,7 @@ struct OnboardingView: View {
                         }
                     }
 
-                    Button("Passer") {
+                    Button(L10n.OnboardingUI.skip) {
                         withAnimation(EcrinAnimation.easeSlide) {
                             appState.markOnboardingComplete()
                         }

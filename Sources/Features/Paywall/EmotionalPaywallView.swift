@@ -45,7 +45,7 @@ struct EmotionalPaywallView: View {
                     // ── Primary CTA ─────────────────────────────────────
                     // Pas de mention d'essai gratuit : aucune intro offer n'existe
                     // dans le flow d'achat (risque App Review 2.3.1 sinon).
-                    GoldButton(title: "CONTINUER MES ESSAYAGES") {
+                    GoldButton(title: L10n.PaywallUI.continueMyTryOns) {
                         showFullPaywall = true
                     }
                     .padding(.horizontal, EcrinSpacing.xl)
@@ -93,18 +93,18 @@ struct EmotionalPaywallView: View {
     @ViewBuilder
     private var emotionalHeader: some View {
         VStack(spacing: EcrinSpacing.sm) {
-            Text("VOS CRÉATIONS")
+            Text(L10n.PaywallUI.yourCreations)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.gold)
 
             VStack(spacing: 0) {
-                Text("Vous avez trouvé votre style.")
+                Text(L10n.PaywallUI.youFoundYourStyle)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Continuez l'histoire.")
+                Text(L10n.PaywallUI.continueTheStory)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.gold)
                     .multilineTextAlignment(.center)
@@ -150,7 +150,7 @@ struct EmotionalPaywallView: View {
                             Text("∞")
                                 .font(EcrinFont.serif(24, weight: .light))
                                 .foregroundStyle(EcrinColor.gold)
-                            Text("illimité")
+                            Text(L10n.PaywallUI.unlimited)
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -182,7 +182,7 @@ struct EmotionalPaywallView: View {
             }
             .frame(width: 28 + 16 * 2)
 
-            Text("+12 400 utilisatrices ont découvert leurs bijoux parfaits")
+            Text(L10n.PaywallUI.socialProof)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -231,7 +231,7 @@ struct EmotionalPaywallView: View {
     @ViewBuilder
     private var footer: some View {
         Button(action: { showFullPaywall = true }) {
-            Text("Voir tous les forfaits · Restaurer mes achats")
+            Text(L10n.PaywallUI.seeAllPlansRestore)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
                 .multilineTextAlignment(.center)
@@ -259,7 +259,7 @@ private struct PlanRow: View {
                         .foregroundStyle(EcrinColor.textPrimary)
 
                     if isPopular {
-                        Text("POPULAIRE")
+                        Text(L10n.PaywallUI.popular)
                             .font(EcrinFont.label)
                             .kerning(1)
                             .foregroundStyle(EcrinColor.background)

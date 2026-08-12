@@ -27,10 +27,10 @@ struct GamingDashboardView: View {
 
                     // MARK: Title
                     VStack(spacing: 4) {
-                        Text("Mon Espace Écrin")
+                        Text(L10n.GamingUI.myEcrinSpace)
                             .font(EcrinFont.heroTitle)
                             .foregroundStyle(EcrinColor.ivory)
-                        Text("Progression & Récompenses")
+                        Text(L10n.GamingUI.progressAndRewards)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                             .kerning(2)
@@ -110,7 +110,7 @@ struct GamingDashboardView: View {
                     Text("\(gaming.profile.totalXP)")
                         .font(EcrinFont.serif(28, weight: .semibold))
                         .foregroundStyle(EcrinColor.gold)
-                    Text("XP total")
+                    Text(L10n.GamingUI.totalXP)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                 }
@@ -128,7 +128,7 @@ struct GamingDashboardView: View {
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)
                     } else {
-                        Text("Niveau maximum atteint")
+                        Text(L10n.GamingUI.maxLevelReached)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.gold)
                     }
@@ -459,7 +459,7 @@ struct GamingDashboardView: View {
                             .foregroundStyle(EcrinColor.background)
                     }
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Votre classement")
+                        Text(L10n.CommunityUI.yourRanking)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                         Text("Top \(rank) · Communauté Écrin")

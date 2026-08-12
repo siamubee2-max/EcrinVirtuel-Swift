@@ -104,7 +104,7 @@ struct MoodBoardResultView: View {
                     .overlay(Circle().strokeBorder(EcrinColor.glassStroke, lineWidth: 0.5))
             }
             Spacer()
-            Text("VOTRE LOOK")
+            Text(L10n.MoodBoardUI.yourLookLabel)
                 .font(EcrinFont.label)
                 .kerning(3)
                 .foregroundStyle(EcrinColor.textSecondary)
@@ -161,7 +161,7 @@ struct MoodBoardResultView: View {
     private var paletteSection: some View {
         VStack(spacing: EcrinSpacing.md) {
             HStack {
-                Text("PALETTE")
+                Text(L10n.MoodBoardUI.paletteLabel)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -233,7 +233,7 @@ struct MoodBoardResultView: View {
     private var jewelrySection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
             HStack {
-                Text("PIÈCES SÉLECTIONNÉES")
+                Text(L10n.MoodBoardUI.selectedPiecesLabel)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -261,7 +261,7 @@ struct MoodBoardResultView: View {
 
     private var keywordsSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("MOTS-CLÉS")
+            Text(L10n.MoodBoardUI.keywordsLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -286,11 +286,11 @@ struct MoodBoardResultView: View {
 
     private var actionsSection: some View {
         VStack(spacing: EcrinSpacing.md) {
-            GoldButton(title: "Essayer ces bijoux") {
+            GoldButton(title: L10n.MoodBoardUI.tryTheseJewels) {
                 dismiss()
             }
 
-            GhostButton(title: "Sauvegarder le look") {
+            GhostButton(title: L10n.MoodBoardUI.saveLook) {
                 showSaveSheet = true
             }
         }
@@ -374,7 +374,7 @@ private struct SavedToastView: View {
         HStack(spacing: EcrinSpacing.sm) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(EcrinColor.gold)
-            Text("Look sauvegardé dans votre galerie")
+            Text(L10n.MoodBoardUI.lookSavedToGallery)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textPrimary)
         }
@@ -411,14 +411,14 @@ struct MoodSaveLookSheet: View {
                     Text("Sauvegarder ce look")
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("Retrouvez-le dans votre galerie personnelle")
+                    Text(L10n.MoodBoardUI.findItInGallery)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
                 }
 
                 // Title field
                 GlassCard(cornerRadius: 14) {
-                    TextField("Titre du look…", text: $customTitle)
+                    TextField(L10n.MoodBoardUI.lookTitlePlaceholder, text: $customTitle)
                         .font(EcrinFont.serif(18, weight: .light))
                         .foregroundStyle(EcrinColor.textPrimary)
                         .tint(EcrinColor.gold)
@@ -441,7 +441,7 @@ struct MoodSaveLookSheet: View {
                 Spacer()
 
                 VStack(spacing: EcrinSpacing.md) {
-                    GoldButton(title: "Sauvegarder") {
+                    GoldButton(title: L10n.OutfitBuilderUI.save) {
                         onSave()
                     }
                     Button(L10n.Common.cancel) { dismiss() }

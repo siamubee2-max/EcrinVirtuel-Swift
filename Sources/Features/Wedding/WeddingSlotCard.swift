@@ -41,10 +41,10 @@ struct WeddingSlotCard: View {
         .contextMenu {
             if piece != nil {
                 Button(role: .destructive, action: onRemove) {
-                    Label("Retirer ce bijou", systemImage: "trash")
+                    Label(L10n.WeddingUI.removeThisJewel, systemImage: "trash")
                 }
                 Button(action: onTap) {
-                    Label("Changer", systemImage: "arrow.2.circlepath")
+                    Label(L10n.WeddingUI.changeButton, systemImage: "arrow.2.circlepath")
                 }
             }
         }
@@ -92,7 +92,7 @@ struct WeddingSlotCard: View {
             // "Changer" button
             HStack {
                 Spacer()
-                Text("Changer")
+                Text(L10n.WeddingUI.changeButton)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.gold)
                 Image(systemName: "chevron.right")
@@ -132,7 +132,7 @@ struct WeddingSlotCard: View {
                 .minimumScaleFactor(0.85)
                 .padding(.horizontal, EcrinSpacing.sm)
 
-            Text("Ajouter")
+            Text(L10n.JewelryDetectionUI.add)
                 .font(EcrinFont.label)
                 .kerning(1)
                 .foregroundStyle(EcrinColor.textSecondary)

@@ -100,7 +100,7 @@ struct StoneDetailView: View {
 
                 Spacer()
 
-                Text("LITHOTHÉRAPIE")
+                Text(L10n.StoneTherapyUI.lithotherapy)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(stone.stoneColor)

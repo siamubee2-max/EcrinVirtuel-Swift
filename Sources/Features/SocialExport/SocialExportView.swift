@@ -36,7 +36,7 @@ struct SocialExportView: View {
         .alert("Enregistré", isPresented: $viewModel.savedSuccess) {
             Button(L10n.Common.ok, role: .cancel) {}
         } message: {
-            Text("Votre look a été enregistré dans la Photothèque.")
+            Text(L10n.SocialExportUI.lookSavedToPhotos)
         }
         .alert("Erreur", isPresented: $viewModel.showError) {
             Button(L10n.Common.ok, role: .cancel) {}
@@ -152,11 +152,11 @@ private struct ExportTopBar: View {
             Spacer()
 
             VStack(spacing: 2) {
-                Text("EXPORTER")
+                Text(L10n.SocialExportUI.exportButton)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Votre Look")
+                Text(L10n.SocialExportUI.yourLookTitle)
                     .font(EcrinFont.caption)
                     .foregroundStyle(Color.white.opacity(0.5))
             }
@@ -251,7 +251,7 @@ private struct PreviewWatermark: View {
                     .font(.system(size: 7))
                     .foregroundStyle(EcrinColor.gold.opacity(0.7))
             }
-            Text("L'ÉCRIN VIRTUEL")
+            Text(L10n.OnboardingUI.brandName)
                 .font(.custom("Cormorant", size: 10))
                 .fontWeight(.light)
                 .kerning(2)
@@ -359,7 +359,7 @@ private struct FormatSelector: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("FORMAT")
+            Text(L10n.SocialExportUI.formatLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -416,7 +416,7 @@ private struct WatermarkSelector: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("WATERMARK")
+            Text(L10n.SocialExportUI.watermarkLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
