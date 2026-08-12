@@ -729,8 +729,12 @@ extension SupabaseService {
         author: User
     ) async throws {
         // community_posts.user_id references users(id) — same resolution as post_likes.
+        // Throw (au lieu d'un return silencieux) : le composeur doit savoir que
+        // rien n'a été publié pour ne pas afficher un faux succès.
         guard let authId = try? await auth.session.user.id.uuidString,
-              let userId = try? await resolveUsersRowID(authId: authId) else { return }
+              let userId = try? await resolveUsersRowID(authId: authId) else {
+            throw URLError(.userAuthenticationRequired)
+        }
         let row = SupabaseCommunityPostInsert(
             id: UUID().uuidString,
             user_id: userId,
@@ -751,6 +755,32 @@ extension SupabaseService {
             .from(Self.communityPosts)
             .insert(row)
             .execute()
+    }
+
+    /// Supprime un post de l'utilisateur courant. La policy RLS
+    /// « Users own their posts » garantit côté serveur qu'on ne peut
+    /// supprimer que les siens — le eq(id) suffit côté client.
+    func deleteCommunityPost(id: UUID) async {
+        _ = try? await client
+            .from(Self.communityPosts)
+            .delete()
+            .eq("id", value: id.uuidString)
+            .execute()
+    }
+
+    /// Héberge l'image d'un post dans le bucket public `community-posts`
+    /// et retourne son URL publique. Le bucket doit exister sur le projet
+    /// (Dashboard → Storage → New bucket, public). En cas d'absence ou
+    /// d'erreur, l'appelant publie sans image.
+    func uploadCommunityImage(_ data: Data) async throws -> String {
+        let path = "\(UUID().uuidString).jpg"
+        _ = try await client.storage
+            .from("community-posts")
+            .upload(path, data: data, options: FileOptions(contentType: "image/jpeg"))
+        return try client.storage
+            .from("community-posts")
+            .getPublicURL(path: path)
+            .absoluteString
     }
 }
 

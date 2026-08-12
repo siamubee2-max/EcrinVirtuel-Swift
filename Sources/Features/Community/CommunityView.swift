@@ -34,6 +34,9 @@ struct CommunityView: View {
                 .animation(EcrinAnimation.easeSlide, value: vm.selectedTab)
             }
         }
+        .sheet(isPresented: $vm.showCompose) {
+            ComposePostView(vm: vm)
+        }
     }
 
     // MARK: - Header
@@ -111,16 +114,39 @@ private struct FeedTab: View {
     @ObservedObject var vm: CommunityViewModel
 
     var body: some View {
+        ZStack(alignment: .top) {
+            feedScroll
+
+            // Toast (publication, signalement) — le ZStack du tab Défis a le
+            // sien ; sans celui-ci les toasts émis depuis le feed étaient invisibles.
+            if let msg = vm.toastMessage {
+                ToastBanner(message: msg)
+                    .padding(.top, EcrinSpacing.sm)
+                    .padding(.horizontal, EcrinSpacing.md)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(EcrinAnimation.springSnap, value: vm.toastMessage)
+    }
+
+    private var feedScroll: some View {
         ScrollView {
             LazyVStack(spacing: EcrinSpacing.md) {
                 // Stories row
-                StoriesRow(entries: vm.leaderboard)
+                StoriesRow(entries: vm.leaderboard, onCompose: { vm.showCompose = true })
                     .padding(.top, EcrinSpacing.sm)
 
                 // Posts
                 ForEach(vm.posts) { post in
-                    PostCard(post: post, onLike: { vm.toggleLike(post: post) })
-                        .padding(.horizontal, EcrinSpacing.md)
+                    PostCard(
+                        post: post,
+                        onLike: { vm.toggleLike(post: post) },
+                        isOwnPost: vm.isOwnPost(post),
+                        onReport: { vm.report(post: post) },
+                        onHide: { vm.hide(post: post) },
+                        onDelete: { vm.deletePost(post) }
+                    )
+                    .padding(.horizontal, EcrinSpacing.md)
                 }
 
                 Spacer().frame(height: EcrinSpacing.xl)
@@ -137,30 +163,35 @@ private struct FeedTab: View {
 
 private struct StoriesRow: View {
     let entries: [LeaderboardEntry]
+    let onCompose: () -> Void
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: EcrinSpacing.md) {
                 Spacer().frame(width: EcrinSpacing.md)
 
-                // Add story button
-                VStack(spacing: 5) {
-                    ZStack {
-                        Circle()
-                            .fill(EcrinColor.glassFill)
-                            .frame(width: 60, height: 60)
-                            .overlay {
-                                Circle()
-                                    .strokeBorder(EcrinColor.glassStroke, lineWidth: 1)
-                            }
-                        Image(systemName: "plus")
-                            .font(.system(size: 20, weight: .light))
-                            .foregroundStyle(EcrinColor.gold)
+                // Add story button → composeur de publication
+                Button(action: onCompose) {
+                    VStack(spacing: 5) {
+                        ZStack {
+                            Circle()
+                                .fill(EcrinColor.glassFill)
+                                .frame(width: 60, height: 60)
+                                .overlay {
+                                    Circle()
+                                        .strokeBorder(EcrinColor.glassStroke, lineWidth: 1)
+                                }
+                            Image(systemName: "plus")
+                                .font(.system(size: 20, weight: .light))
+                                .foregroundStyle(EcrinColor.gold)
+                        }
+                        Text(L10n.Common.share)
+                            .font(EcrinFont.label)
+                            .foregroundStyle(EcrinColor.textSecondary)
                     }
-                    Text(L10n.Common.share)
-                        .font(EcrinFont.label)
-                        .foregroundStyle(EcrinColor.textSecondary)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Partager un look")
 
                 // Story items
                 ForEach(entries.prefix(12)) { entry in

@@ -8,8 +8,16 @@ import SwiftUI
 struct PostCard: View {
     let post: CommunityPost
     let onLike: () -> Void
+    // Modération UGC (guideline 1.2) — défauts nil pour ne pas casser les
+    // usages qui n'affichent pas le menu.
+    var isOwnPost: Bool = false
+    var onReport: (() -> Void)? = nil
+    var onHide: (() -> Void)? = nil
+    var onDelete: (() -> Void)? = nil
 
     @Environment(AppState.self) private var appState
+    @State private var showReportConfirmation = false
+    @State private var showDeleteConfirmation = false
 
     @State private var showHeartBurst: Bool = false
     @State private var heartScale: CGFloat = 0
@@ -101,9 +109,63 @@ struct PostCard: View {
                     .lineLimit(1)
                     .fixedSize(horizontal: true, vertical: false)
             }
+
+            // Modération : signaler/masquer (tous), supprimer (ses posts)
+            if onReport != nil || onHide != nil || onDelete != nil {
+                Menu {
+                    if isOwnPost, onDelete != nil {
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Supprimer mon post", systemImage: "trash")
+                        }
+                    } else {
+                        if onReport != nil {
+                            Button(role: .destructive) {
+                                showReportConfirmation = true
+                            } label: {
+                                Label("Signaler ce contenu", systemImage: "exclamationmark.bubble")
+                            }
+                        }
+                        if let onHide {
+                            Button {
+                                onHide()
+                            } label: {
+                                Label("Masquer", systemImage: "eye.slash")
+                            }
+                        }
+                    }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(EcrinColor.textMuted)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 10)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityLabel("Options du post")
+            }
         }
         .padding(.horizontal, EcrinSpacing.md)
         .padding(.vertical, EcrinSpacing.sm + 4)
+        .confirmationDialog(
+            "Signaler ce contenu ?",
+            isPresented: $showReportConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Signaler", role: .destructive) { onReport?() }
+            Button(L10n.Common.cancel, role: .cancel) {}
+        } message: {
+            Text("Le contenu sera masqué immédiatement et examiné par notre équipe sous 24 h.")
+        }
+        .confirmationDialog(
+            "Supprimer ce post ?",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Supprimer", role: .destructive) { onDelete?() }
+            Button(L10n.Common.cancel, role: .cancel) {}
+        }
     }
 
     // MARK: - Cadre "essayage virtuel" autour du bijou

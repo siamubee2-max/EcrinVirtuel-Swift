@@ -16,6 +16,21 @@ final class CommunityViewModel: ObservableObject {
     @Published var toastMessage: String? = nil
     /// Identifie le challenge à ouvrir après confirmation (pour navigation vers QuickTryOn)
     @Published var pendingChallengeForTryOn: CommunityChallenge? = nil
+    /// Composeur de post (bouton « Partager » des stories).
+    @Published var showCompose: Bool = false
+    /// id `users` (table profils) de l'utilisateur courant — pour détecter
+    /// ses propres posts (post.author.id porte users.id, pas l'auth uid).
+    @Published var currentUserRowID: UUID? = nil
+
+    /// Posts masqués localement (signalés/masqués par l'utilisateur) —
+    /// persistés pour que le masquage survive au relaunch (guideline UGC).
+    private static let hiddenPostsKey = "ecrin_hidden_post_ids"
+    private var hiddenPostIDs: Set<String> =
+        Set(UserDefaults.standard.stringArray(forKey: hiddenPostsKey) ?? []) {
+        didSet {
+            UserDefaults.standard.set(Array(hiddenPostIDs), forKey: Self.hiddenPostsKey)
+        }
+    }
 
     // MARK: - Tab
 
@@ -88,11 +103,91 @@ final class CommunityViewModel: ObservableObject {
         // Fetch real user posts from Supabase; fall back to dynamic Moniattitude samples.
         let fetched = await SupabaseService.shared.fetchCommunityPosts()
         if !fetched.isEmpty {
-            posts = fetched
+            posts = fetched.filter { !hiddenPostIDs.contains($0.id.uuidString) }
         } else if posts.isEmpty {
             posts = CommunityPost.samples
         }
+        if currentUserRowID == nil,
+           let authId = try? await SupabaseService.shared.auth.session.user.id.uuidString,
+           let rowId = try? await SupabaseService.shared.resolveUsersRowID(authId: authId) {
+            currentUserRowID = UUID(uuidString: rowId)
+        }
         isLoading = false
+    }
+
+    // MARK: - Publication
+
+    /// Publie un post (image hébergée best-effort) puis rafraîchit le feed.
+    /// Retourne false si la publication a échoué (le composeur reste ouvert).
+    func createPost(jewelry: JewelryItem, image: UIImage?, caption: String, author: User) async -> Bool {
+        var imageURL: String?
+        if let jpeg = image?.jpegData(compressionQuality: 0.8) {
+            // Best-effort : sans bucket `community-posts` (ou hors ligne),
+            // le post part sans image plutôt que d'échouer entièrement.
+            imageURL = try? await SupabaseService.shared.uploadCommunityImage(jpeg)
+        }
+        do {
+            try await SupabaseService.shared.createCommunityPost(
+                jewelry: jewelry,
+                imageURL: imageURL,
+                location: nil,
+                caption: caption,
+                challenge: nil,
+                tags: [],
+                author: author
+            )
+        } catch {
+            return false
+        }
+        GamingService.shared.record(.lookShared)
+        await refreshFeed()
+        showToast("Votre look est publié ✨")
+        return true
+    }
+
+    /// Affiche un toast auto-fermant (même mécanique que les défis).
+    func showToast(_ message: String) {
+        toastMessage = message
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            if self.toastMessage == message { self.toastMessage = nil }
+        }
+    }
+
+    // MARK: - Modération (guideline UGC 1.2)
+
+    func isOwnPost(_ post: CommunityPost) -> Bool {
+        guard let rowId = currentUserRowID else { return false }
+        return post.author.id == rowId
+    }
+
+    /// Signale un contenu : masqué immédiatement pour l'utilisateur (persisté)
+    /// + événement de monitoring pour la revue côté équipe.
+    func report(post: CommunityPost) {
+        hiddenPostIDs.insert(post.id.uuidString)
+        posts.removeAll { $0.id == post.id }
+        showToast("Merci — ce contenu sera examiné par notre équipe.")
+        Task.detached {
+            await SupabaseService.shared.insertMonitoringEvent(
+                type: "community_post_reported",
+                productId: nil,
+                domain: "community",
+                code: 0,
+                message: post.id.uuidString
+            )
+        }
+    }
+
+    /// Masque un contenu sans le signaler.
+    func hide(post: CommunityPost) {
+        hiddenPostIDs.insert(post.id.uuidString)
+        posts.removeAll { $0.id == post.id }
+    }
+
+    /// Supprime un de ses propres posts (RLS garantit la propriété côté serveur).
+    func deletePost(_ post: CommunityPost) {
+        posts.removeAll { $0.id == post.id }
+        Task { await SupabaseService.shared.deleteCommunityPost(id: post.id) }
     }
 
     func toggleLike(post: CommunityPost) {
