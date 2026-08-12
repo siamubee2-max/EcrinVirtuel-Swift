@@ -1,3 +1,4 @@
+import CryptoKit
 import SwiftUI
 import Foundation
 
@@ -262,29 +263,54 @@ struct Quest: Identifiable, Codable, Equatable {
 
 // MARK: - Quest Catalog
 
+extension UUID {
+    /// UUID déterministe dérivé d'une clé stable (SHA-256 tronqué à 16 octets).
+    /// Les quêtes DOIVENT garder le même id d'un lancement à l'autre : la
+    /// restauration de progression et l'anti-re-claim (completedQuestIDs)
+    /// matchent par id — des UUID() frais rendaient les deux inopérants.
+    static func stable(_ key: String) -> UUID {
+        let digest = SHA256.hash(data: Data(key.utf8))
+        let b = Array(digest.prefix(16))
+        return UUID(uuid: (b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7],
+                           b[8], b[9], b[10], b[11], b[12], b[13], b[14], b[15]))
+    }
+}
+
 extension Quest {
+    /// Clé de période : l'id d'une quête quotidienne/hebdo inclut le début de
+    /// sa fenêtre — même id toute la journée/semaine, nouvel id (donc quête
+    /// fraîche) à la période suivante.
+    private static func periodKey(_ start: Date) -> String {
+        String(Int(start.timeIntervalSinceReferenceDate))
+    }
+
     static func dailyQuests() -> [Quest] {
-        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Calendar.current.startOfDay(for: .now))!
+        let startOfDay = Calendar.current.startOfDay(for: .now)
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
+        let day = periodKey(startOfDay)
         return [
-            Quest(id: UUID(), title: "Essayage du Jour", description: "Testez un bijou aujourd'hui", icon: "sparkles", type: .daily, xpReward: 15, rewardDescription: "+15 XP", progress: 0, target: 1, expiresAt: tomorrow),
-            Quest(id: UUID(), title: "Tenue du Jour", description: "Assemblez une tenue complète", icon: "hanger", type: .daily, xpReward: 30, rewardDescription: "+30 XP + fond exclusif", progress: 0, target: 1, expiresAt: tomorrow),
-            Quest(id: UUID(), title: "Partage Quotidien", description: "Partagez un look avec la communauté", icon: "square.and.arrow.up", type: .daily, xpReward: 20, rewardDescription: "+20 XP", progress: 0, target: 1, expiresAt: tomorrow),
+            Quest(id: .stable("quest.daily.tryon.\(day)"), title: "Essayage du Jour", description: "Testez un bijou aujourd'hui", icon: "sparkles", type: .daily, xpReward: 15, rewardDescription: "+15 XP", progress: 0, target: 1, expiresAt: tomorrow),
+            Quest(id: .stable("quest.daily.outfit.\(day)"), title: "Tenue du Jour", description: "Assemblez une tenue complète", icon: "hanger", type: .daily, xpReward: 30, rewardDescription: "+30 XP + fond exclusif", progress: 0, target: 1, expiresAt: tomorrow),
+            Quest(id: .stable("quest.daily.share.\(day)"), title: "Partage Quotidien", description: "Partagez un look avec la communauté", icon: "square.and.arrow.up", type: .daily, xpReward: 20, rewardDescription: "+20 XP", progress: 0, target: 1, expiresAt: tomorrow),
         ]
     }
 
     static func weeklyQuests() -> [Quest] {
-        let nextWeek = Calendar.current.date(byAdding: .weekOfYear, value: 1, to: .now)!
+        let week = Calendar.current.dateInterval(of: .weekOfYear, for: .now)
+        let weekStart = week?.start ?? Calendar.current.startOfDay(for: .now)
+        let weekEnd = week?.end ?? Calendar.current.date(byAdding: .weekOfYear, value: 1, to: .now)!
+        let key = periodKey(weekStart)
         return [
-            Quest(id: UUID(), title: "Semaine Active", description: "Réalisez 7 essayages cette semaine", icon: "flame.fill", type: .weekly, xpReward: 80, rewardDescription: "+80 XP + 3 essayages bonus", progress: 0, target: 7, expiresAt: nextWeek),
-            Quest(id: UUID(), title: "Styliste de la Semaine", description: "Créez 3 tenues complètes", icon: "paintbrush.fill", type: .weekly, xpReward: 100, rewardDescription: "+100 XP + badge exclusif", progress: 0, target: 3, expiresAt: nextWeek),
-            Quest(id: UUID(), title: "Voix de la Communauté", description: "Partagez 5 looks cette semaine", icon: "megaphone.fill", type: .weekly, xpReward: 60, rewardDescription: "+60 XP + mise en avant profil", progress: 0, target: 5, expiresAt: nextWeek),
+            Quest(id: .stable("quest.weekly.active.\(key)"), title: "Semaine Active", description: "Réalisez 7 essayages cette semaine", icon: "flame.fill", type: .weekly, xpReward: 80, rewardDescription: "+80 XP + 3 essayages bonus", progress: 0, target: 7, expiresAt: weekEnd),
+            Quest(id: .stable("quest.weekly.stylist.\(key)"), title: "Styliste de la Semaine", description: "Créez 3 tenues complètes", icon: "paintbrush.fill", type: .weekly, xpReward: 100, rewardDescription: "+100 XP + badge exclusif", progress: 0, target: 3, expiresAt: weekEnd),
+            Quest(id: .stable("quest.weekly.voice.\(key)"), title: "Voix de la Communauté", description: "Partagez 5 looks cette semaine", icon: "megaphone.fill", type: .weekly, xpReward: 60, rewardDescription: "+60 XP + mise en avant profil", progress: 0, target: 5, expiresAt: weekEnd),
         ]
     }
 
     static let achievements: [Quest] = [
-        Quest(id: UUID(), title: "Collectionneuse", description: "Essayez 50 bijoux différents", icon: "diamond", type: .achievement, xpReward: 200, rewardDescription: "+200 XP + badge Reine du Style", progress: 0, target: 50, expiresAt: nil),
-        Quest(id: UUID(), title: "Grande Styliste", description: "Créez 10 tenues complètes", icon: "scissors", type: .achievement, xpReward: 300, rewardDescription: "+300 XP + accès fonds premium", progress: 0, target: 10, expiresAt: nil),
-        Quest(id: UUID(), title: "Bâtisseuse de Réseau", description: "Parrainez 3 amies", icon: "person.badge.plus", type: .achievement, xpReward: 250, rewardDescription: "+250 XP + mois offert", progress: 0, target: 3, expiresAt: nil),
+        Quest(id: .stable("quest.achievement.collector"), title: "Collectionneuse", description: "Essayez 50 bijoux différents", icon: "diamond", type: .achievement, xpReward: 200, rewardDescription: "+200 XP + badge Reine du Style", progress: 0, target: 50, expiresAt: nil),
+        Quest(id: .stable("quest.achievement.stylist"), title: "Grande Styliste", description: "Créez 10 tenues complètes", icon: "scissors", type: .achievement, xpReward: 300, rewardDescription: "+300 XP + accès fonds premium", progress: 0, target: 10, expiresAt: nil),
+        Quest(id: .stable("quest.achievement.network"), title: "Bâtisseuse de Réseau", description: "Parrainez 3 amies", icon: "person.badge.plus", type: .achievement, xpReward: 250, rewardDescription: "+250 XP + mois offert", progress: 0, target: 3, expiresAt: nil),
     ]
 }
 

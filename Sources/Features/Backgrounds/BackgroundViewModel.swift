@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreImage
 import CoreImage.CIFilterBuiltins
+import RevenueCat
 
 // MARK: - Background View Model
 
@@ -15,6 +16,19 @@ final class BackgroundViewModel: ObservableObject {
     @Published var selectedCategory: BackgroundCategory = .studio
     @Published var userPhotoBackground: BackgroundItem?
 
+    /// Tier d'abonnement — résolu par le VM lui-même (il est créé hors de la
+    /// hiérarchie SwiftUI, sans accès à AppState). customerInfo() est servi
+    /// depuis le cache RevenueCat, donc quasi instantané.
+    @Published var subscription: SubscriptionStatus = .free
+
+    init() {
+        Task { [weak self] in
+            if let info = try? await Purchases.shared.customerInfo() {
+                self?.subscription = RevenueCatService.resolveStatus(from: info)
+            }
+        }
+    }
+
     // MARK: - Computed
 
     var filteredBackgrounds: [BackgroundItem] {
@@ -27,16 +41,20 @@ final class BackgroundViewModel: ObservableObject {
 
     func isUnlocked(_ item: BackgroundItem) -> Bool {
         if !item.isPremium && !item.isUnlockableByXP { return true }
-        if item.isUnlockableByXP { return unlockedByUser.contains(item.id) }
-        return false
+        // Fonds XP : débloqués dès que l'XP gagné atteint le seuil affiché.
+        // (unlockedByUser n'était écrit nulle part → tuiles verrouillées à vie.)
+        if item.isUnlockableByXP {
+            return unlockedByUser.contains(item.id)
+                || GamingService.shared.profile.totalXP >= item.xpRequired
+        }
+        // Fonds premium : inclus dans tout abonnement payant.
+        return subscription.isSubscribed
     }
 
     func lockLabel(_ item: BackgroundItem) -> String? {
-        if item.isPremium && !item.isUnlockableByXP { return "Premium" }
-        if item.isUnlockableByXP && !unlockedByUser.contains(item.id) {
-            return "\(item.xpRequired) XP"
-        }
-        return nil
+        guard !isUnlocked(item) else { return nil }
+        if item.isUnlockableByXP { return "\(item.xpRequired) XP" }
+        return "Premium"
     }
 
     // MARK: - Actions

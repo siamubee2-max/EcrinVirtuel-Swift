@@ -313,21 +313,30 @@ struct GamingDashboardView: View {
             if !daily.isEmpty {
                 sectionHeader("Quotidiennes", icon: "sun.max.fill")
                 ForEach(daily) { quest in
-                    QuestCard(quest: quest) { gaming.claimQuestReward(quest) }
+                    QuestCard(
+                        quest: quest,
+                        isClaimed: gaming.profile.completedQuestIDs.contains(quest.id)
+                    ) { gaming.claimQuestReward(quest) }
                 }
             }
 
             if !weekly.isEmpty {
                 sectionHeader("Hebdomadaires", icon: "calendar.badge.clock")
                 ForEach(weekly) { quest in
-                    QuestCard(quest: quest) { gaming.claimQuestReward(quest) }
+                    QuestCard(
+                        quest: quest,
+                        isClaimed: gaming.profile.completedQuestIDs.contains(quest.id)
+                    ) { gaming.claimQuestReward(quest) }
                 }
             }
 
             if !achieve.isEmpty {
                 sectionHeader("Succès", icon: "medal.fill")
                 ForEach(achieve) { quest in
-                    QuestCard(quest: quest) { gaming.claimQuestReward(quest) }
+                    QuestCard(
+                        quest: quest,
+                        isClaimed: gaming.profile.completedQuestIDs.contains(quest.id)
+                    ) { gaming.claimQuestReward(quest) }
                 }
             }
         }

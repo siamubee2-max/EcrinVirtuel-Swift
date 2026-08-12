@@ -4,6 +4,7 @@ import SwiftUI
 
 struct QuestCard: View {
     let quest: Quest
+    var isClaimed: Bool = false
     let onClaim: () -> Void
 
     @State private var progressAnim: Double = 0
@@ -101,8 +102,19 @@ struct QuestCard: View {
                 }
             }
 
-            // Claim button if completed
-            if quest.isCompleted {
+            // Claim button if completed — hidden once the reward was claimed
+            // (claimQuestReward is idempotent, but the button invited a useless tap)
+            if quest.isCompleted && isClaimed {
+                HStack(spacing: EcrinSpacing.xs) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 12))
+                    Text("Récompense réclamée")
+                        .font(EcrinFont.caption)
+                }
+                .foregroundStyle(questColor.opacity(0.8))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, EcrinSpacing.sm)
+            } else if quest.isCompleted {
                 Button(action: onClaim) {
                     HStack(spacing: EcrinSpacing.xs) {
                         Image(systemName: "gift.fill")
