@@ -226,26 +226,37 @@ extension SupabaseService {
     }
 
     /// Suppression complète du compte (obligatoire Apple Guideline 5.1.1(v)).
-    /// Supprime les données utilisateur dans Supabase puis le compte auth.
+    ///
+    /// Ordre critique : l'Edge Function `delete-user-account` (service_role)
+    /// part EN PREMIER — c'est l'autorité qui supprime le compte auth, et les
+    /// FK ON DELETE CASCADE de `users` purgent les tables liées. Le flux est
+    /// ainsi tout-ou-rien du point de vue client : si elle échoue, RIEN n'a
+    /// été détruit (l'utilisateur reste connecté, données intactes, il peut
+    /// réessayer) ; si elle réussit, le compte n'existe plus et le nettoyage
+    /// résiduel + la fin de session locale sont best-effort.
+    /// L'ancien ordre (6 deletes séquentiels PUIS la fonction PUIS signOut)
+    /// laissait, sur une coupure réseau à mi-chemin, un utilisateur
+    /// « connecté » dont profil et quotas étaient déjà effacés.
     func deleteAccount() async throws {
         guard let userId = try? await auth.session.user.id.uuidString else { return }
 
-        // Supprimer toutes les données utilisateur associées à user_id / auth_id.
-        // Ordre : dépendants en premier, profil en dernier.
-        try await client.from(Self.savedLooks).delete().eq("user_id", value: userId).execute()
-        try await client.from(Self.tryOnSessions).delete().eq("user_id", value: userId).execute()
-        try await client.from(Self.communityPosts).delete().eq("user_id", value: userId).execute()
-        try await client.from(Self.wardrobeItems).delete().eq("user_id", value: userId).execute()
-        try await client.from(Self.userQuotas).delete().eq("user_id", value: userId).execute()
-        // Fix: la table `users` utilise `auth_id` comme clé, pas `id`
-        try await client.from(Self.users).delete().eq("auth_id", value: userId).execute()
-
-        // Supprimer le compte auth (nécessite un Edge Function avec service_role)
         try await client.functions.invoke(
             "delete-user-account",
             options: FunctionInvokeOptions(body: ["user_id": userId])
         )
-        try await auth.signOut()
+
+        // Best-effort : purge les tables sans cascade FK pendant que le JWT
+        // local est encore techniquement valide. Toute erreur ici est sans
+        // conséquence utilisateur — le compte auth a déjà disparu.
+        _ = try? await client.from(Self.savedLooks).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.tryOnSessions).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.communityPosts).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.wardrobeItems).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.userQuotas).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.users).delete().eq("auth_id", value: userId).execute()
+
+        // Fin de session locale garantie — le compte n'existe plus côté serveur.
+        try? await auth.signOut()
     }
 }
 
