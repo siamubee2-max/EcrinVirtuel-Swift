@@ -11,6 +11,27 @@ import UIKit
 // rappelle la closure depuis un thread non-main. Le state interne est
 // immutable (let shared, méthodes pures sur CGImage), donc Sendable.
 
+/// Garantit qu'une continuation Vision n'est résumée qu'une seule fois.
+/// Nécessaire car Vision peut À LA FOIS appeler le completion handler d'une
+/// requête (avec erreur) ET faire throw dans `perform()` — résumer deux fois
+/// crashe, ne jamais résumer suspend la génération pour toujours (spinner
+/// infini, crédit consommé perdu). Thread-safe : les completions Vision
+/// arrivent sur sa queue background.
+final class VisionResumeGuard: @unchecked Sendable {
+    private let lock = NSLock()
+    private var resumed = false
+
+    /// Exécute `body` (qui doit résumer la continuation) au premier appel
+    /// seulement ; les appels suivants sont ignorés.
+    func resume(_ body: () -> Void) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !resumed else { return }
+        resumed = true
+        body()
+    }
+}
+
 final class BodyContextAnalyzer: @unchecked Sendable {
 
     static let shared = BodyContextAnalyzer()
@@ -177,9 +198,10 @@ final class BodyContextAnalyzer: @unchecked Sendable {
 
     private func detectFaceRect(cgImage: CGImage) async -> CGRect? {
         return await withCheckedContinuation { continuation in
+            let guardOnce = VisionResumeGuard()
             let request = VNDetectFaceRectanglesRequest { req, _ in
                 guard let obs = req.results?.first as? VNFaceObservation else {
-                    continuation.resume(returning: nil)
+                    guardOnce.resume { continuation.resume(returning: nil) }
                     return
                 }
                 // Vision → coordonnées normalisées bas-gauche → haut-gauche
@@ -190,10 +212,14 @@ final class BodyContextAnalyzer: @unchecked Sendable {
                     width: bb.width,
                     height: bb.height
                 )
-                continuation.resume(returning: converted)
+                guardOnce.resume { continuation.resume(returning: converted) }
             }
             let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            try? handler.perform([request])
+            do {
+                try handler.perform([request])
+            } catch {
+                guardOnce.resume { continuation.resume(returning: nil) }
+            }
         }
     }
 
@@ -298,24 +324,26 @@ final class BodyContextAnalyzer: @unchecked Sendable {
     }
 
     private func analyzePose(cgImage: CGImage) async -> PoseAnalysisResult {
+        let fallback = PoseAnalysisResult(shape: .hourglass, height: .medium, shoulders: .medium)
         return await withCheckedContinuation { continuation in
+            let guardOnce = VisionResumeGuard()
             let request = VNDetectHumanBodyPoseRequest { req, _ in
                 guard let obs = req.results?.first as? VNHumanBodyPoseObservation else {
                     // Pas de pose détectée → valeurs par défaut
-                    continuation.resume(returning: PoseAnalysisResult(
-                        shape: .hourglass,
-                        height: .medium,
-                        shoulders: .medium
-                    ))
+                    guardOnce.resume { continuation.resume(returning: fallback) }
                     return
                 }
 
                 let result = self.classifyPose(from: obs)
-                continuation.resume(returning: result)
+                guardOnce.resume { continuation.resume(returning: result) }
             }
 
             let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            try? handler.perform([request])
+            do {
+                try handler.perform([request])
+            } catch {
+                guardOnce.resume { continuation.resume(returning: fallback) }
+            }
         }
     }
 
@@ -524,9 +552,10 @@ final class BodyContextAnalyzer: @unchecked Sendable {
 
     private func detectClothing(cgImage: CGImage) async -> [DetectedGarment] {
         return await withCheckedContinuation { continuation in
+            let guardOnce = VisionResumeGuard()
             let request = VNClassifyImageRequest { req, _ in
                 guard let observations = req.results as? [VNClassificationObservation] else {
-                    continuation.resume(returning: [])
+                    guardOnce.resume { continuation.resume(returning: []) }
                     return
                 }
 
@@ -536,11 +565,15 @@ final class BodyContextAnalyzer: @unchecked Sendable {
                     .prefix(20)
 
                 let garments = self.mapObservationsToGarments(Array(relevant))
-                continuation.resume(returning: garments)
+                guardOnce.resume { continuation.resume(returning: garments) }
             }
 
             let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
-            try? handler.perform([request])
+            do {
+                try handler.perform([request])
+            } catch {
+                guardOnce.resume { continuation.resume(returning: []) }
+            }
         }
     }
 

@@ -241,19 +241,13 @@ final class QuickTryOnViewModel {
 
     // MARK: - Photo loading
 
-    /// Taille max : 6 Mo (limite de l'Edge Function tryon-generate).
-    private static let maxPhotoBytes = 6 * 1024 * 1024
-
     func loadPhoto(from item: PhotosPickerItem?) async {
         guard let item else { return }
         guard let data = try? await item.loadTransferable(type: Data.self) else { return }
 
-        // Validation taille avant de passer à l'Edge Function
-        guard data.count <= Self.maxPhotoBytes else {
-            errorMessage = L10n.TryOn.photoTooLarge  // clé à ajouter en L10n
-            return
-        }
-
+        // Pas de rejet sur la taille brute : ImageGenerationService downscale
+        // à 2048 px et compresse sous la limite Edge avant chaque envoi — une
+        // photo 48 MP était refusée ici alors qu'elle passe après réduction.
         guard let image = UIImage(data: data) else { return }
         userPhoto = image
         result = nil

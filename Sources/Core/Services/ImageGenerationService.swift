@@ -140,16 +140,34 @@ final class ImageGenerationService: Sendable {
         }
     }
 
-    /// Compresse et redimensionne l'image pour rester sous 4 MB.
+    /// Redimensionne (max 2048 px côté long) puis compresse l'image pour
+    /// rester sous `maxBytes`. La baisse de qualité seule ne suffisait pas :
+    /// photo + référence partent en base64 (+33 %) dans le MÊME payload JSON,
+    /// et une photo 48 MP pouvait dépasser la limite de l'Edge Function
+    /// (413 rendu comme apiError générique).
     private func resizedImageData(_ image: UIImage, maxBytes: Int = 4 * 1024 * 1024) -> Data? {
+        let scaled = downscaled(image, maxDimension: 2048)
         var quality: CGFloat = 0.85
         while quality > 0.1 {
-            if let data = image.jpegData(compressionQuality: quality), data.count <= maxBytes {
+            if let data = scaled.jpegData(compressionQuality: quality), data.count <= maxBytes {
                 return data
             }
             quality -= 0.15
         }
-        return nil
+        return scaled.jpegData(compressionQuality: 0.1)
+    }
+
+    private func downscaled(_ image: UIImage, maxDimension: CGFloat) -> UIImage {
+        let size = image.size
+        let longest = max(size.width, size.height)
+        guard longest > maxDimension, longest > 0 else { return image }
+        let ratio = maxDimension / longest
+        let newSize = CGSize(width: size.width * ratio, height: size.height * ratio)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        return UIGraphicsImageRenderer(size: newSize, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+        }
     }
 
     private func buildPrompt(for item: FashionItem, angle: ShootingAngle) -> String {

@@ -103,14 +103,17 @@ final class PhotoQualityAnalyzer {
         guard let cgImage = image.cgImage else { return false }
         return await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
+                // Vision peut appeler le completion AVEC une erreur PUIS faire
+                // throw dans perform() : sans garde, double-resume = crash.
+                let guardOnce = VisionResumeGuard()
                 let request = VNDetectFaceRectanglesRequest { req, _ in
-                    continuation.resume(returning: !(req.results ?? []).isEmpty)
+                    guardOnce.resume { continuation.resume(returning: !(req.results ?? []).isEmpty) }
                 }
                 let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
                 do {
                     try handler.perform([request])
                 } catch {
-                    continuation.resume(returning: false)
+                    guardOnce.resume { continuation.resume(returning: false) }
                 }
             }
         }
