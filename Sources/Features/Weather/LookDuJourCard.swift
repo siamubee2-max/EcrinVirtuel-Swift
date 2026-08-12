@@ -74,12 +74,12 @@ struct LookDuJourCard: View {
     private var headerRow: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("LOOK DU JOUR")
+                Text(L10n.LookOfDay.title)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
                 if viewModel.showConversionMessage {
-                    Text("Votre styliste personnelle connaît votre météo. Essayez une tenue avant même de sortir.")
+                    Text(L10n.LookOfDay.tagline)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .fixedSize(horizontal: false, vertical: true)
@@ -155,7 +155,7 @@ struct LookDuJourCard: View {
         case .needsGender:
             needsGenderContent
         case .catalogEmpty:
-            Text("Le catalogue mode se charge… Revenez dans un instant.")
+            Text(L10n.LookOfDay.catalogLoading)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
         case .offline:
@@ -167,10 +167,10 @@ struct LookDuJourCard: View {
 
     private var idleContent: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("Découvrez une tenue adaptée à la météo de votre ville.")
+            Text(L10n.LookOfDay.discover)
                 .font(EcrinFont.body)
                 .foregroundStyle(EcrinColor.textSecondary)
-            GoldButton(title: "Voir mon look météo") {
+            GoldButton(title: L10n.LookOfDay.seeMyLook) {
                 Task { await viewModel.onCardTapped(appState: appState) }
             }
         }
@@ -192,7 +192,7 @@ struct LookDuJourCard: View {
             HStack(spacing: EcrinSpacing.sm) {
                 ProgressView()
                     .tint(EcrinColor.gold)
-                Text("Analyse météo en cours…")
+                Text(L10n.LookOfDay.analyzing)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textSecondary)
             }
@@ -241,11 +241,11 @@ struct LookDuJourCard: View {
                 .offset(y: cardAppeared ? 0 : 16)
 
             HStack(spacing: EcrinSpacing.sm) {
-                GoldButton(title: "Essayer", flexible: true) {
+                GoldButton(title: L10n.LookOfDay.tryButton, flexible: true) {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     onTryLook(look)
                 }
-                GhostButton(title: "Catalogue", flexible: true) {
+                GhostButton(title: L10n.LookOfDay.catalogButton, flexible: true) {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     onOpenCatalog()
                 }
@@ -277,10 +277,10 @@ struct LookDuJourCard: View {
 
     private var needsGenderContent: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("Choisissez votre genre pour personnaliser le Look du Jour.")
+            Text(L10n.LookOfDay.chooseGender)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textSecondary)
-            GoldButton(title: "Homme ou Femme") {
+            GoldButton(title: L10n.LookOfDay.genderCTA) {
                 viewModel.showGenderPicker = true
             }
         }
@@ -288,7 +288,7 @@ struct LookDuJourCard: View {
 
     private var offlineContent: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("Connexion requise pour la météo.")
+            Text(L10n.LookOfDay.offline)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
             GhostButton(title: L10n.Common.retry) {
@@ -307,7 +307,7 @@ struct LookDuJourCard: View {
                     Task { await viewModel.refresh(appState: appState, force: true) }
                 }
                 if locationService.authStatus == .denied || locationService.authStatus == .restricted {
-                    GhostButton(title: "Ma ville") {
+                    GhostButton(title: L10n.LookOfDay.myCity) {
                         viewModel.showCitySearch = true
                     }
                 }
@@ -329,7 +329,7 @@ struct LookDuJourCard: View {
             HStack(spacing: EcrinSpacing.sm) {
                 Image(systemName: "tshirt.fill")
                     .foregroundStyle(EcrinColor.textMuted)
-                Text("Aucune tenue disponible pour cette météo")
+                Text(L10n.LookOfDay.noOutfit)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
             }
@@ -383,7 +383,7 @@ struct LookDuJourCard: View {
                         Image(systemName: "diamond.fill")
                             .font(.system(size: 10))
                             .foregroundStyle(EcrinColor.gold)
-                        Text("Votre bijou : \(jewelryWardrobeItems.map(\.name).joined(separator: ", "))")
+                        Text(L10n.LookOfDay.yourJewelry(jewelryWardrobeItems.map(\.name).joined(separator: ", ")))
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.gold.opacity(0.9))
                             .lineLimit(1)

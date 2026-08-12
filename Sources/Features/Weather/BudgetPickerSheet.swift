@@ -21,13 +21,13 @@ struct BudgetPickerSheet: View {
                 .padding(.top, 12)
                 .padding(.bottom, 20)
 
-            Text("Budget maximum")
+            Text(L10n.LookOfDay.budgetTitle)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, EcrinSpacing.lg)
 
-            Text("Filtrez le catalogue par prix maximum par article.")
+            Text(L10n.LookOfDay.budgetDesc)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
                 .frame(maxWidth: .infinity, alignment: .leading)

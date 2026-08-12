@@ -17,11 +17,11 @@ struct CitySearchSheet: View {
                 EcrinColor.background.ignoresSafeArea()
 
                 VStack(alignment: .leading, spacing: EcrinSpacing.lg) {
-                    Text("Indiquez votre ville pour adapter le look à la météo locale.")
+                    Text(L10n.LookOfDay.cityPrompt)
                         .font(EcrinFont.body)
                         .foregroundStyle(EcrinColor.textSecondary)
 
-                    TextField("Ex. Lyon, Marseille…", text: $cityText)
+                    TextField(L10n.LookOfDay.cityPlaceholder, text: $cityText)
                         .textInputAutocapitalization(.words)
                         .autocorrectionDisabled()
                         .focused($isFocused)
@@ -43,7 +43,7 @@ struct CitySearchSheet: View {
                             .foregroundStyle(.orange)
                     }
 
-                    GoldButton(title: isLoading ? "Recherche…" : "Valider la ville") {
+                    GoldButton(title: isLoading ? L10n.LookOfDay.citySearching : L10n.LookOfDay.cityValidate) {
                         onSubmit()
                     }
                     .disabled(cityText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
@@ -53,7 +53,7 @@ struct CitySearchSheet: View {
                 }
                 .padding(EcrinSpacing.lg)
             }
-            .navigationTitle("Votre ville")
+            .navigationTitle(L10n.LookOfDay.myCity)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

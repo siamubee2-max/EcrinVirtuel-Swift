@@ -490,6 +490,47 @@ enum L10n {
     }
 
     // MARK: WeatherConditions
+    enum LookOfDay {
+        static var title: String { String(localized: "lookOfDay.title") }
+        static var tagline: String { String(localized: "lookOfDay.tagline") }
+        static var catalogLoading: String { String(localized: "lookOfDay.catalogLoading") }
+        static var discover: String { String(localized: "lookOfDay.discover") }
+        static var seeMyLook: String { String(localized: "lookOfDay.seeMyLook") }
+        static var analyzing: String { String(localized: "lookOfDay.analyzing") }
+        static var tryButton: String { String(localized: "lookOfDay.tryButton") }
+        static var catalogButton: String { String(localized: "lookOfDay.catalogButton") }
+        static var chooseGender: String { String(localized: "lookOfDay.chooseGender") }
+        static var genderCTA: String { String(localized: "lookOfDay.genderCTA") }
+        static var offline: String { String(localized: "lookOfDay.offline") }
+        static var myCity: String { String(localized: "lookOfDay.myCity") }
+        static var noOutfit: String { String(localized: "lookOfDay.noOutfit") }
+        static func yourJewelry(_ names: String) -> String {
+            String(format: String(localized: "lookOfDay.yourJewelry"), names)
+        }
+        static var cityPrompt: String { String(localized: "lookOfDay.cityPrompt") }
+        static var cityPlaceholder: String { String(localized: "lookOfDay.cityPlaceholder") }
+        static var citySearching: String { String(localized: "lookOfDay.citySearching") }
+        static var cityValidate: String { String(localized: "lookOfDay.cityValidate") }
+        static var yourStyle: String { String(localized: "lookOfDay.yourStyle") }
+        static var genderQuestion: String { String(localized: "lookOfDay.genderQuestion") }
+        static var genderChangeHint: String { String(localized: "lookOfDay.genderChangeHint") }
+        static var budgetTitle: String { String(localized: "lookOfDay.budgetTitle") }
+        static var budgetDesc: String { String(localized: "lookOfDay.budgetDesc") }
+        static var notifTitle: String { String(localized: "lookOfDay.notifTitle") }
+        static var notifBody: String { String(localized: "lookOfDay.notifBody") }
+    }
+
+    /// Labels des conditions WMO (WeatherCondition.label).
+    enum WeatherConditionLabels {
+        static var clearSky: String { String(localized: "weatherCondition.clearSky") }
+        static var partlyCloudy: String { String(localized: "weatherCondition.partlyCloudy") }
+        static var foggy: String { String(localized: "weatherCondition.foggy") }
+        static var drizzle: String { String(localized: "weatherCondition.drizzle") }
+        static var rain: String { String(localized: "weatherCondition.rain") }
+        static var snow: String { String(localized: "weatherCondition.snow") }
+        static var thunderstorm: String { String(localized: "weatherCondition.thunderstorm") }
+    }
+
     enum WeatherConditions {
         static var cloudy: String { String(localized: "weatherConditions.cloudy") }
         static var cold: String { String(localized: "weatherConditions.cold") }

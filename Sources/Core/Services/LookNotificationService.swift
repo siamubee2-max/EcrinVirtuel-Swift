@@ -68,8 +68,8 @@ final class LookNotificationService: Sendable {
         center.removePendingNotificationRequests(withIdentifiers: [notificationID])
 
         let content = UNMutableNotificationContent()
-        content.title = "Votre Look du Jour est prêt ✨"
-        content.body = "Découvrez la tenue du moment adaptée à la météo de votre ville."
+        content.title = L10n.LookOfDay.notifTitle
+        content.body = L10n.LookOfDay.notifBody
         content.sound = .default
         content.badge = 1
         content.categoryIdentifier = "LOOK_DU_JOUR"

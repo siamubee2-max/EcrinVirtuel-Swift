@@ -46,13 +46,13 @@ enum WeatherCondition: String, CaseIterable, Codable, Sendable {
 
     var label: String {
         switch self {
-        case .clearSky:     return "Ciel dégagé"
-        case .partlyCloudy: return "Partiellement nuageux"
-        case .foggy:        return "Brouillard"
-        case .drizzle:      return "Bruine"
-        case .rain:         return "Pluie"
-        case .snow:         return "Neige"
-        case .thunderstorm: return "Orage"
+        case .clearSky:     return L10n.WeatherConditionLabels.clearSky
+        case .partlyCloudy: return L10n.WeatherConditionLabels.partlyCloudy
+        case .foggy:        return L10n.WeatherConditionLabels.foggy
+        case .drizzle:      return L10n.WeatherConditionLabels.drizzle
+        case .rain:         return L10n.WeatherConditionLabels.rain
+        case .snow:         return L10n.WeatherConditionLabels.snow
+        case .thunderstorm: return L10n.WeatherConditionLabels.thunderstorm
         }
     }
 }
