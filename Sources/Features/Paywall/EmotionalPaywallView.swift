@@ -43,7 +43,9 @@ struct EmotionalPaywallView: View {
                     planCards
 
                     // ── Primary CTA ─────────────────────────────────────
-                    GoldButton(title: "COMMENCER — 7 JOURS OFFERTS") {
+                    // Pas de mention d'essai gratuit : aucune intro offer n'existe
+                    // dans le flow d'achat (risque App Review 2.3.1 sinon).
+                    GoldButton(title: "CONTINUER MES ESSAYAGES") {
                         showFullPaywall = true
                     }
                     .padding(.horizontal, EcrinSpacing.xl)
@@ -198,9 +200,9 @@ struct EmotionalPaywallView: View {
     }
 
     // MARK: - Plan cards
-    // Prices match PaywallView exactly:
-    //   Starter: 7,99€ / 30 essayages/mois
-    //   Premium: 14,99€ / 70 essayages/mois (best value)
+    // Quotas depuis SubscriptionStatus (source unique) ; prix = fallbacks de
+    // PaywallView (les prix localisés StoreKit sont affichés sur le paywall
+    // complet où l'achat a réellement lieu).
 
     @ViewBuilder
     private var planCards: some View {
@@ -208,16 +210,16 @@ struct EmotionalPaywallView: View {
             // Starter — glass background
             PlanRow(
                 name: "Starter",
-                description: "30 essayages/mois",
-                price: "7,99€",
+                description: "\(SubscriptionStatus.starter.monthlyGenerations) crédits/mois",
+                price: "6,99€",
                 isPopular: false
             )
 
             // Premium — gold border + badge
             PlanRow(
                 name: "Premium",
-                description: "70 essayages/mois",
-                price: "14,99€",
+                description: "\(SubscriptionStatus.premium.monthlyGenerations) crédits/mois",
+                price: "12,99€",
                 isPopular: true
             )
         }

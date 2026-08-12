@@ -46,6 +46,8 @@
 		BB2C3D4E5F6A7B8C9D0E1F21 /* LookNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1C2D3E4F5A6B7C8D9E0F10 /* LookNotificationService.swift */; };
 		AA1B2C3D4E5F6A7B8C9D0E1F /* CreditsManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0B1C2D3E4F5A6B7C8D9E0F /* CreditsManager.swift */; };
 		BB1B2C3D4E5F6A7B8C9D0E22 /* UnlimitedAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0B1C2D3E4F5A6B7C8D9E11 /* UnlimitedAccess.swift */; };
+		AB01C2D3E4F5A6B7C8D9E002 /* AppleSignInNonce.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB01C2D3E4F5A6B7C8D9E001 /* AppleSignInNonce.swift */; };
+		AB01C2D3E4F5A6B7C8D9E004 /* RevenueCatService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB01C2D3E4F5A6B7C8D9E003 /* RevenueCatService.swift */; };
 		1398FD4A6DF281BC6DEB37E7 /* PhotoGuideOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3074A0B2B3FF90446BBDCBD9 /* PhotoGuideOverlay.swift */; };
 		13E05A82A8F96A58E7681B33 /* MoodBoardGalleryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1802E479DAD0D62021B9A63A /* MoodBoardGalleryView.swift */; };
 		160988F9FBC55DE970FB14D7 /* ClothingCatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E53001E692C729609C4B8C9 /* ClothingCatalogService.swift */; };
@@ -356,6 +358,8 @@
 		BB1C2D3E4F5A6B7C8D9E0F10 /* LookNotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookNotificationService.swift; sourceTree = "<group>"; };
 		AA0B1C2D3E4F5A6B7C8D9E0F /* CreditsManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsManager.swift; sourceTree = "<group>"; };
 		BB0B1C2D3E4F5A6B7C8D9E11 /* UnlimitedAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlimitedAccess.swift; sourceTree = "<group>"; };
+		AB01C2D3E4F5A6B7C8D9E001 /* AppleSignInNonce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInNonce.swift; sourceTree = "<group>"; };
+		AB01C2D3E4F5A6B7C8D9E003 /* RevenueCatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueCatService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -789,9 +793,11 @@
 		E427E90784CF32F23ECC26F5 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				AB01C2D3E4F5A6B7C8D9E001 /* AppleSignInNonce.swift */,
 				0E9CACBB6476D9F4A3EDCA9A /* BodyContext.swift */,
 				EEBB67483AE29F97E1F51A9C /* BodyContextAnalyzer.swift */,
 				7C4B51BB2CF312A7F659B57F /* BodyModelService.swift */,
+				AB01C2D3E4F5A6B7C8D9E003 /* RevenueCatService.swift */,
 				AA0B1C2D3E4F5A6B7C8D9E0F /* CreditsManager.swift */,
 				BB0B1C2D3E4F5A6B7C8D9E11 /* UnlimitedAccess.swift */,
 				BB1C2D3E4F5A6B7C8D9E0F10 /* LookNotificationService.swift */,
@@ -1083,6 +1089,8 @@
 				2FEFA3E84ED32431CCD3D75E /* LevelUpCelebrationView.swift in Sources */,
 				F9D36AC09F42CA3ADFA7BCFF /* LoginView.swift in Sources */,
 				A1B2C3D4E5F60718293A4B5D /* GenerationSignInSheet.swift in Sources */,
+				AB01C2D3E4F5A6B7C8D9E002 /* AppleSignInNonce.swift in Sources */,
+				AB01C2D3E4F5A6B7C8D9E004 /* RevenueCatService.swift in Sources */,
 				F04B34416DFDACC84420B8BB /* LookDetailView.swift in Sources */,
 				C4F8D500A2777C045225E2AC /* LookSnapshot.swift in Sources */,
 				AAB1830C904721F5461D5A0C /* MainTabView.swift in Sources */,

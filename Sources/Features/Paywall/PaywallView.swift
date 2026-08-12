@@ -91,6 +91,8 @@ final class PaywallViewModel: ObservableObject {
     @Published var liveProducts: [String: StoreProduct] = [:]
     /// Plan acheté avec succès — observé par PaywallView pour mettre à jour AppState.
     @Published var purchasedPlan: PaywallPlan?
+    /// Statut restauré avec succès — observé par PaywallView (même mécanique).
+    @Published var restoredStatus: SubscriptionStatus?
 
     // MARK: All Plans (7 plans complets)
 
@@ -214,11 +216,24 @@ final class PaywallViewModel: ObservableObject {
             // RevenueCat 5.x ne throw pas sur l'annulation utilisateur — sans ce check,
             // annuler affichait « L'achat n'a pas pu être activé » + un faux mismatch.
             if result.userCancelled { return }
-            if result.customerInfo.entitlements["premium"]?.isActive == true {
-                _ = try? await SupabaseService.shared.creditGenerations(
-                    productId: plan.rcIdentifier,
-                    transactionId: result.transaction?.transactionIdentifier ?? UUID().uuidString
-                )
+            // Résolution par productIdentifier — même convention que le launch et le
+            // customerInfoStream, quel que soit le découpage des entitlements RC.
+            if RevenueCatService.resolveStatus(from: result.customerInfo) != .free {
+                // Idempotence : jamais d'id de substitution aléatoire — un UUID
+                // inventé casse la déduplication par transaction de l'Edge Function.
+                // Sans transactionId ou si le crédit direct échoue, le webhook
+                // revenuecat-webhook reste le filet serveur (identité RC = compte
+                // Supabase depuis logIn).
+                if let transactionId = result.transaction?.transactionIdentifier {
+                    do {
+                        _ = try await SupabaseService.shared.creditGenerations(
+                            productId: plan.rcIdentifier,
+                            transactionId: transactionId
+                        )
+                    } catch {
+                        MonitoringService.shared.recordPurchaseError(error, productId: plan.rcIdentifier)
+                    }
+                }
                 purchasedPlan = plan          // ← notifie la vue
                 await CreditsManager.shared.sync() // ← rafraîchit le compteur
                 dismiss()
@@ -244,8 +259,14 @@ final class PaywallViewModel: ObservableObject {
         defer { isPurchasing = false }
         do {
             let info = try await Purchases.shared.restorePurchases()
-            if info.entitlements["premium"]?.isActive != true {
+            let status = RevenueCatService.resolveStatus(from: info)
+            if status == .free {
                 purchaseError = "Aucun achat trouvé à restaurer."
+            } else {
+                // Observé par la vue : applique le statut à AppState, resynchronise
+                // les crédits et ferme le paywall — avant, une restauration réussie
+                // ne produisait aucun effet visible jusqu'au relaunch.
+                restoredStatus = status
             }
         } catch {
             MonitoringService.shared.recordRestoreError(error)
@@ -426,6 +447,13 @@ struct PaywallView: View {
             guard let plan = viewModel.purchasedPlan else { return }
             appState.subscription = plan.resolvedSubscriptionStatus
             CreditsManager.shared.handleSubscriptionUpgrade(to: appState.subscription)
+        }
+        // Appliquer une restauration réussie (statut + crédits) puis fermer
+        .onChange(of: viewModel.restoredStatus) { _, status in
+            guard let status else { return }
+            appState.subscription = status
+            CreditsManager.shared.syncDetached()
+            dismiss()
         }
     }
 }

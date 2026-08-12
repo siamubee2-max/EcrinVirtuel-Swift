@@ -93,6 +93,10 @@ final class AppState {
         // restauration de session, son sync initial ne voit jamais le cloud.
         wardrobe.switchUser(to: user.id.uuidString)
         CreditsManager.shared.syncDetached()
+        // Aligner l'identité RevenueCat : indispensable pour que le webhook
+        // revenuecat-webhook attribue les achats à ce compte Supabase et que
+        // les entitlements suivent le compte (pas l'appareil).
+        Task { await RevenueCatService.logIn(userId: user.id.uuidString) }
     }
 
     func signOut() {
@@ -104,5 +108,6 @@ final class AppState {
         SessionCreationsStore.reset()
         CreditsManager.shared.resetForSignOut()
         wardrobe.switchUser(to: nil)
+        Task { await RevenueCatService.logOut() }
     }
 }

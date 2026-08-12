@@ -108,6 +108,6 @@ final class CreditsManager {
     /// Appelé après un achat RevenueCat : met à jour l'affichage local
     /// en attendant que l'Edge Function credit-generations confirme le nouveau total.
     func handleSubscriptionUpgrade(to status: SubscriptionStatus) {
-        remaining = status.monthlyGenerations == .max ? 999 : status.monthlyGenerations
+        remaining = status.monthlyGenerations
     }
 }
