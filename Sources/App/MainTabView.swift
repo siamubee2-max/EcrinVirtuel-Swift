@@ -1,10 +1,13 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @Environment(AppState.self) private var appState
+    @ObservedObject private var gaming = GamingService.shared
     @State private var selectedTab = 0
     @State private var showQuickTryOn = false
 
     var body: some View {
+        @Bindable var appState = appState
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
 
@@ -83,6 +86,26 @@ struct MainTabView: View {
                 QuickTryOnView()
                     .environment(ClothingCatalogService.shared)
             }
+
+            // Toasts XP — l'overlay n'était monté nulle part : les récompenses
+            // s'accumulaient dans pendingRewards sans jamais s'afficher.
+            XPToastQueueOverlay(gaming: gaming)
+
+            // Célébration de passage de niveau
+            if gaming.showLevelUp, let newLevel = gaming.levelUpTo {
+                LevelUpCelebrationView(newLevel: newLevel) {
+                    gaming.showLevelUp = false
+                    gaming.levelUpTo = nil
+                }
+                .zIndex(10)
+                .transition(.opacity)
+            }
+        }
+        // Cadeau reçu via ecrin://gift/<uuid>
+        .fullScreenCover(item: $appState.pendingGift) { pending in
+            GiftRevealView(giftID: pending.id)
+                .environment(appState)
+                .environment(ClothingCatalogService.shared)
         }
         .task {
             await ClothingCatalogService.shared.fetchAll(force: true)

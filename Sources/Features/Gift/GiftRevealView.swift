@@ -4,12 +4,14 @@ import SwiftUI
 /// Displayed when the recipient opens a gift deeplink
 struct GiftRevealView: View {
     let giftID: UUID
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = GiftViewModel()
     @State private var showTryOn = false
     @State private var particlesVisible = false
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .topTrailing) {
             EcrinColor.background.ignoresSafeArea()
 
             if let gift = viewModel.revealedGift {
@@ -22,14 +24,63 @@ struct GiftRevealView: View {
                     onBuy: { /* open boutique URL */ }
                 )
                 .transition(.opacity)
+            } else if let error = viewModel.errorMessage {
+                // Error state — sans cette branche, un cadeau expiré ou une
+                // erreur réseau laissait le spinner « Ouverture… » à l'infini.
+                GiftErrorView(message: error) { dismiss() }
             } else {
                 // Loading state
                 GiftLoadingView()
             }
+
+            // Fermeture — la vue est présentée en fullScreenCover.
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(EcrinColor.textMuted)
+                    .padding(12)
+                    .background(Circle().fill(EcrinColor.glassStroke.opacity(0.3)))
+            }
+            .padding(.top, EcrinSpacing.lg)
+            .padding(.trailing, EcrinSpacing.lg)
+            .accessibilityLabel("Fermer")
         }
         .task { await viewModel.receive(giftID: giftID) }
         .sheet(isPresented: $showTryOn) {
-            TryOnView()
+            if let gift = viewModel.revealedGift {
+                // Pré-sélectionner le bijou offert — TryOnView() nu ignorait
+                // complètement le cadeau.
+                QuickTryOnView(
+                    preselectedItem: .wardrobe(gift.jewelryItem.asFashionItem),
+                    preselectedMode: .jewelsOnly
+                )
+                .environment(appState)
+                .environment(ClothingCatalogService.shared)
+                .presentationDetents([.large])
+            }
+        }
+    }
+}
+
+// MARK: - Error
+private struct GiftErrorView: View {
+    let message: String
+    let onClose: () -> Void
+
+    var body: some View {
+        VStack(spacing: EcrinSpacing.lg) {
+            Image(systemName: "gift")
+                .font(.system(size: 44, weight: .thin))
+                .foregroundStyle(EcrinColor.textMuted)
+            Text(message)
+                .font(EcrinFont.body)
+                .foregroundStyle(EcrinColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, EcrinSpacing.xl)
+            GhostButton(title: "Fermer") { onClose() }
+                .padding(.horizontal, EcrinSpacing.xxl)
         }
     }
 }

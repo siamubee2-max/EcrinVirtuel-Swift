@@ -40,6 +40,8 @@ struct EcrinVirtuelApp: App {
                     await CreditsManager.shared.sync()
                     if appState.currentUser != nil {
                         await GamingService.shared.syncFromSupabase()
+                        // Streak + XP de connexion quotidienne (idempotent par jour).
+                        GamingService.shared.recordLogin()
                     }
 
                     // 4. Précharger le catalogue vêtements (95 articles Supabase).
@@ -77,6 +79,11 @@ struct EcrinVirtuelApp: App {
                     }
                 }
                 .onOpenURL { url in
+                    // Cadeau : ecrin://gift/<uuid> (et variante https du lien partagé)
+                    if let giftID = Self.giftID(from: url) {
+                        appState.pendingGift = PendingGift(id: giftID)
+                        return
+                    }
                     // Lien magique Supabase: ecrin://login-callback#access_token=...
                     Task { @MainActor in
                         if let user = await SupabaseService.shared.handleDeepLink(url) {
@@ -85,5 +92,15 @@ struct EcrinVirtuelApp: App {
                     }
                 }
         }
+    }
+
+    /// Extrait l'UUID d'un lien cadeau — `ecrin://gift/<uuid>` ou
+    /// `https://…/ecrin/gift/<uuid>` (universal link, si l'entitlement
+    /// Associated Domains est ajouté un jour).
+    private static func giftID(from url: URL) -> UUID? {
+        let isGiftLink = (url.scheme == "ecrin" && url.host == "gift")
+            || url.pathComponents.contains("gift")
+        guard isGiftLink else { return nil }
+        return UUID(uuidString: url.lastPathComponent)
     }
 }

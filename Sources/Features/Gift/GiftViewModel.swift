@@ -41,6 +41,12 @@ final class GiftViewModel: ObservableObject {
     // MARK: Try-on images (populated from dressing/history)
     @Published var availableTryOns: [TryOnEntry] = TryOnEntry.samples
 
+    /// Remplace les samples par le vrai catalogue Supabase (39 bijoux).
+    func loadJewelryCatalog() async {
+        guard let raw = try? await SupabaseService.shared.fetchJewelryCatalog(), !raw.isEmpty else { return }
+        availableTryOns = raw.map { TryOnEntry(id: UUID(), jewelry: $0.asJewelryItem, image: nil) }
+    }
+
     // MARK: Validation
     var canProceedToCustomize: Bool { selectedJewelry != nil }
     var canProceedToSend: Bool { !message.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -102,6 +108,9 @@ final class GiftViewModel: ObservableObject {
                 let occasion: String
                 let is_revealed: Bool
                 let expires_at: String
+                // Colonne TEXT UNIQUE NOT NULL du schéma (migration 001) — son
+                // absence faisait échouer chaque insert. Le lookup se fait par id.
+                let share_token: String
             }
 
             let row = GiftRow(
@@ -116,7 +125,8 @@ final class GiftViewModel: ObservableObject {
                 message: message,
                 occasion: occasion.rawValue,
                 is_revealed: false,
-                expires_at: iso.string(from: expiresAt)
+                expires_at: iso.string(from: expiresAt),
+                share_token: UUID().uuidString
             )
 
             try await SupabaseService.shared.client
@@ -135,22 +145,18 @@ final class GiftViewModel: ObservableObject {
                 expiresAt: expiresAt
             )
             createdGift = gift
-            shareURL = gift.generatedShareURL
+            // Partager l'URL https (cliquable dans Messages/WhatsApp) — le
+            // custom scheme ecrin:// n'est pas tappable hors de l'app et est
+            // mort chez un destinataire sans l'app.
+            shareURL = gift.shareURL ?? gift.generatedShareURL
             showShareSheet = true
+            GamingService.shared.record(.giftSent)
 
         } catch {
             Logger(subsystem: "com.ecrin.jewelry", category: "gift").error("createGiftLink error: \(error.localizedDescription, privacy: .public)")
-            // Degrade gracefully: local-only gift (no persistence)
-            let gift = GiftCard(
-                fromUser: fromUser,
-                jewelryItem: jewelry,
-                tryOnImageData: selectedTryOnImage?.jpegData(compressionQuality: 0.85),
-                message: message,
-                occasionType: occasion
-            )
-            createdGift = gift
-            shareURL = gift.generatedShareURL
-            showShareSheet = true
+            // Ne PAS ouvrir la share sheet : sans ligne en base, le lien
+            // partagé serait mort pour le destinataire.
+            errorMessage = "Impossible de créer le cadeau. Vérifiez votre connexion et réessayez."
         }
     }
 
@@ -237,11 +243,9 @@ final class GiftViewModel: ObservableObject {
 
         } catch {
             Logger(subsystem: "com.ecrin.jewelry", category: "gift").error("receive error: \(error.localizedDescription, privacy: .public)")
+            // Pas de fallback sample : afficher un faux cadeau (« De la part de
+            // Marie ») que personne n'a envoyé serait pire que l'erreur.
             errorMessage = "Impossible de charger ce cadeau. Vérifiez votre connexion."
-            // Fallback: show sample for demo purposes
-            withAnimation(EcrinAnimation.glassReveal) {
-                revealedGift = GiftCard.sample
-            }
         }
     }
 

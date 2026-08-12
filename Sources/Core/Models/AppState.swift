@@ -27,12 +27,20 @@ enum SessionCreationsStore {
     }
 }
 
+/// Cadeau reçu via deep link — wrapper Identifiable pour fullScreenCover(item:).
+struct PendingGift: Identifiable {
+    let id: UUID
+}
+
 @Observable
 @MainActor
 final class AppState {
     var phase: AppPhase
     var currentUser: User?
     var subscription: SubscriptionStatus = .free
+
+    /// Cadeau en attente d'affichage (deep link ecrin://gift/<uuid>).
+    var pendingGift: PendingGift?
 
     /// Garde-robe de l'utilisateur — source unique partagée dans toute l'app.
     var wardrobe = WardrobeViewModel()

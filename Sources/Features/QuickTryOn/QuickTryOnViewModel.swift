@@ -300,6 +300,7 @@ final class QuickTryOnViewModel {
                 }
                 result = finalImages
                 CreditsManager.shared.syncDetached()
+                GamingService.shared.record(.tryOnGenerated)
                 // Enregistrer la session Try-On en arrière-plan (sans bloquer l'UI)
                 Task {
                     try? await SupabaseService.shared.saveTryOnSession(

@@ -59,6 +59,7 @@ final class TryOnViewModel {
             let generated = try await imageService.tryOn(photo: photo, jewelry: jewelry)
             result = [generated]
             CreditsManager.shared.syncDetached()
+            GamingService.shared.record(.tryOnGenerated)
         } catch let error as ImageGenerationService.GenerationError {
             if case .quotaExceeded = error, !CreditsManager.shared.isUnlimited {
                 CreditsManager.shared.remaining = 0
@@ -89,6 +90,7 @@ final class TryOnViewModel {
             let generated = try await imageService.tryOnFashion(photo: photo, item: item)
             result = [generated]
             CreditsManager.shared.syncDetached()
+            GamingService.shared.record(.tryOnGenerated)
         } catch let error as ImageGenerationService.GenerationError {
             CreditsManager.shared.refund()
             errorMessage = error.localizedDescription

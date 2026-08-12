@@ -4,13 +4,13 @@ import SwiftUI
 struct GiftCreatorView: View {
     @StateObject private var viewModel = GiftViewModel()
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
 
-    // Simulated current user; replace with AppState injection
-    private let currentUser = User(
-        email: "moi@example.com",
-        displayName: "Vous",
-        createdAt: .now
-    )
+    /// Expéditeur réel — le destinataire voyait « De la part de Vous »
+    /// (moi@example.com) avec l'utilisateur simulé précédent.
+    private var currentUser: User {
+        appState.currentUser ?? User(email: "", displayName: nil, createdAt: .now)
+    }
 
     var body: some View {
         ZStack {
@@ -52,6 +52,7 @@ struct GiftCreatorView: View {
                 GiftShareSheet(url: url, gift: viewModel.createdGift)
             }
         }
+        .task { await viewModel.loadJewelryCatalog() }
     }
 }
 
@@ -495,6 +496,13 @@ private struct GiftStep3Send: View {
                         }
                     }
                     .padding(EcrinSpacing.md)
+                }
+
+                if let error = viewModel.errorMessage {
+                    Text(error)
+                        .font(EcrinFont.caption)
+                        .foregroundStyle(.red.opacity(0.85))
+                        .multilineTextAlignment(.center)
                 }
 
                 // Create link CTA

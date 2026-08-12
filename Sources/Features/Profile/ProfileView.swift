@@ -3,6 +3,7 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(AppState.self) private var appState
     @State private var showStoneGuide = false
+    @State private var showGiftCreator = false
     @State private var showDeleteConfirmation = false
     @State private var isDeletingAccount = false
     @State private var deleteError: String?
@@ -132,6 +133,50 @@ struct ProfileView: View {
                         .accessibilityLabel("Essais disponibles, \(remainingCredits.map { "\($0) restants" } ?? ""). Ouvre la boutique de recharge")
                     }
 
+                    // Gift creator entry point — la feature était inaccessible
+                    // (aucune vue ne présentait GiftCreatorView).
+                    Button {
+                        showGiftCreator = true
+                    } label: {
+                        HStack(spacing: EcrinSpacing.md) {
+                            ZStack {
+                                Circle()
+                                    .fill(EcrinColor.gold.opacity(0.15))
+                                    .frame(width: 44, height: 44)
+                                Image(systemName: "gift.fill")
+                                    .font(.system(size: 18, weight: .thin))
+                                    .foregroundStyle(EcrinColor.gold)
+                            }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Offrir un bijou")
+                                    .font(EcrinFont.cardTitle)
+                                    .foregroundStyle(EcrinColor.textPrimary)
+                                Text("Créer un cadeau à partager")
+                                    .font(EcrinFont.caption)
+                                    .foregroundStyle(EcrinColor.textSecondary)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .light))
+                                .foregroundStyle(EcrinColor.textMuted)
+                        }
+                        .padding(EcrinSpacing.lg)
+                        .background {
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(EcrinColor.glassStroke.opacity(0.15))
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .strokeBorder(EcrinColor.gold.opacity(0.25), lineWidth: 0.5)
+                                }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, EcrinSpacing.lg)
+                    .accessibilityLabel("Offrir un bijou. Ouvre le créateur de cadeau")
+
                     // Stone Guide entry point
                     Button {
                         showStoneGuide = true
@@ -229,6 +274,9 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showStoneGuide) {
             StoneGuideView()
+        }
+        .fullScreenCover(isPresented: $showGiftCreator) {
+            GiftCreatorView()
         }
         .sheet(isPresented: $showSubscription) {
             PaywallView()

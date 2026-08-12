@@ -42,8 +42,20 @@ struct PartnerDetailView: View {
             isLoadingCatalog = false
         }
         .sheet(isPresented: $showTryOn) {
-            TryOnView()
+            // Pré-sélectionner le bijou tapé — TryOnView() nu ignorait
+            // selectedJewelryForTryOn et ouvrait l'essayage à vide.
+            if let jewelry = selectedJewelryForTryOn {
+                QuickTryOnView(
+                    preselectedItem: .wardrobe(jewelry.asFashionItem),
+                    preselectedMode: .jewelsOnly
+                )
                 .environment(appState)
+                .environment(ClothingCatalogService.shared)
+                .presentationDetents([.large])
+            } else {
+                TryOnView()
+                    .environment(appState)
+            }
         }
     }
 
