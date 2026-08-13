@@ -145,8 +145,8 @@ struct ARTryOnWrapperView: View {
                 .font(.system(size: 16))
                 .foregroundStyle(EcrinColor.gold)
             Text(selectedJewelry.category == .earring || selectedJewelry.category == .necklace
-                 ? "Regardez la caméra"
-                 : "Montrez vos mains à la caméra")
+                 ? L10n.ArTryOnUI.lookAtCamera
+                 : L10n.ArTryOnUI.showHandsToCamera)
                 .font(EcrinFont.sans(13, weight: .medium))
                 .foregroundStyle(EcrinColor.textPrimary)
         }

@@ -112,7 +112,7 @@ struct LookDuJourCard: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(viewModel.maxBudget != nil
-                    ? "Filtre budget : \(Int(viewModel.maxBudget!))€" : "Filtrer par budget")
+                    ? "Filtre budget : \(Int(viewModel.maxBudget!))€" : L10n.WeatherUI.filterByBudget)
 
                 // Toggle notification quotidienne
                 Button {
@@ -126,7 +126,7 @@ struct LookDuJourCard: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(viewModel.dailyNotificationEnabled
-                    ? "Désactiver le rappel quotidien" : "Activer le rappel 8h")
+                    ? L10n.WeatherUI.disableDailyReminder : L10n.WeatherUI.enable8amReminder)
 
                 Button {
                     Task { await viewModel.refresh(appState: appState, force: true) }
@@ -261,8 +261,8 @@ struct LookDuJourCard: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(viewModel.currentLookSaved
-                    ? "Look déjà sauvegardé"
-                    : "Sauvegarder ce look")
+                    ? L10n.WeatherUI.lookAlreadySaved
+                    : L10n.AiStylist.saveLook)
             }
             .opacity(cardAppeared ? 1 : 0)
             .offset(y: cardAppeared ? 0 : 20)

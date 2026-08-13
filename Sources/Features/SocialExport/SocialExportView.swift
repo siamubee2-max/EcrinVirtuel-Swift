@@ -119,7 +119,7 @@ final class SocialExportViewModel: ObservableObject {
     func saveToPhotos() async {
         let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
         guard status == .authorized || status == .limited else {
-            errorMessage = "Veuillez autoriser l'accès à la Photothèque dans les Réglages."
+            errorMessage = L10n.SocialExportUI.allowPhotoLibraryAccess
             showError = true
             return
         }

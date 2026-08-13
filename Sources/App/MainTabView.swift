@@ -13,7 +13,7 @@ struct MainTabView: View {
 
                 // Tab 0 — Essayage bijoux IA
                 TryOnView()
-                    .tabItem { Label("Essayage", systemImage: "sparkles") }
+                    .tabItem { Label(L10n.TryOn.title, systemImage: "sparkles") }
                     .tag(0)
 
                 // Tab 1 — Garde-robe (mes vêtements) + Catalogue H/F
@@ -24,12 +24,12 @@ struct MainTabView: View {
                                 NavigationLink(destination: CatalogBrowserView()) {
                                     HStack(spacing: 4) {
                                         Image(systemName: "rectangle.grid.2x2")
-                                        Text("Catalogue")
+                                        Text(L10n.LookOfDay.catalogButton)
                                             .font(EcrinFont.caption)
                                     }
                                     .foregroundStyle(EcrinColor.gold)
                                 }
-                                .accessibilityLabel("Catalogue")
+                                .accessibilityLabel(L10n.LookOfDay.catalogButton)
                             }
                         }
                 }
@@ -38,7 +38,7 @@ struct MainTabView: View {
 
                 // Tab 2 — Boutique partenaires
                 PartnerStoreView()
-                    .tabItem { Label("Boutique", systemImage: "bag") }
+                    .tabItem { Label(L10n.Home.boutique, systemImage: "bag") }
                     .tag(2)
 
                 // Tab 3 — Communauté + Gaming

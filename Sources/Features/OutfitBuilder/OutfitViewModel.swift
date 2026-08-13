@@ -95,7 +95,7 @@ final class OutfitViewModel: ObservableObject {
 
     func generate(showPaywall: (() -> Void)? = nil) async {
         guard currentOutfit.isReadyToGenerate else {
-            errorMessage = "Ajoutez au moins un vêtement principal pour générer le look."
+            errorMessage = L10n.OutfitBuilderUI.addMainGarmentFirst
             return
         }
 

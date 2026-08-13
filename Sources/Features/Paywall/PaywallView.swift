@@ -187,7 +187,7 @@ final class PaywallViewModel: ObservableObject {
 
     var ctaTitle: String {
         guard let plan = selectedPlan else { return "Choisir un plan" }
-        return isPurchasing ? "En cours…" : "Commencer avec \(plan.name)"
+        return isPurchasing ? L10n.PaywallUI.inProgress : "Commencer avec \(plan.name)"
     }
 
     // MARK: Init

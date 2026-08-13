@@ -156,7 +156,7 @@ final class GiftViewModel: ObservableObject {
             Logger(subsystem: "com.ecrin.jewelry", category: "gift").error("createGiftLink error: \(error.localizedDescription, privacy: .public)")
             // Ne PAS ouvrir la share sheet : sans ligne en base, le lien
             // partagé serait mort pour le destinataire.
-            errorMessage = "Impossible de créer le cadeau. Vérifiez votre connexion et réessayez."
+            errorMessage = L10n.GiftUI.createFailed
         }
     }
 
@@ -194,7 +194,7 @@ final class GiftViewModel: ObservableObject {
                 .value
 
             guard let row = rows.first else {
-                errorMessage = "Ce cadeau est introuvable ou a expiré."
+                errorMessage = L10n.GiftUI.giftNotFoundOrExpired
                 return
             }
 
@@ -245,7 +245,7 @@ final class GiftViewModel: ObservableObject {
             Logger(subsystem: "com.ecrin.jewelry", category: "gift").error("receive error: \(error.localizedDescription, privacy: .public)")
             // Pas de fallback sample : afficher un faux cadeau (« De la part de
             // Marie ») que personne n'a envoyé serait pire que l'erreur.
-            errorMessage = "Impossible de charger ce cadeau. Vérifiez votre connexion."
+            errorMessage = L10n.GiftUI.giftLoadFailed
         }
     }
 

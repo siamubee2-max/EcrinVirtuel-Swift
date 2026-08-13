@@ -130,7 +130,7 @@ struct BrandedShareSheet: View {
                 // Télécharger — glass
                 ShareTargetButton(
                     icon: savedToPhotos ? "checkmark" : "arrow.down.to.line",
-                    label: savedToPhotos ? "Sauvegardé ✓" : "Sauver",
+                    label: savedToPhotos ? L10n.SocialExportUI.savedCheck : L10n.SocialExportUI.saveShort,
                     style: .glass
                 ) {
                     downloadToPhotos()

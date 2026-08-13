@@ -193,7 +193,7 @@ struct OutfitBuilderView: View {
                 HStack(spacing: 6) {
                     Image(systemName: vm.userPhoto != nil ? "person.fill.checkmark" : "person.crop.circle.badge.plus")
                         .font(.system(size: 16))
-                    Text(vm.userPhoto != nil ? "Photo" : "Ma photo")
+                    Text(vm.userPhoto != nil ? L10n.OutfitBuilderUI.photoShort : L10n.OutfitBuilderUI.myPhoto)
                         .font(EcrinFont.cta)
                         .kerning(1.5)
                 }
@@ -217,7 +217,7 @@ struct OutfitBuilderView: View {
                         Image(systemName: "wand.and.stars")
                             .font(.system(size: 14))
                     }
-                    Text(vm.isGenerating ? "Génération…" : "Générer le look")
+                    Text(vm.isGenerating ? L10n.CommonUI.generating : L10n.OutfitBuilderUI.generateLook)
                         .font(EcrinFont.cta)
                         .kerning(2)
                         .textCase(.uppercase)
@@ -534,7 +534,7 @@ struct OccasionPickerSheet: View {
 
     var body: some View {
         VStack(spacing: EcrinSpacing.md) {
-            Text("Occasion")
+            Text(L10n.AiStylist.occasion)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.ivory)
                 .padding(.top, EcrinSpacing.md)

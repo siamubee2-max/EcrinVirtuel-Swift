@@ -163,7 +163,7 @@ struct PostCard: View {
             isPresented: $showDeleteConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Supprimer", role: .destructive) { onDelete?() }
+            Button(L10n.Common.delete, role: .destructive) { onDelete?() }
             Button(L10n.Common.cancel, role: .cancel) {}
         }
     }

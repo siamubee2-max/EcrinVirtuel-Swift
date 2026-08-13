@@ -147,7 +147,7 @@ struct ProportionGuideView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
-                        Text("Précédent")
+                        Text(L10n.Common.previous)
                     }
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.white.opacity(0.8))

@@ -161,7 +161,7 @@ struct PartnerDetailView: View {
 
     private var aboutSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            sectionTitle("À PROPOS", icon: "doc.text")
+            sectionTitle(L10n.PartnerUI.aboutCaps, icon: "doc.text")
 
             GlassCard(cornerRadius: 18) {
                 Text(brand.description)
@@ -177,7 +177,7 @@ struct PartnerDetailView: View {
 
     private var catalogSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            sectionTitle("CATALOGUE", icon: "sparkles")
+            sectionTitle(L10n.CatalogUI.catalogCaps, icon: "sparkles")
                 .padding(.horizontal, EcrinSpacing.lg)
 
             if isLoadingCatalog {
@@ -393,7 +393,7 @@ private struct JewelryCatalogCard: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "sparkles")
                                     .font(.system(size: 10))
-                                Text("Essayer")
+                                Text(L10n.LookOfDay.tryButton)
                                     .font(EcrinFont.cta)
                                     .kerning(1)
                             }

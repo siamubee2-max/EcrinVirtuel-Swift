@@ -260,7 +260,7 @@ struct ShoesTryOnView: View {
                 Text(L10n.WardrobeUI.tryOnCaps)
                     .font(EcrinFont.label).kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Chaussures")
+                Text(L10n.ClothingCategories.shoes)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
             }
@@ -421,7 +421,7 @@ struct ShoesTryOnView: View {
     // MARK: - CTA Button
 
     private var ctaButton: some View {
-        GoldButton(title: vm.isGenerating ? "Génération…" : "Essayer ces chaussures") {
+        GoldButton(title: vm.isGenerating ? L10n.CommonUI.generating : L10n.WardrobeUI.tryTheseShoes) {
             guard let shoe = selectedShoe else { return }
             Task {
                 await vm.generate(item: shoe, showPaywall: { showPaywall = true })

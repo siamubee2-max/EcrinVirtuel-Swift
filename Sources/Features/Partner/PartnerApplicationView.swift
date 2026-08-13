@@ -237,7 +237,7 @@ struct PartnerApplicationView: View {
                         Image(systemName: "paperplane.fill")
                             .font(.system(size: 14, weight: .semibold))
                     }
-                    Text(isSubmitting ? "Envoi en cours…" : "Soumettre ma candidature")
+                    Text(isSubmitting ? L10n.PartnerUI.submitting : L10n.PartnerUI.submitApplication)
                         .font(EcrinFont.cta)
                         .kerning(1.5)
                 }
@@ -384,7 +384,7 @@ struct PartnerApplicationView: View {
                     submitted = true
                 }
             } catch {
-                errorMessage = "Envoi échoué. Vérifiez votre connexion et réessayez."
+                errorMessage = L10n.PartnerUI.submitFailed
             }
         }
     }

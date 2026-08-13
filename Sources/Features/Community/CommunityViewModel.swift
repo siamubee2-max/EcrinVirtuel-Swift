@@ -236,7 +236,7 @@ final class CommunityViewModel: ObservableObject {
         if updated.isParticipating {
             toastMessage = "✓ Inscrite au défi « \(updated.title) »"
         } else {
-            toastMessage = "Inscription retirée du défi"
+            toastMessage = L10n.CommunityUI.challengeLeft
         }
 
         // Auto-dismiss après 2,5s

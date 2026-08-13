@@ -507,7 +507,7 @@ private struct GiftStep3Send: View {
 
                 // Create link CTA
                 GoldButton(
-                    title: viewModel.isCreatingLink ? "Création…" : "Créer le lien magique ✨"
+                    title: viewModel.isCreatingLink ? L10n.GiftUI.creating : L10n.GiftUI.createMagicLink
                 ) {
                     Task { await viewModel.createGiftLink(fromUser: currentUser) }
                 }
@@ -593,7 +593,7 @@ private struct GiftShareSheet: View {
                     }
 
                     // Copy link
-                    GhostButton(title: copied ? "Lien copié ✓" : "Copier le lien") {
+                    GhostButton(title: copied ? L10n.GiftUI.linkCopied : L10n.Share.copyLink) {
                         UIPasteboard.general.string = url.absoluteString
                         withAnimation { copied = true }
                         Task {

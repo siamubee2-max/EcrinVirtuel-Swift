@@ -111,7 +111,7 @@ struct ChallengeBanner: View {
                 }
 
                 GoldButton(
-                    title: challenge.isParticipating ? "Voir mes essayages" : "Participer",
+                    title: challenge.isParticipating ? L10n.CommunityUI.seeMyTryOns : L10n.CommunityUI.participate,
                     action: onParticipate
                 )
                 .padding(.top, 2)
@@ -188,7 +188,7 @@ struct ChallengeCard: View {
 
                 // Bouton dynamique selon état d'inscription
                 Button(action: onParticipate) {
-                    Text(challenge.isParticipating ? "Inscrite ✓" : "Rejoindre")
+                    Text(challenge.isParticipating ? L10n.CommunityUI.joinedCheck : L10n.CommunityUI.joinShort)
                         .font(EcrinFont.label)
                         .kerning(1)
                         .foregroundStyle(challenge.isParticipating ? EcrinColor.background : EcrinColor.gold)

@@ -44,7 +44,7 @@ struct BudgetPickerSheet: View {
                         onSelect(tier)
                         dismiss()
                     } label: {
-                        Text(tier == nil ? "Tout" : "\(Int(tier!))€")
+                        Text(tier == nil ? L10n.DemoGallery.categoriesAll : "\(Int(tier!))€")
                             .font(EcrinFont.sans(14, weight: isSelected ? .semibold : .regular))
                             .foregroundStyle(isSelected ? EcrinColor.background : EcrinColor.textPrimary)
                             .padding(.horizontal, 16)

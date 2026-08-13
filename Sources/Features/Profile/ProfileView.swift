@@ -324,7 +324,7 @@ struct ProfileView: View {
         } catch {
             // deleteAccount appelle l'Edge Function en premier : un échec ici
             // signifie qu'aucune donnée n'a été supprimée — réessayer est sûr.
-            deleteError = "La suppression a échoué — aucune donnée n'a été supprimée. Vérifiez votre connexion et réessayez, ou contactez support@inferencevision.store."
+            deleteError = L10n.ProfileUI.deleteFailedNothingDeleted
         }
         isDeletingAccount = false
     }

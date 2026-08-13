@@ -45,7 +45,7 @@ struct GiftRevealView: View {
             }
             .padding(.top, EcrinSpacing.lg)
             .padding(.trailing, EcrinSpacing.lg)
-            .accessibilityLabel("Fermer")
+            .accessibilityLabel(L10n.Common.close)
         }
         .task { await viewModel.receive(giftID: giftID) }
         .sheet(isPresented: $showTryOn) {
@@ -79,7 +79,7 @@ private struct GiftErrorView: View {
                 .foregroundStyle(EcrinColor.textSecondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, EcrinSpacing.xl)
-            GhostButton(title: "Fermer") { onClose() }
+            GhostButton(title: L10n.Common.close) { onClose() }
                 .padding(.horizontal, EcrinSpacing.xxl)
         }
     }

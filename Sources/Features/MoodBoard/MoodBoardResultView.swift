@@ -333,7 +333,7 @@ struct MoodJewelCard: View {
                         HStack(spacing: 3) {
                             Image(systemName: "camera.viewfinder")
                                 .font(.system(size: 8))
-                            Text("Essayer")
+                            Text(L10n.LookOfDay.tryButton)
                                 .font(EcrinFont.label)
                                 .kerning(1)
                         }
@@ -408,7 +408,7 @@ struct MoodSaveLookSheet: View {
                     .padding(.top, EcrinSpacing.md)
 
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("Sauvegarder ce look")
+                    Text(L10n.AiStylist.saveLook)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
                     Text(L10n.MoodBoardUI.findItInGallery)

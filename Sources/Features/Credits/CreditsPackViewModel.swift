@@ -66,7 +66,7 @@ final class CreditsPackViewModel {
     func purchase() async {
         guard let pack = selectedPack else { return }
         guard let storeProduct = storeProducts[pack.id] else {
-            errorMessage = "Produit indisponible. Vérifiez votre connexion."
+            errorMessage = L10n.CreditsUI.productUnavailable
             return
         }
 
@@ -82,7 +82,7 @@ final class CreditsPackViewModel {
 
             // Récupérer l'ID de transaction Apple pour l'idempotence
             guard let transactionId = result.transaction?.transactionIdentifier else {
-                errorMessage = "Achat incomplet. Contactez le support."
+                errorMessage = L10n.CreditsUI.purchaseIncomplete
                 return
             }
 

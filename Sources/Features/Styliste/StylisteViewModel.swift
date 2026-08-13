@@ -55,7 +55,7 @@ final class StylisteViewModel {
             )
             messages.append(StylisteMessage(role: .assistant, text: reply))
         } catch {
-            errorMessage = "Impossible de contacter la styliste. Vérifiez votre connexion."
+            errorMessage = L10n.StylisteUI.contactFailed
         }
     }
 

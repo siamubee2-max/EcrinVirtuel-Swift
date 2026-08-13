@@ -317,7 +317,7 @@ final class QuickTryOnViewModel {
                 }
             } catch {
                 CreditsManager.shared.refund(count: creditCost)
-                errorMessage = "La génération a échoué. Veuillez réessayer."
+                errorMessage = L10n.QuickTryOnUI.generationFailedRetry
             }
         }
     }

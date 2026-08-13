@@ -161,7 +161,7 @@ struct WardrobeItemContextMenu: View {
             Button {
                 onTryOn()
             } label: {
-                Label("Essayer", systemImage: "sparkles")
+                Label(L10n.LookOfDay.tryButton, systemImage: "sparkles")
             }
 
             // Complète ce look — visible pour vêtements et chaussures
@@ -184,7 +184,7 @@ struct WardrobeItemContextMenu: View {
                 onToggleFavorite()
             } label: {
                 Label(
-                    item.isFavorite ? "Retirer des favoris" : "Ajouter aux favoris",
+                    item.isFavorite ? L10n.Boutique.removeFromFavorites : L10n.Boutique.addToFavorites,
                     systemImage: item.isFavorite ? "heart.slash" : "heart.fill"
                 )
             }

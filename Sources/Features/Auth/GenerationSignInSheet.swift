@@ -82,7 +82,7 @@ struct GenerationSignInSheet: View {
               let idTokenData = creds.identityToken,
               let idToken = String(data: idTokenData, encoding: .utf8),
               let nonce = currentAppleNonce else {
-            loginError = "Connexion Apple annulée."
+            loginError = L10n.AuthUI.appleSignInCancelled
             return
         }
 
@@ -98,7 +98,7 @@ struct GenerationSignInSheet: View {
                 dismiss()
                 onAuthenticated()
             } catch {
-                loginError = "Connexion Apple échouée. Réessayez."
+                loginError = L10n.AuthUI.appleSignInFailed
             }
         }
     }

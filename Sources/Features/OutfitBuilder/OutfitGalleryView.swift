@@ -72,7 +72,7 @@ struct OutfitGalleryView: View {
                         showFavoritesOnly.toggle()
                     }
                 } label: {
-                    Label("Favoris", systemImage: showFavoritesOnly ? "heart.fill" : "heart")
+                    Label(L10n.MyLooks.sortByFavorites, systemImage: showFavoritesOnly ? "heart.fill" : "heart")
                         .font(EcrinFont.caption)
                         .foregroundStyle(showFavoritesOnly ? EcrinColor.gold : EcrinColor.textSecondary)
                         .padding(.horizontal, EcrinSpacing.sm)
@@ -97,7 +97,7 @@ struct OutfitGalleryView: View {
                         filterOccasion = nil
                     }
                 } label: {
-                    Text("Toutes")
+                    Text(L10n.Occasions.all)
                         .font(EcrinFont.caption)
                         .foregroundStyle(filterOccasion == nil ? EcrinColor.gold : EcrinColor.textSecondary)
                         .padding(.horizontal, EcrinSpacing.sm)
@@ -223,7 +223,7 @@ struct OutfitGalleryCard: View {
                 onFavorite()
             } label: {
                 Label(
-                    outfit.isFavorite ? "Retirer des favoris" : "Ajouter aux favoris",
+                    outfit.isFavorite ? L10n.Boutique.removeFromFavorites : L10n.Boutique.addToFavorites,
                     systemImage: outfit.isFavorite ? "heart.slash" : "heart"
                 )
             }

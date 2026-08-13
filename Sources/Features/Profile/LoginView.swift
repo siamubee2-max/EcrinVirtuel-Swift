@@ -119,7 +119,7 @@ struct LoginView: View {
                     }
 
                     if !codeSent {
-                        GoldButton(title: isLoading ? "Envoi…" : "Recevoir un code") {
+                        GoldButton(title: isLoading ? L10n.ProfileUI.sending : L10n.ProfileUI.receiveCode) {
                             Task { await signInWithEmail() }
                         }
                         .disabled(email.isEmpty || isLoading)
@@ -135,7 +135,7 @@ struct LoginView: View {
                         .foregroundStyle(EcrinColor.textMuted)
                         .disabled(email.isEmpty)
                     } else {
-                        GoldButton(title: isLoading ? "Connexion…" : "Se connecter") {
+                        GoldButton(title: isLoading ? L10n.ProfileUI.signingIn : L10n.OnboardingUI.signIn) {
                             Task { await verifyCode() }
                         }
                         .disabled(otpCode.count != 6 || isLoading)
@@ -205,7 +205,7 @@ struct LoginView: View {
               let idTokenData = creds.identityToken,
               let idToken = String(data: idTokenData, encoding: .utf8),
               let nonce = currentAppleNonce else {
-            loginError = "Connexion Apple échouée. Réessayez."
+            loginError = L10n.AuthUI.appleSignInFailed
             return
         }
 
@@ -214,14 +214,14 @@ struct LoginView: View {
                 let user = try await SupabaseService.shared.signInWithApple(idToken: idToken, nonce: nonce)
                 appState.signIn(user: user)
             } catch {
-                loginError = "Connexion Apple échouée. Réessayez."
+                loginError = L10n.AuthUI.appleSignInFailed
             }
         }
     }
 
     private func signInWithEmail() async {
         guard email.contains("@"), email.contains(".") else {
-            loginError = "Adresse email invalide."
+            loginError = L10n.ProfileUI.invalidEmail
             return
         }
         isLoading = true
@@ -232,7 +232,7 @@ struct LoginView: View {
             withAnimation { codeSent = true }
             codeFieldFocused = true
         } catch {
-            loginError = "Impossible d'envoyer le code. Vérifiez votre email."
+            loginError = L10n.ProfileUI.codeSendFailed
         }
     }
 
@@ -247,7 +247,7 @@ struct LoginView: View {
             let user = try await SupabaseService.shared.verifyEmailOTP(email: email, code: code)
             appState.signIn(user: user)
         } catch {
-            loginError = "Code invalide ou expiré. Réessayez."
+            loginError = L10n.ProfileUI.codeInvalidOrExpired
             otpCode = ""
         }
     }

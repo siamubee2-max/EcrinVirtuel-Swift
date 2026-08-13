@@ -32,14 +32,14 @@ struct ComposePostView: View {
                 ScrollView(showsIndicators: false) {
                     VStack(alignment: .leading, spacing: EcrinSpacing.lg) {
                         if !sessionImages.isEmpty {
-                            sectionTitle("Votre essayage")
+                            sectionTitle(L10n.CommunityUI.yourTryOn)
                             imageStrip
                         }
 
-                        sectionTitle("Bijou porté")
+                        sectionTitle(L10n.CommunityUI.jewelryWorn)
                         jewelryStrip
 
-                        sectionTitle("Légende")
+                        sectionTitle(L10n.CommunityUI.captionSection)
                         GlassCard(cornerRadius: 14) {
                             TextField(
                                 "",
@@ -58,7 +58,7 @@ struct ComposePostView: View {
                                 .foregroundStyle(.red.opacity(0.85))
                         }
 
-                        GoldButton(title: isPublishing ? "Publication…" : "Publier") {
+                        GoldButton(title: isPublishing ? L10n.CommunityUI.publishing : L10n.CommunityUI.publish) {
                             Task { await publish() }
                         }
                         .disabled(!canPublish)
@@ -81,7 +81,7 @@ struct ComposePostView: View {
 
     private var header: some View {
         HStack {
-            Button("Annuler") { dismiss() }
+            Button(L10n.Common.cancel) { dismiss() }
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
             Spacer()
@@ -90,7 +90,7 @@ struct ComposePostView: View {
                 .foregroundStyle(EcrinColor.textPrimary)
             Spacer()
             // Équilibre visuel avec le bouton Annuler
-            Text("Annuler").font(EcrinFont.caption).hidden()
+            Text(L10n.Common.cancel).font(EcrinFont.caption).hidden()
         }
         .padding(.horizontal, EcrinSpacing.lg)
         .padding(.vertical, EcrinSpacing.md)
@@ -159,7 +159,7 @@ struct ComposePostView: View {
 
     private func publish() async {
         guard let jewelry = selectedJewelry, let author = appState.currentUser else {
-            publishError = "Connectez-vous pour publier."
+            publishError = L10n.CommunityUI.signInToPublish
             return
         }
         isPublishing = true
@@ -176,7 +176,7 @@ struct ComposePostView: View {
         if ok {
             dismiss()
         } else {
-            publishError = "Publication impossible. Vérifiez votre connexion et réessayez."
+            publishError = L10n.CommunityUI.publishFailed
         }
     }
 }

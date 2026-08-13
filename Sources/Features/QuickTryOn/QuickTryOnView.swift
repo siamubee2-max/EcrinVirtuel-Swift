@@ -747,7 +747,7 @@ struct QuickTryOnView: View {
                             .padding(.bottom, EcrinSpacing.xs)
 
                         GoldButton(
-                            title: multiPoseEnabled ? "Choisir mes angles →" : "Essayer maintenant"
+                            title: multiPoseEnabled ? L10n.QuickTryOnUI.chooseMyAngles : L10n.WardrobeUI.tryNow
                         ) {
                             if multiPoseEnabled {
                                 showMultiPoseFlow = true

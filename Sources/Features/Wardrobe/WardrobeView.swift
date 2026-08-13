@@ -581,7 +581,7 @@ struct GenericItemTryOnView: View {
                         .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
 
-                GoldButton(title: vm.isGenerating ? "Génération…" : "Essayer maintenant") {
+                GoldButton(title: vm.isGenerating ? L10n.CommonUI.generating : L10n.WardrobeUI.tryNow) {
                     Task {
                         await vm.generateFashion(
                             item: item,

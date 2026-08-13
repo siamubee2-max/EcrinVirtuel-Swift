@@ -220,10 +220,10 @@ struct CatalogBrowserView: View {
                 .foregroundStyle(EcrinColor.textMuted)
 
             VStack(spacing: EcrinSpacing.xs) {
-                Text(isSearching ? "Aucun résultat" : "Catalogue vide")
+                Text(isSearching ? L10n.CatalogUI.noResults : L10n.CatalogUI.emptyCatalog)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textPrimary)
-                Text(isSearching ? "Essayez d'autres termes de recherche" : "Les articles arrivent bientôt")
+                Text(isSearching ? L10n.CatalogUI.tryOtherSearchTerms : L10n.CatalogUI.itemsComingSoon)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textSecondary)
                     .multilineTextAlignment(.center)

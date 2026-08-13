@@ -5,7 +5,7 @@ struct BoutiqueView: View {
         ZStack {
             EcrinColor.background.ignoresSafeArea()
             VStack {
-                Text("Boutique")
+                Text(L10n.Home.boutique)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
             }

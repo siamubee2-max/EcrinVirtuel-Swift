@@ -67,7 +67,7 @@ struct QuickTryOnEntryButton: View {
             HStack(spacing: 5) {
                 Image(systemName: "sparkle")
                     .font(.system(size: 11))
-                Text("Essayer")
+                Text(L10n.LookOfDay.tryButton)
                     .font(EcrinFont.cta)
                     .kerning(1.5)
             }
@@ -139,7 +139,7 @@ struct QuickTryOnFAB: View {
                     Image(systemName: "sparkle")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(EcrinColor.background)
-                    Text("Essayer")
+                    Text(L10n.LookOfDay.tryButton)
                         .font(.system(size: 8, weight: .semibold))
                         .foregroundStyle(EcrinColor.background.opacity(0.8))
                         .kerning(1)

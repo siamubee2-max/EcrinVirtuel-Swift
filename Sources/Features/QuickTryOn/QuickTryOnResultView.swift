@@ -317,7 +317,7 @@ private struct SaveButton: View {
                             feedback == .saved ? EcrinColor.gold : EcrinColor.textPrimary
                         )
                 }
-                Text(feedback == .saved ? "Sauvegardé" : "Sauvegarder")
+                Text(feedback == .saved ? L10n.QuickTryOnUI.savedShort : L10n.OutfitBuilderUI.save)
                     .font(EcrinFont.caption)
                     .foregroundStyle(
                         feedback == .saved ? EcrinColor.gold : EcrinColor.textSecondary

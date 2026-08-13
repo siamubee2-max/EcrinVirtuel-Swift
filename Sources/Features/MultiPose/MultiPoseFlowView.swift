@@ -545,8 +545,8 @@ struct MultiPoseFlowView: View {
         }
 
         savedToDressingToast = images.count > 1
-            ? "\(images.count) vues ajoutées à la garde-robe"
-            : "Ajouté à la garde-robe"
+            ? L10n.MultiPoseUI.viewsAddedToWardrobe(images.count)
+            : L10n.MultiPoseUI.addedToWardrobe
 
         // Dismiss après un court délai pour laisser voir la confirmation
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
