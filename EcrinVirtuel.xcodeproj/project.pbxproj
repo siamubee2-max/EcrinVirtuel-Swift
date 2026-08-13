@@ -281,6 +281,7 @@
 		63984EE71ACEB24E5D43D84E /* BackgroundViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundViewModel.swift; sourceTree = "<group>"; };
 		6C0E561E184822766247FAE8 /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
 		AB01C2D3E4F5A6B7C8D9E005 /* ComposePostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComposePostView.swift; sourceTree = "<group>"; };
+		AB01C2D3E4F5A6B7C8D9E007 /* EcrinVirtuel.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = EcrinVirtuel.entitlements; sourceTree = "<group>"; };
 		6E03F7C81EE1420957DB01BB /* GlassCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassCard.swift; sourceTree = "<group>"; };
 		6F4CA4783A1F8C9F99D50F46 /* StoneDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoneDetector.swift; sourceTree = "<group>"; };
 		7113B406F10577EC4AAC24EC /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
@@ -482,6 +483,7 @@
 		248CB17CFFDA429934B39835 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				AB01C2D3E4F5A6B7C8D9E007 /* EcrinVirtuel.entitlements */,
 				BED5E2609093C8D92E99A867 /* EcrinVirtuelApp.swift */,
 				25600DD0EE790F6D2EE6A84A /* Info.plist */,
 				07C0D519C95FC0D2FAD037D3 /* MainTabView.swift */,
@@ -1224,6 +1226,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_ENTITLEMENTS = Sources/App/EcrinVirtuel.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SPLML3CN76;
 				INFOPLIST_FILE = Sources/App/Info.plist;
@@ -1372,6 +1375,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_ENTITLEMENTS = Sources/App/EcrinVirtuel.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SPLML3CN76;
 				INFOPLIST_FILE = Sources/App/Info.plist;

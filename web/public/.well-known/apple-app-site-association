@@ -1,0 +1,18 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["SPLML3CN76.com.ecrin.jewelry"],
+        "components": [
+          {
+            "/": "/ecrin/gift/*",
+            "comment": "Liens cadeau — ouvre GiftRevealView dans l'app"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["SPLML3CN76.com.ecrin.jewelry"]
+  }
+}
