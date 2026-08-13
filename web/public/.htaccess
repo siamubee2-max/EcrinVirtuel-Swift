@@ -1,0 +1,17 @@
+# L'Écrin Virtuel — Hostinger (Apache/LiteSpeed)
+# Équivalent des rewrites vercel.json/_redirects pour ce hébergeur.
+
+# AASA servi en JSON (Apple exige application/json, sans redirection)
+<Files "apple-app-site-association">
+  ForceType application/json
+  Header set Cache-Control "max-age=3600"
+</Files>
+
+RewriteEngine On
+
+# /ecrin/gift/<uuid> → page d'atterrissage (le JS lit l'uuid dans l'URL)
+RewriteRule ^ecrin/gift/[0-9a-fA-F-]{36}/?$ /ecrin/gift/index.html [L]
+
+# Forcer HTTPS (Apple ignore l'AASA servi en HTTP)
+RewriteCond %{HTTPS} !=on
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
