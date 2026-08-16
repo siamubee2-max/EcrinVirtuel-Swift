@@ -1,18 +1,59 @@
 {
   "applinks": {
+    "apps": [],
     "details": [
       {
-        "appIDs": ["SPLML3CN76.com.ecrin.jewelry"],
+        "appID": "SPLML3CN76.com.inferencevision.lecrinvirtuel",
+        "appIDs": [
+          "SPLML3CN76.com.inferencevision.lecrinvirtuel"
+        ],
+        "paths": [
+          "/ecrin/gift/*"
+        ],
         "components": [
           {
             "/": "/ecrin/gift/*",
-            "comment": "Liens cadeau — ouvre GiftRevealView dans l'app"
+            "comment": "Lien cadeau - Ecrin Virtuel - Bijoux & Mode (6758549821)"
+          }
+        ]
+      },
+      {
+        "appID": "SPLML3CN76.com-virtuel-lecrin",
+        "appIDs": [
+          "SPLML3CN76.com-virtuel-lecrin"
+        ],
+        "paths": [
+          "/ecrin/gift/*"
+        ],
+        "components": [
+          {
+            "/": "/ecrin/gift/*",
+            "comment": "Lien cadeau - L'Ecrin Virtuel (6758353594)"
+          }
+        ]
+      },
+      {
+        "appID": "SPLML3CN76.com.ecrin.jewelry",
+        "appIDs": [
+          "SPLML3CN76.com.ecrin.jewelry"
+        ],
+        "paths": [
+          "/ecrin/gift/*"
+        ],
+        "components": [
+          {
+            "/": "/ecrin/gift/*",
+            "comment": "Lien cadeau - Ecrin Virtuel (6760768389)"
           }
         ]
       }
     ]
   },
   "webcredentials": {
-    "apps": ["SPLML3CN76.com.ecrin.jewelry"]
+    "apps": [
+      "SPLML3CN76.com.inferencevision.lecrinvirtuel",
+      "SPLML3CN76.com-virtuel-lecrin",
+      "SPLML3CN76.com.ecrin.jewelry"
+    ]
   }
 }
