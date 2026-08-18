@@ -1,0 +1,65 @@
+# Build iOS sur runner macOS — vérification de compilation continue.
+#
+# Ce repo est développé depuis des sessions Claude Code cloud (Linux, sans
+# Xcode) : ce workflow est la seule vérification de build automatisée.
+# Attention quota : les minutes macOS comptent x10 sur le plan gratuit GitHub
+# (~200 min macOS réelles/mois) — le workflow ne tourne donc que sur les
+# branches de travail et à la demande.
+#
+# Secrets.xcconfig est gitignoré ; le CI le génère avec la clé anon Supabase
+# (publiable par design — la sécurité est assurée par RLS) et une clé
+# RevenueCat factice, suffisant pour compiler (aucun runtime ici).
+
+name: iOS Build
+
+on:
+  push:
+    branches: ["claude/**"]
+  workflow_dispatch:
+
+concurrency:
+  group: ios-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate Secrets.xcconfig (build-only values)
+        run: |
+          cat > Secrets.xcconfig << 'EOF'
+          SUPABASE_URL = https:/$()/vffafgzlsmfecqejoytw.supabase.co
+          SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZmZmFmZ3psc21mZWNxZWpveXR3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5ODQ2MTksImV4cCI6MjEwMjU2MDYxOX0.rXxUU16uyjuqqu9FrfTeCNxo6KGzrDNyy4H1GAnaVNo
+          REVENUECAT_IOS_KEY = appl_ci_placeholder_build_only
+          EOF
+
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: .build/SourcePackages
+          key: spm-${{ runner.os }}-${{ hashFiles('EcrinVirtuel.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Build (iOS Simulator, Debug)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project EcrinVirtuel.xcodeproj \
+            -scheme EcrinVirtuel \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath .build/DerivedData \
+            -clonedSourcePackagesDirPath .build/SourcePackages \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee build.log | grep -E "error:|warning: .*deprecated|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" build.log
+
+      - name: Upload full build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
