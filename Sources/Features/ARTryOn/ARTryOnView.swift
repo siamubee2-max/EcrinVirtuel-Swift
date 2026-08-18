@@ -42,6 +42,10 @@ struct ARTryOnView: UIViewRepresentable {
 
 // MARK: - AR Coordinator
 
+// MainActor: the coordinator drives ARView and RealityKit entities (both
+// main-actor domains); ARSessionDelegate callbacks arrive off-main and stay
+// nonisolated — they touch no actor state.
+@MainActor
 final class ARCoordinator: NSObject, ARSessionDelegate {
     weak var arView: ARView?
     var jewelry: JewelryItem?
@@ -224,15 +228,15 @@ final class ARCoordinator: NSObject, ARSessionDelegate {
 
     // MARK: - ARSessionDelegate
 
-    func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
+    nonisolated func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
         // Anchors added — entities are already placed via AnchorEntity
     }
 
-    func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
+    nonisolated func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
         // Real-time update handled automatically by RealityKit's anchor tracking
     }
 
-    func session(_ session: ARSession, didFailWithError error: Error) {
+    nonisolated func session(_ session: ARSession, didFailWithError error: Error) {
         Logger(subsystem: "com.ecrin.jewelry", category: "ar-tryon").error("Session failed: \(error.localizedDescription, privacy: .public)")
     }
 
