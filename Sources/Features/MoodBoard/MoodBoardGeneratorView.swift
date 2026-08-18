@@ -263,19 +263,11 @@ struct MoodBoardGeneratorView: View {
                 .onTapGesture { } // block pass-through
 
             VStack(spacing: EcrinSpacing.xl) {
-                // Animated gold dots
+                // Animated gold dots (extracted: the inline sin() arithmetic
+                // blew past the type-checker's budget inside the ForEach)
                 HStack(spacing: 10) {
                     ForEach(0..<5) { i in
-                        let delay = Double(i) * 0.15
-                        Circle()
-                            .fill(EcrinColor.gold)
-                            .frame(width: 8, height: 8)
-                            .scaleEffect(1 + 0.5 * sin(dotPhase + CGFloat(i) * .pi * 0.6))
-                            .opacity(0.5 + 0.5 * sin(dotPhase + CGFloat(i) * .pi * 0.6))
-                            .animation(
-                                Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: false).delay(delay),
-                                value: dotPhase
-                            )
+                        GeneratingDot(index: i, phase: dotPhase)
                     }
                 }
                 .onAppear {
@@ -320,6 +312,27 @@ struct MoodBoardGeneratorView: View {
         } catch {
             withAnimation(EcrinAnimation.easeSlide) { isGenerating = false }
         }
+    }
+}
+
+// MARK: - Generating Dot
+
+private struct GeneratingDot: View {
+    let index: Int
+    let phase: CGFloat
+
+    var body: some View {
+        let wave: CGFloat = sin(phase + CGFloat(index) * CGFloat.pi * 0.6)
+        let delay: Double = Double(index) * 0.15
+        Circle()
+            .fill(EcrinColor.gold)
+            .frame(width: 8, height: 8)
+            .scaleEffect(1 + 0.5 * wave)
+            .opacity(Double(0.5 + 0.5 * wave))
+            .animation(
+                Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: false).delay(delay),
+                value: phase
+            )
     }
 }
 
