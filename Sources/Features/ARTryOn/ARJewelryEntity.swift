@@ -4,6 +4,10 @@ import ARKit
 
 // MARK: - AR Jewelry Entity Factory
 
+// ModelEntity creation is MainActor-isolated in modern RealityKit; keeping the
+// whole factory on the main actor lets the non-Sendable [any Material] arrays
+// stay within one isolation domain (all callers are AR view code on MainActor).
+@MainActor
 enum ARJewelryEntity {
 
     // MARK: - Gold Material
