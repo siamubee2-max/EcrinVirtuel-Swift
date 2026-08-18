@@ -1,9 +1,9 @@
 // Supabase Edge Function — génération d'image avec cascade 3 niveaux
 //
 // Fournisseurs dans l'ordre de tentative :
-//   1. Kie.ai  (Flux Kontext / GPT-4o Image / Seedream) — primaire, moins cher
-//   2. Google Gemini 2.0 Flash                           — sauvetage si Kie.ai KO
-//   3. OpenAI GPT Image 1                                — dernier recours
+//   1. Kie.ai  (GPT Image 2 / Nano Banana Pro & 2 / Flux) — primaire, moins cher
+//   2. Google Gemini 3.1 Flash Image (Nano Banana 2)      — sauvetage si Kie.ai KO
+//   3. OpenAI GPT Image 1                                  — dernier recours
 //
 // La clé API n'est JAMAIS exposée côté client iOS.
 //
@@ -182,7 +182,7 @@ serve(async (req) => {
     if (!resultBase64 && GOOGLE_API_KEY) {
       try {
         resultBase64 = await generateWithGemini(imageBase64, generationPrompt, aspectRatio)
-        provider = "gemini-2.0-flash"
+        provider = "gemini-3.1-flash-image"
         console.warn(`Fell back to Gemini. Kie.ai errors: ${errors.join(" | ")}`)
       } catch (e3) {
         errors.push(`Gemini: ${String(e3)}`)
@@ -407,8 +407,11 @@ async function generateWithGemini(
   if (!GOOGLE_API_KEY) throw new Error("GOOGLE_API_KEY not configured")
 
   // Modèle image dédié + imageConfig.aspectRatio (sinon sortie souvent 1:1).
+  // gemini-3.1-flash-image-preview (Nano Banana 2) = lignée courante ;
+  // gemini-2.0-flash-preview-image-generation et 2.5-flash-image sont dépréciés
+  // (arrêt 2.5-flash-image le 2 oct 2026).
   const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent",
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent",
     {
       method: "POST",
       headers: {

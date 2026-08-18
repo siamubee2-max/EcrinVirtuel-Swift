@@ -28,6 +28,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Le code utilise des APIs iOS 26 (.glassEffect) — le Xcode par défaut
+      # du runner est plus ancien ; prendre le plus récent installé.
+      - name: Select latest Xcode
+        run: |
+          XCODE=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Selected: $XCODE"
+          sudo xcode-select -s "$XCODE"
+          xcodebuild -version
+
       - name: Generate Secrets.xcconfig (build-only values)
         run: |
           cat > Secrets.xcconfig << 'EOF'
