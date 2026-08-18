@@ -936,3 +936,43 @@ extension SupabaseService {
         return response.reply
     }
 }
+
+// MARK: - MainActor bridging (Swift 6 strict concurrency)
+//
+// PostgrestResponse is not Sendable, so `client...execute()` cannot be
+// awaited directly from @MainActor view models — the response would cross
+// into the main actor. These helpers run the query in this service's
+// nonisolated context and only let Sendable values (Void / decoded rows)
+// cross back.
+extension SupabaseService {
+
+    /// Insert a row and discard the non-Sendable response.
+    func insertRow<Row: Encodable & Sendable>(_ row: Row, into table: String) async throws {
+        _ = try await client.from(table).insert(row).execute()
+    }
+
+    /// Upsert a row and discard the non-Sendable response.
+    func upsertRow<Row: Encodable & Sendable>(_ row: Row, into table: String) async throws {
+        _ = try await client.from(table).upsert(row).execute()
+    }
+
+    /// Call an RPC and decode its rows.
+    func rpcRows<Row: Decodable & Sendable, Params: Encodable & Sendable>(
+        _ fn: String,
+        params: Params
+    ) async throws -> [Row] {
+        try await client.rpc(fn, params: params).execute().value
+    }
+
+    /// Latest wedding look rows for a user (WeddingViewModel).
+    func latestWeddingRows<Row: Decodable & Sendable>(userId: String) async throws -> [Row] {
+        try await client
+            .from(Self.weddingLooks)
+            .select("id,name,wedding_date,pieces,bridesmaid_emails,is_finalized,created_at")
+            .eq("user_id", value: userId)
+            .order("created_at", ascending: false)
+            .limit(1)
+            .execute()
+            .value
+    }
+}

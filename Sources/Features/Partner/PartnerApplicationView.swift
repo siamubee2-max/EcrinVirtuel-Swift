@@ -375,10 +375,7 @@ struct PartnerApplicationView: View {
                     user_id:       userId
                 )
 
-                try await SupabaseService.shared.client
-                    .from(SupabaseService.partnerApplications)
-                    .insert(row)
-                    .execute()
+                try await SupabaseService.shared.insertRow(row, into: SupabaseService.partnerApplications)
 
                 withAnimation(EcrinAnimation.springSnap) {
                     submitted = true

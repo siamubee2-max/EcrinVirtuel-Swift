@@ -109,14 +109,7 @@ final class WeddingViewModel: ObservableObject {
                 let created_at: String
             }
 
-            let rows: [WeddingRow] = try await SupabaseService.shared.client
-                .from(SupabaseService.weddingLooks)
-                .select("id,name,wedding_date,pieces,bridesmaid_emails,is_finalized,created_at")
-                .eq("user_id", value: userId)
-                .order("created_at", ascending: false)
-                .limit(1)
-                .execute()
-                .value
+            let rows: [WeddingRow] = try await SupabaseService.shared.latestWeddingRows(userId: userId)
 
             if let row = rows.first,
                let piecesData = row.pieces.data(using: .utf8),
@@ -173,10 +166,7 @@ final class WeddingViewModel: ObservableObject {
                 is_finalized: look.isFinalized,
                 updated_at: iso.string(from: .now)
             )
-            _ = try? await SupabaseService.shared.client
-                .from(SupabaseService.weddingLooks)
-                .upsert(row)
-                .execute()
+            try? await SupabaseService.shared.upsertRow(row, into: SupabaseService.weddingLooks)
         }
     }
 

@@ -129,10 +129,7 @@ final class GiftViewModel: ObservableObject {
                 share_token: UUID().uuidString
             )
 
-            try await SupabaseService.shared.client
-                .from(SupabaseService.giftCards)
-                .insert(row)
-                .execute()
+            try await SupabaseService.shared.insertRow(row, into: SupabaseService.giftCards)
 
             let gift = GiftCard(
                 id: giftID,
@@ -188,10 +185,10 @@ final class GiftViewModel: ObservableObject {
             // table select — gift_cards has no public SELECT policy, so an
             // anonymous recipient can only ever fetch the one gift they hold
             // the id for, never the whole table.
-            let rows: [GiftRow] = try await SupabaseService.shared.client
-                .rpc("get_gift_card", params: GiftLookupParams(gift_id: giftID.uuidString))
-                .execute()
-                .value
+            let rows: [GiftRow] = try await SupabaseService.shared.rpcRows(
+                "get_gift_card",
+                params: GiftLookupParams(gift_id: giftID.uuidString)
+            )
 
             guard let row = rows.first else {
                 errorMessage = L10n.GiftUI.giftNotFoundOrExpired
