@@ -16,13 +16,13 @@ xcodebuild build -project EcrinVirtuel.xcodeproj -scheme EcrinVirtuel \
 
 ## Backend (Supabase)
 
-- **CANONICAL project: `itjtshfzpknlzownpwte`** (Dashboard "lecrin-replit", `https://itjtshfzpknlzownpwte.supabase.co`). Confirmed by `HANDOFF.md` (1 June 2026). This is the live Écrin Virtuel backend.
-- **Do NOT point the app at `amafgweelzayrjzemdtq`** ("les crocs malins" — a different/shared product DB). The HANDOFF explicitly corrected a prior mis-pointing to that project.
+- **CANONICAL project: `vffafgzlsmfecqejoytw`** (`https://vffafgzlsmfecqejoytw.supabase.co`, account sabrina930212@gmail.com, org `qdneeeodnfxspmjdkxtv`, eu-north-1). Restored 17 Aug 2026 from the 10 Aug backup of the former project.
+- **Former projects are DEAD — never point the app at them**: `itjtshfzpknlzownpwte` ("lecrin-replit") and `amafgweelzayrjzemdtq` ("les crocs malins") sit in an old org (`akkfxbpatifhedlsfmgv`) paused behind unpaid invoices. Catalog `image_url` values still reference `amafgweelzayrjzemdtq` public storage (images broken until that project is revived or assets are re-uploaded and URLs rewritten).
 - Config in `Secrets.xcconfig` (gitignored): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `REVENUECAT_IOS_KEY`. URL uses xcconfig escape `https:/$()/...` (`//` is a comment).
-- Catalogue tables on itjtshfzp: `jewelry` (39 MONI'ATTITUDE rows), `clothing_catalog` (95 rows). Both RLS + public SELECT, anon-readable. Schemas match the Swift `SupabaseJewelry` / `ClothingGender` decoders. Catalog image_url assets are hosted on `amafgweelzayrjzemdtq` public storage (cross-project, public buckets) — migrate to itjtshfzp storage long-term.
-- `tryon-generate` **v21** = Kie.ai cascade (KIE_API_KEY): standard → `gpt-image-2-image-to-image` (9:16 native), premium → `nano-banana-pro`; fallbacks nano-banana-2 → flux-kontext → gpt4o-image → Gemini 2.0 → OpenAI gpt-image-1. Founder bypass: `siamubee2@gmail.com`, `monia.valenza@gmail.com` (unlimited, no quota decrement).
-- Other edge functions: `credits-check`, `credit-generations`, `device-tryon`, `revenuecat-webhook`, `delete-user-account`, `try-on`.
-- AI secrets (KIE_API_KEY, GOOGLE_API_KEY, OPENAI_API_KEY, FAL_API_KEY) live ONLY in Supabase Edge Function secrets — never in the IPA / source. Confirm `KIE_API_KEY` present on itjtshfzp (Dashboard → Functions → Secrets).
+- Catalogue tables restored: `jewelry` (39 MONI'ATTITUDE rows), `clothing_catalog` (95 rows), `body_parts` (47 mannequins). RLS + public SELECT, anon-readable. `public.users.id` is varchar = `auth.uid()::text`; `users.auth_id` (uuid, added in `swift_native_tables_adapted`) is what `resolveUsersRowID` queries.
+- Edge functions (all 5 versioned in `supabase/functions/` — keep them in the repo): `tryon-generate` (Kie cascade: standard → `gpt-image-2-image-to-image` 9:16, premium → `nano-banana-pro`; fallbacks nano-banana-2 → flux-kontext → gpt4o-image → Gemini 2.0 → OpenAI gpt-image-1; founder bypass `siamubee2@gmail.com` / `monia.valenza@gmail.com`), `credit-generations` (starter=15/premium=40/elite=100, idempotent via `credit_transactions`), `delete-user-account`, `styliste-chat` (OpenAI → Gemini), `revenuecat-webhook` (requires `RC_WEBHOOK_SECRET`, verify_jwt off).
+- Storage buckets: `community-posts` (public), `tryon-temp` (public, transient uploads for Kie), `tryon-results`, `gift-previews` (private).
+- AI secrets (KIE_API_KEY, GOOGLE_API_KEY, OPENAI_API_KEY, RC_WEBHOOK_SECRET) live ONLY in Supabase Edge Function secrets — never in the IPA / source. They must be re-entered on the new project (Dashboard → Functions → Secrets).
 
 ## Conventions
 
