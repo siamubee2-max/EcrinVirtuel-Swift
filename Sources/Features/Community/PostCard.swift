@@ -18,8 +18,6 @@ struct PostCard: View {
     var onBlock: () -> Void = {}
 
     @Environment(AppState.self) private var appState
-    @State private var showReportConfirmation = false
-    @State private var showDeleteConfirmation = false
 
     @State private var showHeartBurst: Bool = false
     @State private var heartScale: CGFloat = 0
@@ -116,24 +114,6 @@ struct PostCard: View {
         }
         .padding(.horizontal, EcrinSpacing.md)
         .padding(.vertical, EcrinSpacing.sm + 4)
-        .confirmationDialog(
-            L10n.CommunityUI.reportContentConfirm,
-            isPresented: $showReportConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button(L10n.CommunityUI.report, role: .destructive) { onReport?() }
-            Button(L10n.Common.cancel, role: .cancel) {}
-        } message: {
-            Text(L10n.CommunityUI.reportReviewNotice)
-        }
-        .confirmationDialog(
-            L10n.CommunityUI.deletePostConfirm,
-            isPresented: $showDeleteConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button(L10n.Common.delete, role: .destructive) { onDelete?() }
-            Button(L10n.Common.cancel, role: .cancel) {}
-        }
     }
 
     // MARK: - Modération (App Store 1.2)
