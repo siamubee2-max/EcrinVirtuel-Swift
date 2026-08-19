@@ -241,14 +241,6 @@ final class CommunityViewModel: ObservableObject {
         return true
     }
 
-    /// Affiche un toast auto-fermant (même mécanique que les défis).
-    func showToast(_ message: String) {
-        toastMessage = message
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 2_500_000_000)
-            if self.toastMessage == message { self.toastMessage = nil }
-        }
-    }
 
     // MARK: - Modération (guideline UGC 1.2)
 
