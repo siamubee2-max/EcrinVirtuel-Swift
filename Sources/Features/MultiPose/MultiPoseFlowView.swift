@@ -215,6 +215,11 @@ struct MultiPoseFlowView: View {
                     onSaveToDressing: { saveResultsToDressing() },
                     onClose: { dismiss() }
                 )
+                .onAppear {
+                    // Persiste automatiquement chaque vue générée dans « Mes créations »
+                    // pour qu'elles ne soient jamais perdues au glissement/fermeture.
+                    vm.results.compactMap(\.image).forEach { SessionCreationsStore.add($0) }
+                }
             }
         }
         .id(flowStep)

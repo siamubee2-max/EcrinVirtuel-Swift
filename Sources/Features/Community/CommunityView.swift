@@ -109,18 +109,47 @@ struct CommunityView: View {
 
 private struct FeedTab: View {
     @ObservedObject var vm: CommunityViewModel
+    @State private var postForComments: CommunityPost?
+
+    private var inspirationBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 12))
+                .foregroundStyle(EcrinColor.gold)
+            Text("Inspiration L'Écrin — exemples de rendus")
+                .font(EcrinFont.caption)
+                .foregroundStyle(EcrinColor.textSecondary)
+            Spacer()
+        }
+        .padding(.horizontal, EcrinSpacing.md)
+        .padding(.vertical, EcrinSpacing.sm)
+        .background(EcrinColor.gold.opacity(0.08), in: Capsule())
+        .overlay(Capsule().strokeBorder(EcrinColor.gold.opacity(0.2), lineWidth: 0.5))
+    }
 
     var body: some View {
         ScrollView {
             LazyVStack(spacing: EcrinSpacing.md) {
-                // Stories row
-                StoriesRow(entries: vm.leaderboard)
+                // Bandeau « Inspiration » — ce feed présente des exemples de rendus
+                // L'Écrin (pas des publications d'utilisateurs réels). Transparence.
+                inspirationBanner
+                    .padding(.horizontal, EcrinSpacing.md)
                     .padding(.top, EcrinSpacing.sm)
 
-                // Posts
-                ForEach(vm.posts) { post in
-                    PostCard(post: post, onLike: { vm.toggleLike(post: post) })
-                        .padding(.horizontal, EcrinSpacing.md)
+                // Stories row
+                StoriesRow(entries: vm.leaderboard)
+
+                // Posts — visiblePosts exclut auteurs bloqués & posts signalés (App Store 1.2)
+                ForEach(vm.visiblePosts) { post in
+                    PostCard(
+                        post: post,
+                        onLike: { vm.toggleLike(post: post) },
+                        commentCount: vm.displayedCommentCount(for: post),
+                        onComment: { postForComments = post },
+                        onReport: { reason in vm.report(post: post, reason: reason) },
+                        onBlock: { vm.blockAuthor(of: post) }
+                    )
+                    .padding(.horizontal, EcrinSpacing.md)
                 }
 
                 Spacer().frame(height: EcrinSpacing.xl)
@@ -130,6 +159,9 @@ private struct FeedTab: View {
         .accessibilityIdentifier("community.feed")
         .refreshable {
             await vm.refreshFeed()
+        }
+        .sheet(item: $postForComments) { post in
+            CommentsSheet(post: post, vm: vm)
         }
     }
 }

@@ -31,7 +31,10 @@ final class CreditsPackViewModel {
         do {
             currentCredits = try await SupabaseService.shared.fetchRemainingCredits()
         } catch {
-            currentCredits = 0
+            // Pas de session (ou fetch échoué) : solde local plutôt qu'un faux "0"
+            // incohérent avec le badge "restants" de l'écran Essayage.
+            await CreditsManager.shared.sync()
+            currentCredits = CreditsManager.shared.remaining
         }
         isLoadingCredits = false
     }

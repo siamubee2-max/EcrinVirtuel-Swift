@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		019F4F5BDB0AE3886D2461BF /* CommunityViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61B3DAA3147B6193011FEA34 /* CommunityViewModel.swift */; };
 		01DE53BC583B836FBD4D8FE6 /* CameraCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29C02606C18DD62A7DE5D014 /* CameraCapture.swift */; };
+		01E76E0113571B5AFEC85008 /* CommentsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43246077619731B3AA8128EB /* CommentsSheet.swift */; };
 		0377D42CC80E73FABD65AC53 /* SavedLook.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36D453F703CE241D8BB01896 /* SavedLook.swift */; };
 		05A84F4F10CF4A34396DF087 /* WeatherSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A5C67EB8D4341F43285C8B /* WeatherSnapshot.swift */; };
 		0744F35C44E7AAC9B839D57F /* PaywallUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D60B6356D6AD6E107DB86C /* PaywallUITests.swift */; };
@@ -49,6 +50,7 @@
 		31A7FD5609E31EE25BFD6F99 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99143A22E836F4818B4341E7 /* ShareSheet.swift */; };
 		31F3BFEF9F308E2DA98BC1BF /* LookNotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 151EA69FD56FA09E7403E8F3 /* LookNotificationService.swift */; };
 		338C92B846626B08DC0F6569 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62DE98ED07548CFB383D6928 /* L10n.swift */; };
+		3397BB0C46860DB1362FB134 /* GenerationProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4627B06D220054F7C7FF83AC /* GenerationProgressView.swift */; };
 		348BF26D6031FAF472F65D65 /* OccasionVaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DB3B935C866EDBB8E1438AD /* OccasionVaultView.swift */; };
 		3790ACA6F96770F69607993C /* StylisteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66EFF29C25BCE59EE626A200 /* StylisteViewModel.swift */; };
 		3B025D41EF447C44CACC53BF /* WeatherConditionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4454E8068093F3B6D5E1264C /* WeatherConditionTests.swift */; };
@@ -258,7 +260,7 @@
 		2F76F6011D512030E1AAFE0D /* FramePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FramePickerView.swift; sourceTree = "<group>"; };
 		3074A0B2B3FF90446BBDCBD9 /* PhotoGuideOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoGuideOverlay.swift; sourceTree = "<group>"; };
 		310C0D981C6C0343957C20CD /* BodyModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyModel.swift; sourceTree = "<group>"; };
-		31819E8006A5252DE8E3F7A1 /* EcrinVirtuelUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = EcrinVirtuelUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		31819E8006A5252DE8E3F7A1 /* EcrinVirtuelUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EcrinVirtuelUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		31DA3B2EF9C2437A8B2C870C /* WeatherCondition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherCondition.swift; sourceTree = "<group>"; };
 		3426BB5BE76833179282875E /* GamingDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamingDashboardView.swift; sourceTree = "<group>"; };
 		347B19856BFBBE4F5756EACC /* FrameSwiftUIView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameSwiftUIView.swift; sourceTree = "<group>"; };
@@ -272,9 +274,11 @@
 		3DCE64C0A1E536162D969C91 /* GiftRevealView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftRevealView.swift; sourceTree = "<group>"; };
 		3E929EA1D7EB9648292F3F40 /* SkinToneAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinToneAnalyzer.swift; sourceTree = "<group>"; };
 		40DAD57FA9F76CF7AD06E86A /* DressingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DressingView.swift; sourceTree = "<group>"; };
+		43246077619731B3AA8128EB /* CommentsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsSheet.swift; sourceTree = "<group>"; };
 		4454E8068093F3B6D5E1264C /* WeatherConditionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherConditionTests.swift; sourceTree = "<group>"; };
 		45107E59A80FE4F40F0D9996 /* SnapshotFrame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapshotFrame.swift; sourceTree = "<group>"; };
 		45D4BA3011E1CF2C01AB8F9E /* CreditsPack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreditsPack.swift; sourceTree = "<group>"; };
+		4627B06D220054F7C7FF83AC /* GenerationProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerationProgressView.swift; sourceTree = "<group>"; };
 		4864A19D25AFCBFB423F03A2 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		4A83F4941B47FBFDBC66614F /* PoseSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoseSelectorView.swift; sourceTree = "<group>"; };
 		4DB23CD48E0D5DEBA0463A37 /* MoodBoardResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoodBoardResultView.swift; sourceTree = "<group>"; };
@@ -343,10 +347,10 @@
 		9F6F751FA23FADC539A199CA /* CatalogBrowserMiniView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogBrowserMiniView.swift; sourceTree = "<group>"; };
 		A191A5884C53A34C88BC1F4F /* EarringsPoseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarringsPoseView.swift; sourceTree = "<group>"; };
 		A3ACE7E91BE45BD8648615BF /* PartnerBrand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartnerBrand.swift; sourceTree = "<group>"; };
-		A5A6CAF7D063DE406B6CC00F /* EcrinVirtuel.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = EcrinVirtuel.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5A6CAF7D063DE406B6CC00F /* EcrinVirtuel.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EcrinVirtuel.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A5DB6A8BC64770132E347820 /* OccasionVaultViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OccasionVaultViewModel.swift; sourceTree = "<group>"; };
 		A9C8C3832683DA27CFF8F3A7 /* FrameRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameRenderer.swift; sourceTree = "<group>"; };
-		AAFA1D640710C5C54B22EAFD /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
+		AAFA1D640710C5C54B22EAFD /* .gitkeep */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitkeep; sourceTree = "<group>"; };
 		AB7C5983ADD8C79024835555 /* ScreenshotUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotUITests.swift; sourceTree = "<group>"; };
 		ACAD56AFFCEF6DBF6D897301 /* ARPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARPermissionView.swift; sourceTree = "<group>"; };
 		AF935755777D3730E1865089 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
@@ -358,7 +362,7 @@
 		B5D60B6356D6AD6E107DB86C /* PaywallUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallUITests.swift; sourceTree = "<group>"; };
 		B60E378E4357BAB3C6FAA5F2 /* WeatherLookRecommender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherLookRecommender.swift; sourceTree = "<group>"; };
 		B6DC11CA462833E21DA9A4AD /* SkinToneProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SkinToneProfile.swift; sourceTree = "<group>"; };
-		BC8BDFDFB825530954934E81 /* EcrinVirtuelTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = EcrinVirtuelTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC8BDFDFB825530954934E81 /* EcrinVirtuelTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EcrinVirtuelTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BED5E2609093C8D92E99A867 /* EcrinVirtuelApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcrinVirtuelApp.swift; sourceTree = "<group>"; };
 		BF00430A08499AFF25264A4C /* FirstRunWizardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstRunWizardView.swift; sourceTree = "<group>"; };
 		C3472BAA1ADB5EE23A8F18F8 /* GiftCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiftCard.swift; sourceTree = "<group>"; };
@@ -391,7 +395,7 @@
 		F2AF2140043FE91E6AF671CD /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		F2EB69197720334D3126988F /* MultiPoseFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiPoseFlowView.swift; sourceTree = "<group>"; };
 		F40D778F0410F7E9C55D6C27 /* PartnerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartnerService.swift; sourceTree = "<group>"; };
-		F68DC13807E99016B3DD5A40 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		F68DC13807E99016B3DD5A40 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		F6C3E1384B55DA293E239415 /* UnlimitedAccessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlimitedAccessTests.swift; sourceTree = "<group>"; };
 		F6E3A4E2CFEB939A7BBC8AF4 /* OutfitGalleryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutfitGalleryView.swift; sourceTree = "<group>"; };
 		F7A5C592E81AC6B4C188363E /* JewelryDetectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JewelryDetectionView.swift; sourceTree = "<group>"; };
@@ -474,6 +478,7 @@
 			isa = PBXGroup;
 			children = (
 				FACD96F53D93BEA1C06D0E67 /* ChallengeCard.swift */,
+				43246077619731B3AA8128EB /* CommentsSheet.swift */,
 				1A3C9245280C89C5A8A97F3B /* CommunityPost.swift */,
 				6C0E561E184822766247FAE8 /* CommunityView.swift */,
 				61B3DAA3147B6193011FEA34 /* CommunityViewModel.swift */,
@@ -891,6 +896,7 @@
 			children = (
 				806743D718F16987E70AAFB3 /* DesignSystem.swift */,
 				7113B406F10577EC4AAC24EC /* FlowLayout.swift */,
+				4627B06D220054F7C7FF83AC /* GenerationProgressView.swift */,
 				6E03F7C81EE1420957DB01BB /* GlassCard.swift */,
 				DCFCE6CDB691ADC51663B607 /* GoldParticles.swift */,
 				99143A22E836F4818B4341E7 /* ShareSheet.swift */,
@@ -1037,15 +1043,10 @@
 				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					2637ECE5A33DA71FCFD6E883 = {
-						DevelopmentTeam = GG9U76Z4X7;
 						ProvisioningStyle = Automatic;
 					};
 					DAE45EF7E3FC61F7708BE6AE = {
-						DevelopmentTeam = GG9U76Z4X7;
 						TestTargetID = 2637ECE5A33DA71FCFD6E883;
-					};
-					F440EC2CCF033E2A471C174E = {
-						DevelopmentTeam = GG9U76Z4X7;
 					};
 				};
 			};
@@ -1128,6 +1129,7 @@
 				2F9E356CA5D9A5443C53E822 /* CinematicOnboardingView.swift in Sources */,
 				3EF55DFD2F25B3296AFABFE1 /* CitySearchSheet.swift in Sources */,
 				160988F9FBC55DE970FB14D7 /* ClothingCatalogService.swift in Sources */,
+				01E76E0113571B5AFEC85008 /* CommentsSheet.swift in Sources */,
 				4247CF743C469C4E294ADE4B /* CommunityPost.swift in Sources */,
 				BC2CB013FA3B6B96F0E8DD2D /* CommunityView.swift in Sources */,
 				019F4F5BDB0AE3886D2461BF /* CommunityViewModel.swift in Sources */,
@@ -1157,6 +1159,7 @@
 				28BFC1F25A240CDF871ABD06 /* GamingModels.swift in Sources */,
 				2E8E74227C556AE27831C677 /* GamingService.swift in Sources */,
 				104145559CCEE9EF4DD001EF /* GenderPickerSheet.swift in Sources */,
+				3397BB0C46860DB1362FB134 /* GenerationProgressView.swift in Sources */,
 				8C6C442BE66C51F3676C78FA /* GenerationSignInSheet.swift in Sources */,
 				EE43868F2ADAFDDF31E368FB /* GiftCard.swift in Sources */,
 				B7BA6DB91508E631DFBEF142 /* GiftCreatorView.swift in Sources */,
@@ -1318,6 +1321,7 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/App/EcrinVirtuel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SPLML3CN76;
 				INFOPLIST_FILE = Sources/App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1333,6 +1337,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = SPLML3CN76;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1418,6 +1423,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = SPLML3CN76;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1435,6 +1441,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = SPLML3CN76;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1517,6 +1524,7 @@
 				CODE_SIGN_ENTITLEMENTS = Sources/App/EcrinVirtuel.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SPLML3CN76;
 				INFOPLIST_FILE = Sources/App/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1532,6 +1540,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = SPLML3CN76;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

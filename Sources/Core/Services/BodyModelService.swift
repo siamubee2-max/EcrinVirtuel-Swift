@@ -3,9 +3,8 @@ import SwiftUI
 import Supabase
 
 // MARK: - BodyModelService
-// Charge les mannequins de référence.
-// NOTE: `body_parts` table absent from prod (migration 009) — fetchAll is a no-op;
-// callers receive an empty list (no models available until table is created).
+// Charge les mannequins de référence depuis la table `body_parts`.
+// user_id NULL = mannequin global (visible par tous), sinon photo perso de l'utilisateur.
 
 @MainActor
 final class BodyModelService: ObservableObject {
@@ -22,11 +21,25 @@ final class BodyModelService: ObservableObject {
 
     // MARK: - Fetch
 
-    /// No-op: `body_parts` table does not exist in prod (migration 009).
-    /// Returns empty model lists; feature is deferred until table is added to prod.
+    /// Charge tous les mannequins accessibles : globaux (user_id NULL, policy RLS
+    /// publique) + photos perso de l'utilisateur connecté le cas échéant.
     func fetchAll() async {
-        globalModels = []
-        userModels   = []
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            let models: [BodyModel] = try await client
+                .from("body_parts")
+                .select()
+                .order("type")
+                .order("name")
+                .execute()
+                .value
+            globalModels = models.filter(\.isGlobal)
+            userModels   = models.filter { !$0.isGlobal }
+            error = nil
+        } catch {
+            self.error = error.localizedDescription
+        }
     }
 
     /// Retourne les mannequins compatibles avec un type de bijou donné.

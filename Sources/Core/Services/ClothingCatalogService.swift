@@ -42,9 +42,14 @@ final class ClothingCatalogService {
         lastError = nil
         defer { isLoading = false }
 
-        womenItems = await safelyFetch(gender: .femme)
-        menItems = await safelyFetch(gender: .homme)
-        unisexItems = await safelyFetch(gender: .unisexe)
+        // Les 3 genres sont indépendants → chargement EN PARALLÈLE (≈3× plus rapide
+        // que la version séquentielle femme→homme→unisexe).
+        async let women  = safelyFetch(gender: .femme)
+        async let men    = safelyFetch(gender: .homme)
+        async let unisex = safelyFetch(gender: .unisexe)
+        womenItems  = await women
+        menItems    = await men
+        unisexItems = await unisex
 
         if totalCount > 0 {
             lastFetchedAt = .now

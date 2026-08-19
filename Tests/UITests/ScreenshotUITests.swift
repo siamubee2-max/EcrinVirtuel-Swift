@@ -34,64 +34,85 @@ final class ScreenshotUITests: XCTestCase {
         add(a)
     }
 
+    // MARK: - Robust navigation helpers
+    //
+    // Under heavy back-to-back UI-test load on a busy simulator, the accessibility
+    // tree settles slowly and a single tab `.tap()` occasionally does not register
+    // before the wait expires. These helpers use a generous timeout and retry the
+    // tap once, which makes the screenshot suite deterministic regardless of timing.
+
+    private static let uiTimeout: TimeInterval = 20
+
+    /// Waits for an element by identifier (any element type), failing the test if absent.
+    @discardableResult
+    private func waitForID(_ id: String, timeout: TimeInterval = ScreenshotUITests.uiTimeout) -> XCUIElement {
+        let el = app.descendants(matching: .any).matching(identifier: id).firstMatch
+        XCTAssertTrue(el.waitForExistence(timeout: timeout), "\(id) not found")
+        return el
+    }
+
+    /// Taps a tab-bar button and waits for its screen identifier; retries the tap once
+    /// if the screen does not appear (covers a dropped first tap or slow view load).
+    private func openTab(_ label: String, screen screenID: String,
+                         timeout: TimeInterval = ScreenshotUITests.uiTimeout) {
+        let tab = app.tabBars.buttons[label]
+        XCTAssertTrue(tab.waitForExistence(timeout: timeout), "\(label) tab missing")
+        tab.tap()
+        let screen = app.descendants(matching: .any).matching(identifier: screenID).firstMatch
+        if !screen.waitForExistence(timeout: timeout) {
+            tab.tap() // retry once — first tap may not have registered under load
+            XCTAssertTrue(screen.waitForExistence(timeout: timeout),
+                          "\(screenID) not found after tapping \(label) (incl. retry)")
+        }
+    }
+
     // MARK: - 01 Essayage (default / first tab)
 
     func test01Essayage() {
         // Essayage is the default tab; verify its screen identifier exists then snap
-        let screen = app.descendants(matching: .any).matching(identifier: "screen.essayage").firstMatch
-        XCTAssertTrue(screen.waitForExistence(timeout: 12), "screen.essayage not found")
+        waitForID("screen.essayage")
         snap("01-essayage")
     }
 
     // MARK: - 02 Garde-robe
 
     func test02Garderobe() {
-        let tab = app.tabBars.buttons["Garde-robe"]
-        XCTAssertTrue(tab.waitForExistence(timeout: 10), "Garde-robe tab missing")
-        tab.tap()
-        let screen = app.descendants(matching: .any).matching(identifier: "screen.garderobe").firstMatch
-        XCTAssertTrue(screen.waitForExistence(timeout: 12), "screen.garderobe not found")
+        openTab("Garde-robe", screen: "screen.garderobe")
         snap("02-garderobe")
     }
 
     // MARK: - 03 Catalogue (opened from Garde-robe toolbar)
 
     func test03Catalogue() {
-        // Navigate to Garde-robe first
-        let tab = app.tabBars.buttons["Garde-robe"]
-        XCTAssertTrue(tab.waitForExistence(timeout: 10), "Garde-robe tab missing")
-        tab.tap()
+        // Navigate to Garde-robe first (with retry), then open Catalogue from its toolbar.
+        openTab("Garde-robe", screen: "screen.garderobe")
 
-        // Tap the Catalogue toolbar button
         let catalogueButton = app.buttons["Catalogue"]
-        XCTAssertTrue(catalogueButton.waitForExistence(timeout: 10), "Catalogue button missing in Garde-robe toolbar")
+        XCTAssertTrue(catalogueButton.waitForExistence(timeout: Self.uiTimeout),
+                      "Catalogue button missing in Garde-robe toolbar")
         catalogueButton.tap()
 
-        // Wait for catalog grid to appear
+        // Wait for catalog grid; retry the toolbar tap once if the push was missed.
         let grid = app.scrollViews["catalog.grid"]
-        XCTAssertTrue(grid.waitForExistence(timeout: 15), "catalog.grid not found after opening Catalogue")
+        if !grid.waitForExistence(timeout: Self.uiTimeout) {
+            catalogueButton.tap()
+            XCTAssertTrue(grid.waitForExistence(timeout: Self.uiTimeout),
+                          "catalog.grid not found after opening Catalogue (incl. retry)")
+        }
         snap("03-catalogue")
     }
 
     // MARK: - 04 Communauté
 
     func test04Communaute() {
-        let tab = app.tabBars.buttons["Communauté"]
-        XCTAssertTrue(tab.waitForExistence(timeout: 10), "Communauté tab missing")
-        tab.tap()
-        let screen = app.descendants(matching: .any).matching(identifier: "screen.communaute").firstMatch
-        XCTAssertTrue(screen.waitForExistence(timeout: 12), "screen.communaute not found")
+        openTab("Communauté", screen: "screen.communaute")
         snap("04-communaute")
     }
 
     // MARK: - 05 Profil
 
     func test05Profil() {
-        let tab = app.tabBars.buttons["Profil"]
-        XCTAssertTrue(tab.waitForExistence(timeout: 10), "Profil tab missing")
-        tab.tap()
-        let screen = app.descendants(matching: .any).matching(identifier: "screen.profil").firstMatch
-        XCTAssertTrue(screen.waitForExistence(timeout: 12), "screen.profil not found")
+        openTab("Profil", screen: "screen.profil")
         snap("05-profil")
     }
 
@@ -99,10 +120,14 @@ final class ScreenshotUITests: XCTestCase {
 
     func test06QuickTryOn() {
         let fab = app.buttons["fab.quicktryon"]
-        XCTAssertTrue(fab.waitForExistence(timeout: 10), "fab.quicktryon not found")
+        XCTAssertTrue(fab.waitForExistence(timeout: Self.uiTimeout), "fab.quicktryon not found")
         fab.tap()
         let root = app.descendants(matching: .any).matching(identifier: "quicktryon.root").firstMatch
-        XCTAssertTrue(root.waitForExistence(timeout: 15), "quicktryon.root not found after tapping FAB")
+        if !root.waitForExistence(timeout: Self.uiTimeout) {
+            fab.tap() // retry once
+            XCTAssertTrue(root.waitForExistence(timeout: Self.uiTimeout),
+                          "quicktryon.root not found after tapping FAB (incl. retry)")
+        }
         snap("06-quicktryon")
     }
 }

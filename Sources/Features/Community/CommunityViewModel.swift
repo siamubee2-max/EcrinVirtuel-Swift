@@ -11,11 +11,105 @@ final class CommunityViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var selectedTab: CommunityTab = .feed
     @Published var activeChallenge: CommunityChallenge?
-    @Published var currentUserRank: Int = 7
+    // 0 = aucun rang réel (aucune entrée n'a le rang 0) → pas de faux « vous êtes 7ᵉ »
+    // ni de ligne du classement faussement mise en avant comme étant l'utilisateur.
+    @Published var currentUserRank: Int = 0
     /// Toast affiché après une action (ex : "Vous avez rejoint le défi")
     @Published var toastMessage: String? = nil
     /// Identifie le challenge à ouvrir après confirmation (pour navigation vers QuickTryOn)
     @Published var pendingChallengeForTryOn: CommunityChallenge? = nil
+
+    /// Commentaires ajoutés par l'utilisateur, par post (les samples sont calculés à part).
+    @Published var addedComments: [UUID: [PostComment]] = [:]
+
+    /// Auteurs bloqués par l'utilisateur — leurs posts sont masqués du feed (App Store 1.2).
+    @Published private(set) var blockedAuthorIDs: Set<UUID> = []
+    /// Posts signalés localement — masqués immédiatement en attendant la modération serveur.
+    @Published private(set) var reportedPostIDs: Set<UUID> = []
+
+    // MARK: - Modération (App Store guideline 1.2 — UGC)
+
+    /// Motifs de signalement proposés à l'utilisateur.
+    enum ReportReason: String, CaseIterable, Identifiable {
+        case offensive   = "Contenu offensant ou haineux"
+        case nudity      = "Nudité ou contenu sexuel"
+        case spam        = "Spam ou publicité"
+        case ip          = "Violation de propriété intellectuelle"
+        case other       = "Autre"
+        var id: String { rawValue }
+        /// Code court envoyé au serveur.
+        var code: String {
+            switch self {
+            case .offensive: return "offensive"
+            case .nudity:    return "nudity"
+            case .spam:      return "spam"
+            case .ip:        return "ip_violation"
+            case .other:     return "other"
+            }
+        }
+    }
+
+    /// Posts visibles = tous sauf ceux bloqués/signalés.
+    var visiblePosts: [CommunityPost] {
+        posts.filter { !blockedAuthorIDs.contains($0.author.id) && !reportedPostIDs.contains($0.id) }
+    }
+
+    /// Affiche un toast avec auto-dismiss après 2,5 s.
+    func showToast(_ message: String) {
+        toastMessage = message
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 2_500_000_000)
+            if self.toastMessage == message { self.toastMessage = nil }
+        }
+    }
+
+    /// Signale un post : masquage local immédiat + insertion serveur (post_reports).
+    func report(post: CommunityPost, reason: ReportReason) {
+        reportedPostIDs.insert(post.id)
+        showToast("Merci. Ce contenu a été signalé à notre équipe.")
+        guard !AppLaunchEnvironment.isUITesting else { return }
+        Task {
+            await SupabaseService.shared.reportPost(
+                postID: post.id, reason: reason.code
+            )
+        }
+    }
+
+    /// Bloque l'auteur d'un post : ses contenus disparaissent du feed.
+    func blockAuthor(of post: CommunityPost) {
+        blockedAuthorIDs.insert(post.author.id)
+        showToast("\(post.author.displayName ?? "Cet utilisateur") est bloqué·e.")
+    }
+
+    /// Commentaires masqués localement après signalement.
+    @Published private(set) var hiddenCommentIDs: Set<UUID> = []
+
+    /// Signale un commentaire : masquage local immédiat.
+    func reportComment(_ comment: PostComment) {
+        hiddenCommentIDs.insert(comment.id)
+        showToast("Merci. Ce commentaire a été signalé.")
+    }
+
+    // MARK: - Comments
+
+    /// Nombre de commentaires ajoutés localement pour un post.
+    func addedCount(for post: CommunityPost) -> Int {
+        addedComments[post.id]?.count ?? 0
+    }
+
+    /// Total affiché sur le badge = baseline du post + ajouts locaux.
+    func displayedCommentCount(for post: CommunityPost) -> Int {
+        post.comments + addedCount(for: post)
+    }
+
+    /// Ajoute un commentaire rattaché au post (donc à l'image présentée).
+    func addComment(to post: CommunityPost, text: String, authorName: String = "Vous") {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        addedComments[post.id, default: []].append(
+            PostComment(id: UUID(), authorName: authorName, text: trimmed, createdAt: .now)
+        )
+    }
 
     // MARK: - Tab
 

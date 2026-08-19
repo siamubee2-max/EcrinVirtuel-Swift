@@ -21,6 +21,7 @@ struct LookDuJourCard: View {
                 headerRow
                 content
                     .animation(.easeInOut(duration: 0.35), value: viewModel.displayStateKey)
+                weatherAttribution
             }
             .padding(EcrinSpacing.lg)
             .background { weatherGradient }
@@ -67,6 +68,17 @@ struct LookDuJourCard: View {
                 }
             )
         }
+    }
+
+    // MARK: - Attribution météo (source de données obligatoire)
+
+    private var weatherAttribution: some View {
+        Link(destination: URL(string: "https://open-meteo.com")!) {
+            Text("Données météo · Open-Meteo.com")
+                .font(.system(size: 10))
+                .foregroundStyle(EcrinColor.textMuted.opacity(0.8))
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
     }
 
     // MARK: - Header
@@ -482,7 +494,7 @@ private struct LookHeroImage: View {
                 .fill(EcrinColor.surface)
 
             if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         // Vignette hero 120×160 — scaledToFill pour effet "magazine cover"
@@ -539,7 +551,7 @@ private struct LookSecondaryImage: View {
                 .fill(EcrinColor.surface)
 
             if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()
@@ -579,7 +591,7 @@ private struct LookHeroWardrobeImage: View {
             if let data = item.userPhotoData, let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage).resizable().scaledToFill()
             } else if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()
@@ -637,7 +649,7 @@ private struct LookSecondaryWardrobeImage: View {
             if let data = item.userPhotoData, let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage).resizable().scaledToFill()
             } else if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image): image.resizable().scaledToFill()
                     default:
@@ -671,7 +683,7 @@ private struct LookItemThumb: View {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(EcrinColor.surface)
             if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()

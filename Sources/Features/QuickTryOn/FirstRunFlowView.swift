@@ -34,7 +34,8 @@ struct FirstRunFlowView: View {
                     onSelectNudgeJewelry: { _ in
                         showResult = false
                         viewModel.result = nil
-                    }
+                    },
+                    beforeImage: pendingPhoto ?? viewModel.userPhoto
                 )
             } else {
                 FirstRunWizardView { photo, jewelry in
@@ -43,7 +44,7 @@ struct FirstRunFlowView: View {
                     viewModel.selectedJewelry = jewelry
                     pendingPhoto = photo
                     pendingJewelry = jewelry
-                    if await GenerationAuthGate.hasSession() {
+                    if await GenerationAuthGate.ensureSession() {
                         return await runFirstRunGeneration()
                     }
                     

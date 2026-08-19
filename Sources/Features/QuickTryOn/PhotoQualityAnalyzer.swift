@@ -101,18 +101,36 @@ final class PhotoQualityAnalyzer {
     // continuation (Sendable) reprend depuis le thread background sans souci.
     nonisolated private func detectFace(_ image: UIImage) async -> Bool {
         guard let cgImage = image.cgImage else { return false }
+        // One-shot guard : Vision peut appeler le completion (annulation) ET faire
+        // jeter perform() — un double resume de continuation est fatal.
+        let resumeGuard = PhotoQualityResumeGuard()
         return await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
                 let request = VNDetectFaceRectanglesRequest { req, _ in
+                    guard resumeGuard.tryResume() else { return }
                     continuation.resume(returning: !(req.results ?? []).isEmpty)
                 }
                 let handler = VNImageRequestHandler(cgImage: cgImage, options: [:])
                 do {
                     try handler.perform([request])
                 } catch {
-                    continuation.resume(returning: false)
+                    if resumeGuard.tryResume() {
+                        continuation.resume(returning: false)
+                    }
                 }
             }
         }
+    }
+}
+
+/// One-shot guard pour les continuations Vision de ce fichier.
+private final class PhotoQualityResumeGuard: @unchecked Sendable {
+    private let lock = NSLock()
+    private var resumed = false
+    func tryResume() -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        if resumed { return false }
+        resumed = true
+        return true
     }
 }

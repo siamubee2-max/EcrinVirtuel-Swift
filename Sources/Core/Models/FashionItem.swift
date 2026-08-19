@@ -227,33 +227,35 @@ enum FashionCategory: String, CaseIterable, Codable {
             case .tonguePiercing:
                 return "person with \(name) tongue barbell, mouth slightly open, close-up, natural light"
             default:
-                return "person wearing luxurious \(name) \(rawValue.lowercased()), close-up, jewelry photography, elegant"
+                return "add the \(name) \(rawValue.lowercased()) worn on the person, realistic scale, close-up on the jewelry zone"
             }
+        // Descriptions volontairement SANS décor ni « editorial/luxury » : on décrit
+        // seulement l'article ajouté, la photo de départ (fond, lumière) est conservée.
         case .clothing:
             switch self {
             case .top, .jacket, .coat, .suit:
-                return "person wearing \(name) \(rawValue.lowercased()), fashion portrait, luxury photography, neutral background"
+                return "dress the person in a \(name) \(rawValue.lowercased()), realistic fit"
             case .bottom:
-                return "person wearing \(name) \(rawValue.lowercased()), full body shot, fashion photography, elegant pose"
+                return "dress the person in \(name) \(rawValue.lowercased()), realistic fit, full body"
             case .dress:
-                return "person wearing elegant \(name) dress, full body, high fashion editorial photography"
+                return "dress the person in a \(name) dress, realistic fit, full body"
             default:
-                return "person wearing \(name), fashion photography, luxury, elegant"
+                return "dress the person in \(name), realistic fit"
             }
         case .shoes:
-            return "person wearing \(name) \(rawValue.lowercased()), feet visible, stylish pose, luxury fashion photography, clean background"
+            return "put \(name) \(rawValue.lowercased()) on the person's feet, feet visible, realistic fit"
         case .accessories:
             switch self {
             case .bag:
-                return "person holding \(name) bag, fashion editorial style, luxury photography, elegant pose"
+                return "add a \(name) bag carried by the person, realistic scale"
             case .sunglasses:
-                return "person wearing \(name) sunglasses, portrait, natural light, fashion editorial"
+                return "add \(name) sunglasses on the person's face, realistic fit"
             case .hat:
-                return "person wearing \(name) hat, portrait, fashion photography, elegant"
+                return "add a \(name) hat on the person's head, realistic fit"
             case .scarf:
-                return "person wearing \(name) scarf, fashion editorial, elegant, luxury photography"
+                return "add a \(name) scarf on the person, realistic drape"
             default:
-                return "person wearing \(name) \(rawValue.lowercased()), fashion photography, luxury, detail shot"
+                return "add \(name) \(rawValue.lowercased()) worn by the person, realistic scale"
             }
         }
     }
@@ -278,7 +280,7 @@ enum FashionGroup: String, CaseIterable, Codable {
 
     var color: Color {
         switch self {
-        case .jewelry:     return Color(hex: "#CA8A04")
+        case .jewelry:     return Color(hex: "#C8A85A")  // champagne (aligné EcrinColor.gold)
         case .clothing:    return Color(hex: "#6366F1")
         case .shoes:       return Color(hex: "#EC4899")
         case .accessories: return Color(hex: "#14B8A6")

@@ -259,9 +259,15 @@ final class EnrichedPromptBuilder {
 
     // MARK: - Private sections
 
-    /// Section 1 — Subject (morphologie + teint)
+    /// Section 1 — Subject (édition de la photo source, PAS une nouvelle photo)
+    /// On formule une consigne d'ÉDITION : la sortie doit rester la même photo que
+    /// l'entrée (même personne, même décor, même ambiance), on ne fait qu'ajouter
+    /// l'article. Éviter tout vocabulaire « editorial / studio » qui pousse le modèle
+    /// à re-générer une image léchée au lieu de respecter la photo de départ.
     private static func subjectSection(bodyContext: BodyContext) -> String {
-        "Fashion editorial photograph of a woman with \(bodyContext.skinTone.description), \(bodyContext.skinUndertone.adjective) (\(bodyContext.skinHex)), \(bodyContext.bodyShape.rawValue), \(bodyContext.estimatedHeight.rawValue), \(bodyContext.shoulderWidth.rawValue)"
+        "EDIT the reference photograph of this real person (skin tone \(bodyContext.skinTone.description), \(bodyContext.skinUndertone.adjective) \(bodyContext.skinHex)). "
+        + "This is the SAME photo: keep the person's face, hair, body, pose, the background and the overall atmosphere exactly as they are. "
+        + "Do NOT turn it into a studio, editorial or beautified shot — only add the item described below."
     }
 
     /// Section 2 — Item (description précise du vêtement/bijou)
@@ -274,9 +280,12 @@ final class EnrichedPromptBuilder {
         "LIGHTING: Match the \(bodyContext.lightingType.rawValue) \(bodyContext.lightingDirection.description) detected in the reference photo. \(bodyContext.colorTemperature.description). Brightness: \(Int(bodyContext.brightnessLevel * 100))% — preserve this exact atmosphere."
     }
 
-    /// Section 5 — Quality directives
+    /// Section 5 — Quality directives (fidélité à la photo source avant tout)
     private static func qualitySection(bodyContext: BodyContext) -> String {
-        "QUALITY REQUIREMENTS: Photorealistic luxury fashion photography, 8K sharp. Vertical \(GenerationAspectRatio.tryOn) portrait framing (mobile story), full-body head-to-toe when outfit try-on applies — never a square 1:1 crop. Preserve exact skin texture (\(bodyContext.skinHex)) from reference. Maintain body proportions exactly as shown — no body modification. Keep face and hair completely unchanged. Professional medium-format camera aesthetic, editorial magazine quality."
+        "QUALITY REQUIREMENTS: The result must look like the ORIGINAL photo with only the item added — same background, same lighting, same colours and white balance, same mood. "
+        + "Do NOT relight, recolour, beautify, smooth skin, or replace the background. "
+        + "Preserve exact skin texture and tone (\(bodyContext.skinHex)), keep body proportions exactly as shown (no body modification), and keep the face and hair completely unchanged. "
+        + "Photorealistic and seamlessly composited, sharp. Vertical \(GenerationAspectRatio.tryOn) portrait, full-body head-to-toe when outfit try-on applies — never a square 1:1 crop."
     }
 
     /// Section 3 — Transition (spécifique outfit)

@@ -254,7 +254,11 @@ final class QuickTryOnViewModel {
             return
         }
 
-        guard let image = UIImage(data: data) else { return }
+        // Décodage à taille bornée (~2048 px) : une photo 48 Mpx décodée entière
+        // pèse ~120 Mo de RAM ; 2048 px suffit largement pour la génération
+        // (l'Edge Function recompresse à 4 Mo de toute façon).
+        guard let image = DownsampledImageLoader.downsample(data: data, maxPixelSize: 2048)
+                ?? UIImage(data: data) else { return }
         userPhoto = image
         result = nil
     }
@@ -340,7 +344,7 @@ final class QuickTryOnViewModel {
         let bodyInfo = "Body: \(bodyContext.bodyShape.rawValue), \(bodyContext.estimatedHeight.rawValue)."
         let lightInfo = "Lighting: \(bodyContext.lightingType.rawValue) \(bodyContext.lightingDirection.description)."
 
-        return "\(itemDescriptions). \(mode.promptSuffix). \(skinInfo) \(bodyInfo) \(lightInfo) Photorealistic, luxury fashion photography, 8K. Keep face and hair unchanged."
+        return "EDIT the reference photo — same person, background, lighting and colours — only add the item. \(itemDescriptions). \(mode.promptSuffix). \(skinInfo) \(bodyInfo) \(lightInfo) Photorealistic, seamlessly composited. Do NOT beautify, relight, recolour or replace the background. Keep face and hair unchanged."
     }
 
     // MARK: - Prompt construction
@@ -354,7 +358,8 @@ final class QuickTryOnViewModel {
         }.joined(separator: " combined with ")
 
         let qualityTags = """
-        Photorealistic, luxury fashion photography, 8K quality, professional lighting. \
+        EDIT the reference photo: keep the same background, lighting and colours — only add the item. \
+        Photorealistic, seamlessly composited. Do NOT beautify, relight, recolour or replace the background. \
         Keep the person's face, skin tone, hair, and body proportions exactly the same.
         """
 

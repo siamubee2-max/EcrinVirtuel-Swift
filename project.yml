@@ -50,7 +50,7 @@ targets:
         SUPABASE_URL: "$(SUPABASE_URL)"
         SUPABASE_ANON_KEY: "$(SUPABASE_ANON_KEY)"
         REVENUECAT_IOS_KEY: "$(REVENUECAT_IOS_KEY)"
-        NSPrivacyPolicyURL: "https://ecrin.app/privacy"
+        NSPrivacyPolicyURL: "https://inferencevision.store/ecrin/privacy.html"
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: com.ecrin.jewelry
@@ -69,7 +69,7 @@ targets:
       properties:
         com.apple.developer.associated-domains:
           - applinks:ecrin.app
-        com.apple.developer.devicecheck.appattest-environment: development
+        com.apple.developer.devicecheck.appattest-environment: production
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry

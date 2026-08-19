@@ -90,7 +90,7 @@ struct AIConsentModal: View {
 
                         // Lien politique de confidentialité
                         Link("Lire notre politique de confidentialité →",
-                             destination: URL(string: "https://inferencevision.store/ecrin/privacy")!)
+                             destination: URL(string: "https://inferencevision.store/ecrin/privacy.html")!)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.gold.opacity(0.7))
 
@@ -98,6 +98,8 @@ struct AIConsentModal: View {
                         VStack(spacing: EcrinSpacing.sm) {
                             GoldButton(title: "Accepter et essayer") {
                                 AIConsentStorage.grant()
+                                // Trace RGPD côté serveur (best-effort, non bloquant).
+                                Task { await SupabaseService.shared.setAIConsent(granted: true) }
                                 withAnimation(EcrinAnimation.springSnap) {
                                     isPresented = false
                                 }
@@ -128,7 +130,10 @@ struct AIConsentModal: View {
     static var isGranted: Bool { AIConsentStorage.isGranted }
 
     /// Révoque le consentement RGPD (appel depuis ProfileView)
-    static func revoke() { AIConsentStorage.revoke() }
+    static func revoke() {
+        AIConsentStorage.revoke()
+        Task { await SupabaseService.shared.setAIConsent(granted: false) }
+    }
 }
 
 private struct ConsentRow: View {

@@ -333,6 +333,7 @@ private struct CategoryGridScreen: View {
 private struct CTAScreen: View {
     @Environment(AppState.self) private var appState
     @State private var visible = false
+    @State private var isStartingGuest = false
 
     var body: some View {
         ZStack {
@@ -370,8 +371,10 @@ private struct CTAScreen: View {
                 Spacer().frame(height: EcrinSpacing.sm)
 
                 GoldButton(title: "ESSAYER MAINTENANT →") {
-                    appState.markOnboardingComplete()
+                    startGuestSession()
                 }
+                .disabled(isStartingGuest)
+                .opacity(isStartingGuest ? 0.6 : 1)
 
                 Button("Se connecter") {
                     appState.markOnboardingComplete()
@@ -380,6 +383,22 @@ private struct CTAScreen: View {
                 .foregroundStyle(EcrinColor.textMuted)
                 .padding(.top, EcrinSpacing.xs)
 
+                // Accord CGU/Confidentialité — s'applique aussi au parcours invité
+                // (guideline App Store 1.2 : accès à l'UGC = acceptation de l'EULA).
+                VStack(spacing: 4) {
+                    Text("En continuant, vous acceptez nos")
+                        .font(.system(size: 10))
+                        .foregroundStyle(EcrinColor.textMuted)
+                    HStack(spacing: 4) {
+                        Link("CGU", destination: URL(string: "https://inferencevision.store/ecrin/terms")!)
+                        Text("·").foregroundStyle(EcrinColor.textMuted)
+                        Link("Confidentialité", destination: URL(string: "https://inferencevision.store/ecrin/privacy")!)
+                    }
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(EcrinColor.gold.opacity(0.7))
+                }
+                .padding(.top, EcrinSpacing.sm)
+
                 Spacer()
             }
             .opacity(visible ? 1 : 0)
@@ -387,6 +406,27 @@ private struct CTAScreen: View {
             .animation(EcrinAnimation.glassReveal, value: visible)
         }
         .onAppear { visible = true }
+    }
+
+    /// « 3 essais offerts · Aucune carte requise » : session anonyme silencieuse
+    /// et entrée directe dans l'app. En cas d'échec (hors-ligne…), on retombe
+    /// sur l'écran de connexion classique.
+    private func startGuestSession() {
+        guard !isStartingGuest else { return }
+        isStartingGuest = true
+        Task {
+            defer { isStartingGuest = false }
+            if await GenerationAuthGate.ensureSession(),
+               let session = try? await SupabaseService.shared.auth.session {
+                appState.signInAsGuest(user: User(
+                    id: session.user.id,
+                    email: session.user.email ?? "invitee@anonyme.ecrin.local",
+                    displayName: "Invitée"
+                ))
+            } else {
+                appState.markOnboardingComplete()
+            }
+        }
     }
 }
 

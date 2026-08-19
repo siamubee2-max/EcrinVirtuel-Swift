@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 enum AppPhase: Equatable {
     case onboarding
@@ -11,17 +12,69 @@ private enum AppStorageKey {
 }
 
 /// Images générées pendant la session — alimente le paywall émotionnel.
+// MARK: - SessionCreationsStore
+// Persiste TOUTES les images générées sur disque (Application Support/Creations) afin
+// qu'elles ne soient JAMAIS perdues : on les retrouve dans le Dressing même après avoir
+// glissé/fermé l'écran, mis l'app en arrière-plan ou redémarré. `images` garde en mémoire
+// les créations récentes (borné) pour le paywall ; le disque est la source de vérité.
+
+struct SavedCreation: Identifiable, Hashable {
+    let id: String        // nom de fichier
+    let url: URL
+    let date: Date
+}
+
 @MainActor
 enum SessionCreationsStore {
     private(set) static var images: [UIImage] = []
 
+    private static let directory: URL = {
+        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        let dir = base.appendingPathComponent("Creations", isDirectory: true)
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir
+    }()
+
     static func add(_ image: UIImage) {
         images.insert(image, at: 0)
-        if images.count > 10 {
-            images = Array(images.prefix(10))
+        if images.count > 10 { images = Array(images.prefix(10)) }
+        persist(image)
+    }
+
+    /// Écrit l'image sur disque (JPEG) hors du thread principal.
+    private static func persist(_ image: UIImage) {
+        guard let data = image.jpegData(compressionQuality: 0.9) else { return }
+        let url = directory.appendingPathComponent("\(Int(Date().timeIntervalSince1970 * 1000)).jpg")
+        Task.detached(priority: .utility) {
+            try? data.write(to: url, options: .atomic)
         }
     }
 
+    /// Toutes les créations persistées, les plus récentes d'abord (métadonnées seulement).
+    static func persistedCreations() -> [SavedCreation] {
+        let keys: [URLResourceKey] = [.contentModificationDateKey]
+        let files = (try? FileManager.default.contentsOfDirectory(
+            at: directory, includingPropertiesForKeys: keys)) ?? []
+        return files
+            .filter { $0.pathExtension.lowercased() == "jpg" }
+            .map { url in
+                let date = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+                return SavedCreation(id: url.lastPathComponent, url: url, date: date)
+            }
+            .sorted { $0.date > $1.date }
+    }
+
+    /// Charge une création à la taille d'affichage (downsampling ImageIO, mémoire bornée).
+    static func loadImage(_ creation: SavedCreation, maxPixelSize: CGFloat = 1200) -> UIImage? {
+        guard let data = try? Data(contentsOf: creation.url) else { return nil }
+        return DownsampledImageLoader.downsample(data: data, maxPixelSize: maxPixelSize) ?? UIImage(data: data)
+    }
+
+    static func delete(_ creation: SavedCreation) {
+        try? FileManager.default.removeItem(at: creation.url)
+    }
+
+    /// Vide uniquement le cache mémoire (le disque — donc le Dressing — est conservé).
     static func reset() {
         images = []
     }
@@ -33,6 +86,9 @@ final class AppState {
     var phase: AppPhase
     var currentUser: User?
     var subscription: SubscriptionStatus = .free
+
+    /// Message de résultat de parrainage (affiché en alerte par RootView).
+    var referralMessage: String?
 
     /// Garde-robe de l'utilisateur — source unique partagée dans toute l'app.
     var wardrobe = WardrobeViewModel()
@@ -96,6 +152,13 @@ final class AppState {
     func markOnboardingComplete() {
         UserDefaults.standard.set(true, forKey: AppStorageKey.hasCompletedOnboarding)
         phase = .unauthenticated
+    }
+
+    /// Entrée invitée depuis l'onboarding : marque l'onboarding terminé et
+    /// ouvre directement l'app avec la session (anonyme) déjà établie.
+    func signInAsGuest(user: User) {
+        UserDefaults.standard.set(true, forKey: AppStorageKey.hasCompletedOnboarding)
+        signIn(user: user)
     }
 
     func markFirstRunComplete() {

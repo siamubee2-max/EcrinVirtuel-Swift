@@ -6,58 +6,96 @@
       "displayPrice": "2.99",
       "familySharable": false,
       "groupID": "",
-      "internalID": "ecrin.credits.10",
+      "internalID": "ecrin_credits_spark",
       "introductoryOffer": null,
       "localizations": [
         {
-          "description": "Pack de 10 crédits pour les essayages virtuels",
-          "displayName": "10 Crédits",
+          "description": "10 essais virtuels — pack Spark",
+          "displayName": "Spark — 10 essais",
           "locale": "fr_FR"
         }
       ],
-      "productID": "ecrin.credits.10",
+      "productID": "ecrin_credits_spark",
       "recurringSubscriptionPeriod": "",
-      "referenceName": "10 Crédits",
+      "referenceName": "Spark 10 crédits",
       "subscriptionGroupID": "",
       "type": "Consumable"
     },
     {
-      "displayPrice": "9.99",
+      "displayPrice": "7.99",
       "familySharable": false,
       "groupID": "",
-      "internalID": "ecrin.credits.50",
+      "internalID": "ecrin_credits_glow",
       "introductoryOffer": null,
       "localizations": [
         {
-          "description": "Pack de 50 crédits pour les essayages virtuels",
-          "displayName": "50 Crédits",
+          "description": "30 essais virtuels — pack Glow, meilleure valeur",
+          "displayName": "Glow — 30 essais",
           "locale": "fr_FR"
         }
       ],
-      "productID": "ecrin.credits.50",
+      "productID": "ecrin_credits_glow",
       "recurringSubscriptionPeriod": "",
-      "referenceName": "50 Crédits",
+      "referenceName": "Glow 30 crédits",
       "subscriptionGroupID": "",
       "type": "Consumable"
     },
     {
-      "displayPrice": "24.99",
+      "displayPrice": "16.99",
       "familySharable": false,
       "groupID": "",
-      "internalID": "ecrin.credits.150",
+      "internalID": "ecrin_credits_eclat",
       "introductoryOffer": null,
       "localizations": [
         {
-          "description": "Pack de 150 crédits pour les essayages virtuels",
-          "displayName": "150 Crédits",
+          "description": "70 essais virtuels + 5 offerts — pack Éclat",
+          "displayName": "Éclat — 70 essais (+5)",
           "locale": "fr_FR"
         }
       ],
-      "productID": "ecrin.credits.150",
+      "productID": "ecrin_credits_eclat",
       "recurringSubscriptionPeriod": "",
-      "referenceName": "150 Crédits",
+      "referenceName": "Éclat 70 crédits",
       "subscriptionGroupID": "",
       "type": "Consumable"
+    },
+    {
+      "displayPrice": "29.99",
+      "familySharable": false,
+      "groupID": "",
+      "internalID": "ecrin_credits_diamant",
+      "introductoryOffer": null,
+      "localizations": [
+        {
+          "description": "150 essais virtuels + 20 offerts — pack Diamant",
+          "displayName": "Diamant — 150 essais (+20)",
+          "locale": "fr_FR"
+        }
+      ],
+      "productID": "ecrin_credits_diamant",
+      "recurringSubscriptionPeriod": "",
+      "referenceName": "Diamant 150 crédits",
+      "subscriptionGroupID": "",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "349.99",
+      "familySharable": false,
+      "groupID": "",
+      "internalID": "ecrin.founder.lifetime",
+      "introductoryOffer": null,
+      "localizations": [
+        {
+          "description": "Accès Fondateur à vie — tout illimité, pour toujours",
+          "displayName": "Fondateur à vie",
+          "locale": "fr_FR"
+        }
+      ],
+      "productID": "ecrin.founder.lifetime",
+      "recurringSubscriptionPeriod": "",
+      "referenceName": "Fondateur lifetime",
+      "subscriptionGroupID": "",
+      "type": "NonConsumable"
     }
   ],
   "settings": {
@@ -103,15 +141,37 @@
         {
           "adHocOffers": [],
           "codeOffers": [],
+          "displayPrice": "54.99",
+          "familySharable": false,
+          "groupID": "ecrin_subscription_group",
+          "groupLevel": 3,
+          "internalID": "ecrin.starter.yearly",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Starter annuel — 20 générations par mois, économisez vs mensuel",
+              "displayName": "Starter annuel",
+              "locale": "fr_FR"
+            }
+          ],
+          "productID": "ecrin.starter.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Starter annuel",
+          "subscriptionGroupID": "ecrin_subscription_group",
+          "type": "RecurringSubscription"
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
           "displayPrice": "9.99",
           "familySharable": false,
           "groupID": "ecrin_subscription_group",
           "groupLevel": 2,
-          "internalID": "ecrin.premium.monthly",
+          "internalID": "ecrin.premium.month",
           "introductoryOffer": {
             "offerID": "",
             "offerMode": "FREE_TRIAL",
-            "period": "P7D",
+            "period": "P3D",
             "periodCount": 1,
             "type": "introductory"
           },
@@ -122,7 +182,7 @@
               "locale": "fr_FR"
             }
           ],
-          "productID": "ecrin.premium.monthly",
+          "productID": "ecrin.premium.month",
           "recurringSubscriptionPeriod": "P1M",
           "referenceName": "Premium mensuel",
           "subscriptionGroupID": "ecrin_subscription_group",
@@ -135,7 +195,7 @@
           "familySharable": false,
           "groupID": "ecrin_subscription_group",
           "groupLevel": 2,
-          "internalID": "ecrin.premium.yearly",
+          "internalID": "ecrin.premium.year",
           "introductoryOffer": null,
           "localizations": [
             {
@@ -144,7 +204,7 @@
               "locale": "fr_FR"
             }
           ],
-          "productID": "ecrin.premium.yearly",
+          "productID": "ecrin.premium.year",
           "recurringSubscriptionPeriod": "P1Y",
           "referenceName": "Premium annuel",
           "subscriptionGroupID": "ecrin_subscription_group",
@@ -169,6 +229,28 @@
           "productID": "ecrin.elite.monthly",
           "recurringSubscriptionPeriod": "P1M",
           "referenceName": "Elite mensuel",
+          "subscriptionGroupID": "ecrin_subscription_group",
+          "type": "RecurringSubscription"
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "194.99",
+          "familySharable": false,
+          "groupID": "ecrin_subscription_group",
+          "groupLevel": 1,
+          "internalID": "ecrin.elite.yearly",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Elite annuel — accès illimité complet, économisez vs mensuel",
+              "displayName": "Elite annuel",
+              "locale": "fr_FR"
+            }
+          ],
+          "productID": "ecrin.elite.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Elite annuel",
           "subscriptionGroupID": "ecrin_subscription_group",
           "type": "RecurringSubscription"
         }

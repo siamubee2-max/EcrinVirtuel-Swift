@@ -48,12 +48,17 @@ final class CoreJourneysUITests: XCTestCase {
         app.launchArguments = ["-uitest", "-uitest-auth"]
         app.launch()
 
+        // Cold first launch after fresh install can exceed 12s before the tab
+        // bar renders — wait for it explicitly instead of tapping blind.
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 20), "TabBar should appear after launch")
+
         // Tap Garde-robe tab first (Catalogue button is in its toolbar)
         app.tabBars.buttons["Garde-robe"].tap()
 
         // Wait for wardrobe to be active
         let addButton = app.buttons["wardrobe.add"]
-        XCTAssertTrue(addButton.waitForExistence(timeout: 12), "wardrobe.add button should exist")
+        XCTAssertTrue(addButton.waitForExistence(timeout: 20), "wardrobe.add button should exist")
 
         // Tap the Catalogue toolbar/navigation button
         let catalogueButton = app.buttons["Catalogue"]
@@ -99,9 +104,16 @@ final class CoreJourneysUITests: XCTestCase {
         // Tap Profil tab
         app.tabBars.buttons["Profil"].tap()
 
-        // Sign-out button should be visible
+        // ProfileView loads behind an async .task (credits fetch); under simulator
+        // load the accessibility tree settles slowly. The sign-out button sits at the
+        // bottom of a long ScrollView, so scroll it into view to make existence
+        // deterministic regardless of timing (prevents flaky timeouts under CI load).
         let signOutButton = app.buttons["profile.signout"]
-        XCTAssertTrue(signOutButton.waitForExistence(timeout: 12), "profile.signout button should appear in Profil tab")
+        if !signOutButton.waitForExistence(timeout: 20) {
+            let scroll = app.scrollViews.firstMatch
+            for _ in 0..<6 where !signOutButton.exists { scroll.swipeUp() }
+        }
+        XCTAssertTrue(signOutButton.exists, "profile.signout button should appear in Profil tab")
     }
 
     // MARK: - Test 5: Community tab shows feed

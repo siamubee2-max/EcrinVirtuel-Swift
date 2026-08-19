@@ -175,9 +175,26 @@ final class BodyContextAnalyzer: @unchecked Sendable {
         return SkinAnalysisResult(tone: tone, undertone: undertone, hex: hex, averageRGB: (r, g, b))
     }
 
+    /// One-shot guard: Vision can BOTH invoke the request completion (e.g. with a
+    /// cancellation error when inference setup fails) AND make `perform()` throw.
+    /// Resuming a CheckedContinuation twice is a fatal error (crash observed on
+    /// simulator where the Vision inference context is unavailable).
+    private final class ContinuationResumeGuard: @unchecked Sendable {
+        private let lock = NSLock()
+        private var resumed = false
+        func tryResume() -> Bool {
+            lock.lock(); defer { lock.unlock() }
+            if resumed { return false }
+            resumed = true
+            return true
+        }
+    }
+
     private func detectFaceRect(cgImage: CGImage) async -> CGRect? {
+        let resumeGuard = ContinuationResumeGuard()
         return await withCheckedContinuation { continuation in
             let request = VNDetectFaceRectanglesRequest { req, _ in
+                guard resumeGuard.tryResume() else { return }
                 guard let obs = req.results?.first as? VNFaceObservation else {
                     continuation.resume(returning: nil)
                     return
@@ -196,8 +213,10 @@ final class BodyContextAnalyzer: @unchecked Sendable {
             do {
                 try handler.perform([request])
             } catch {
-                // perform threw — the request completion will NOT fire; resume with fallback (nil faceRect)
-                continuation.resume(returning: nil)
+                // perform threw — the completion may or may not have fired already.
+                if resumeGuard.tryResume() {
+                    continuation.resume(returning: nil)
+                }
             }
         }
     }
@@ -303,8 +322,10 @@ final class BodyContextAnalyzer: @unchecked Sendable {
     }
 
     private func analyzePose(cgImage: CGImage) async -> PoseAnalysisResult {
+        let resumeGuard = ContinuationResumeGuard()
         return await withCheckedContinuation { continuation in
             let request = VNDetectHumanBodyPoseRequest { req, _ in
+                guard resumeGuard.tryResume() else { return }
                 guard let obs = req.results?.first as? VNHumanBodyPoseObservation else {
                     // Pas de pose détectée → valeurs par défaut
                     continuation.resume(returning: PoseAnalysisResult(
@@ -323,12 +344,14 @@ final class BodyContextAnalyzer: @unchecked Sendable {
             do {
                 try handler.perform([request])
             } catch {
-                // perform threw — the request completion will NOT fire; resume with default pose values
-                continuation.resume(returning: PoseAnalysisResult(
-                    shape: .hourglass,
-                    height: .medium,
-                    shoulders: .medium
-                ))
+                // perform threw — the completion may or may not have fired already.
+                if resumeGuard.tryResume() {
+                    continuation.resume(returning: PoseAnalysisResult(
+                        shape: .hourglass,
+                        height: .medium,
+                        shoulders: .medium
+                    ))
+                }
             }
         }
     }
@@ -543,8 +566,10 @@ final class BodyContextAnalyzer: @unchecked Sendable {
     // MARK: - D. Clothing Detection
 
     private func detectClothing(cgImage: CGImage) async -> [DetectedGarment] {
+        let resumeGuard = ContinuationResumeGuard()
         return await withCheckedContinuation { continuation in
             let request = VNClassifyImageRequest { req, _ in
+                guard resumeGuard.tryResume() else { return }
                 guard let observations = req.results as? [VNClassificationObservation] else {
                     continuation.resume(returning: [])
                     return
@@ -563,8 +588,10 @@ final class BodyContextAnalyzer: @unchecked Sendable {
             do {
                 try handler.perform([request])
             } catch {
-                // perform threw — the request completion will NOT fire; resume with empty garment list
-                continuation.resume(returning: [])
+                // perform threw — the completion may or may not have fired already.
+                if resumeGuard.tryResume() {
+                    continuation.resume(returning: [])
+                }
             }
         }
     }

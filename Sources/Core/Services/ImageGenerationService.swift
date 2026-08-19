@@ -27,6 +27,12 @@ enum GenerationAspectRatio {
     static let tryOn = "9:16"
 }
 
+/// Catégorie d'essayage → l'Edge Function choisit le « bon générateur » et le bon
+/// cadrage : bijoux (gros plan zone) ≠ vêtements (plein corps) ≠ chaussures.
+enum GenerationCategory: String {
+    case jewelry, clothing, shoes
+}
+
 // MARK: - Service (Sendable — toutes propriétés sont let)
 final class ImageGenerationService: Sendable {
 
@@ -41,9 +47,12 @@ final class ImageGenerationService: Sendable {
         }
         proxyURL = url
         let config = URLSessionConfiguration.default
-        // 180 s couvre le pire cas mesuré : Edge cascade Supabase + polling Kie.ai (~50 s)
-        // + latence modèle premium nano-banana-pro (~105 s end-to-end). Empirique prod v22.
-        config.timeoutIntervalForRequest  = 60   // timeout établissement connexion
+        // L'Edge Function ne renvoie RIEN avant la fin (pas de streaming) : quand le
+        // modèle primaire échoue et que la cascade enchaîne les fallbacks, aucun octet
+        // n'arrive pendant >60 s. Un timeoutIntervalForRequest à 60 s coupait alors la
+        // requête AVANT que le serveur ait fini → « image non générée » à tort.
+        // On aligne les deux timeouts sur le budget serveur (cascade plafonnée ~130 s).
+        config.timeoutIntervalForRequest  = 180  // pas de coupure prématurée sans octet reçu
         config.timeoutIntervalForResource = 180  // timeout total ressource
         session = URLSession(configuration: config)
     }
@@ -56,13 +65,14 @@ final class ImageGenerationService: Sendable {
         }
 
         let prompt = """
-        High-end jewelry photography. The person is wearing \(jewelry.prompt). \
-        Photorealistic, luxury, elegant lighting, 8K quality. \
+        EDIT the reference photo of the person: keep the SAME background, lighting, colours and mood — \
+        only add \(jewelry.prompt), rendered at realistic true-to-life scale (never oversized). \
+        Photorealistic, seamlessly composited. Do NOT beautify, relight, recolour or replace the background. \
         Keep the person's face, skin tone, and pose exactly the same.
         """
 
         let reference = await downloadReference(jewelry.imageURL)
-        return try await sendRequest(imageData: imageData, prompt: prompt, referenceImageData: reference)
+        return try await sendRequest(imageData: imageData, prompt: prompt, category: .jewelry, referenceImageData: reference)
     }
 
     // MARK: - QuickTryOn — prompt libre
@@ -87,7 +97,9 @@ final class ImageGenerationService: Sendable {
 
     // MARK: - QuickTryOn Enrichi — analyse corporelle + prompt contextuel
 
-    @MainActor
+    // PAS @MainActor : la compression JPEG (resizedImageData) + l'analyse Vision
+    // doivent tourner hors du thread UI. BodyContextAnalyzer est @unchecked Sendable
+    // et EnrichedPromptBuilder.build est pur — rien n'exige le main actor ici.
     func tryOnEnriched(
         photo: UIImage,
         item: QuickTryOnItem,
@@ -103,8 +115,13 @@ final class ImageGenerationService: Sendable {
             mode: mode,
             bodyContext: bodyContext
         )
+        let category: GenerationCategory = switch mode {
+        case .jewelsOnly:                 .jewelry
+        case .shoesOnly, .shoesAndBottom: .shoes
+        default:                          .clothing
+        }
         let reference = await downloadReference(item.referenceImageURL)
-        let generated = try await sendRequest(imageData: imageData, prompt: prompt, referenceImageData: reference)
+        let generated = try await sendRequest(imageData: imageData, prompt: prompt, category: category, referenceImageData: reference)
         return (image: generated, context: bodyContext)
     }
 
@@ -121,8 +138,13 @@ final class ImageGenerationService: Sendable {
         }
 
         let prompt = buildPrompt(for: item, angle: angle)
+        let category: GenerationCategory = switch item.category.group {
+        case .jewelry: .jewelry
+        case .shoes:   .shoes
+        default:       .clothing   // .clothing + .accessories
+        }
         let reference = await downloadReference(item.imageURL)
-        return try await sendRequest(imageData: imageData, prompt: prompt, model: model, referenceImageData: reference)
+        return try await sendRequest(imageData: imageData, prompt: prompt, model: model, category: category, referenceImageData: reference)
     }
 
     // MARK: - Private helpers
@@ -167,7 +189,7 @@ final class ImageGenerationService: Sendable {
             item.color.map { "Color: \($0)." },
             item.brand.map { "Brand style: \($0)." },
             angleTag,
-            "Photorealistic, luxury fashion photography, 8K quality, professional lighting. Keep the person's face, skin tone, and body proportions exactly the same."
+            "EDIT the reference photo: keep the same background, lighting and colours — only add the item. Photorealistic, seamlessly composited. Do NOT beautify, relight, recolour or replace the background. Keep the person's face, skin tone, and body proportions exactly the same."
         ]
         return parts.compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " ")
     }
@@ -178,6 +200,7 @@ final class ImageGenerationService: Sendable {
         imageData: Data,
         prompt: String,
         model: GenerationModel = .standard,
+        category: GenerationCategory? = nil,
         referenceImageData: Data? = nil
     ) async throws -> UIImage {
         // Obtenir le JWT utilisateur.
@@ -203,6 +226,9 @@ final class ImageGenerationService: Sendable {
             "quality": "medium",
             "aspectRatio": GenerationAspectRatio.tryOn,
         ]
+        if let category {
+            body["category"] = category.rawValue
+        }
         if let referenceImageData {
             body["referenceImageBase64"] = referenceImageData.base64EncodedString()
         }

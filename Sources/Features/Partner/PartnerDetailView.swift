@@ -14,7 +14,6 @@ struct PartnerDetailView: View {
     @State private var catalog: [JewelryItem] = []
     @State private var isLoadingCatalog = true
     @State private var selectedJewelryForTryOn: JewelryItem? = nil
-    @State private var showTryOn = false
 
     private let service = PartnerService.shared
 
@@ -41,8 +40,8 @@ struct PartnerDetailView: View {
             catalog = await service.fetchPartnerCatalog(id: brand.id)
             isLoadingCatalog = false
         }
-        .sheet(isPresented: $showTryOn) {
-            TryOnView()
+        .sheet(item: $selectedJewelryForTryOn) { jewelry in
+            TryOnView(preselectedJewelry: jewelry)
                 .environment(appState)
         }
     }
@@ -185,10 +184,9 @@ struct PartnerDetailView: View {
                 ) {
                     ForEach(catalog) { item in
                         JewelryCatalogCard(item: item, brand: brand) {
-                            // Try-on: pre-select jewelry
-                            selectedJewelryForTryOn = item
+                            // Try-on : présélectionne le bijou → `.sheet(item:)` l'ouvre
                             service.trackClick(jewelry: item, partner: brand)
-                            showTryOn = true
+                            selectedJewelryForTryOn = item
                         } onBuy: {
                             service.trackClick(jewelry: item, partner: brand)
                             openBrandWebsite()
@@ -340,7 +338,7 @@ private struct JewelryCatalogCard: View {
                     )
 
                     if let url = item.imageURL {
-                        AsyncImage(url: url) { phase in
+                        DownsampledAsyncImage(url: url) { phase in
                             switch phase {
                             case .success(let img):
                                 img.resizable()
@@ -384,6 +382,8 @@ private struct JewelryCatalogCard: View {
                                 Text("Essayer")
                                     .font(EcrinFont.cta)
                                     .kerning(1)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
                             }
                             .foregroundStyle(EcrinColor.gold)
                             .padding(.horizontal, EcrinSpacing.sm)
@@ -403,6 +403,8 @@ private struct JewelryCatalogCard: View {
                                 Text("Acheter")
                                     .font(EcrinFont.cta)
                                     .kerning(1)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
                             }
                             .foregroundStyle(EcrinColor.background)
                             .padding(.horizontal, EcrinSpacing.sm)

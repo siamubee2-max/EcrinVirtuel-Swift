@@ -104,7 +104,7 @@ struct WardrobeItemCard: View {
                     .resizable()
                     .scaledToFit()
             } else if let url = item.imageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFit()
