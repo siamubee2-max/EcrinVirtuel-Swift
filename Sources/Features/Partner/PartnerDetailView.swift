@@ -14,7 +14,6 @@ struct PartnerDetailView: View {
     @State private var catalog: [JewelryItem] = []
     @State private var isLoadingCatalog = true
     @State private var selectedJewelryForTryOn: JewelryItem? = nil
-    @State private var showTryOn = false
 
     private let service = PartnerService.shared
 
@@ -41,21 +40,16 @@ struct PartnerDetailView: View {
             catalog = await service.fetchPartnerCatalog(id: brand.id)
             isLoadingCatalog = false
         }
-        .sheet(isPresented: $showTryOn) {
+        .sheet(item: $selectedJewelryForTryOn) { jewelry in
             // Pré-sélectionner le bijou tapé — TryOnView() nu ignorait
             // selectedJewelryForTryOn et ouvrait l'essayage à vide.
-            if let jewelry = selectedJewelryForTryOn {
-                QuickTryOnView(
-                    preselectedItem: .wardrobe(jewelry.asFashionItem),
-                    preselectedMode: .jewelsOnly
-                )
-                .environment(appState)
-                .environment(ClothingCatalogService.shared)
-                .presentationDetents([.large])
-            } else {
-                TryOnView()
-                    .environment(appState)
-            }
+            QuickTryOnView(
+                preselectedItem: .wardrobe(jewelry.asFashionItem),
+                preselectedMode: .jewelsOnly
+            )
+            .environment(appState)
+            .environment(ClothingCatalogService.shared)
+            .presentationDetents([.large])
         }
     }
 
@@ -197,10 +191,9 @@ struct PartnerDetailView: View {
                 ) {
                     ForEach(catalog) { item in
                         JewelryCatalogCard(item: item, brand: brand) {
-                            // Try-on: pre-select jewelry
-                            selectedJewelryForTryOn = item
+                            // Try-on : présélectionne le bijou → `.sheet(item:)` l'ouvre
                             service.trackClick(jewelry: item, partner: brand)
-                            showTryOn = true
+                            selectedJewelryForTryOn = item
                         } onBuy: {
                             service.trackClick(jewelry: item, partner: brand)
                             openBrandWebsite()
@@ -352,7 +345,7 @@ private struct JewelryCatalogCard: View {
                     )
 
                     if let url = item.imageURL {
-                        AsyncImage(url: url) { phase in
+                        DownsampledAsyncImage(url: url) { phase in
                             switch phase {
                             case .success(let img):
                                 img.resizable()
@@ -396,6 +389,8 @@ private struct JewelryCatalogCard: View {
                                 Text(L10n.LookOfDay.tryButton)
                                     .font(EcrinFont.cta)
                                     .kerning(1)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
                             }
                             .foregroundStyle(EcrinColor.gold)
                             .padding(.horizontal, EcrinSpacing.sm)
@@ -415,6 +410,8 @@ private struct JewelryCatalogCard: View {
                                 Text(L10n.PartnerUI.buy)
                                     .font(EcrinFont.cta)
                                     .kerning(1)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
                             }
                             .foregroundStyle(EcrinColor.background)
                             .padding(.horizontal, EcrinSpacing.sm)

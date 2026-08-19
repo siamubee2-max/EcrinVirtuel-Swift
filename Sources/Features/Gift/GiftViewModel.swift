@@ -71,7 +71,8 @@ final class GiftViewModel: ObservableObject {
         withAnimation(EcrinAnimation.springSnap) { currentStep = step }
     }
 
-    // MARK: - Gift Creation (Supabase backend)
+    // MARK: - Gift Creation (local-only)
+    // gift_cards table not provisioned in prod — gift is local-only (see docs/audits 2026-06-21 C3).
 
     func createGiftLink(fromUser: User) async {
         guard let jewelry = selectedJewelry else { return }
@@ -157,7 +158,9 @@ final class GiftViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Gift Reception (Supabase backend)
+    // MARK: - Gift Reception (local-only — deep-link cannot be resolved)
+    // gift_cards table not provisioned in prod — gift is local-only (see docs/audits 2026-06-21 C3).
+    // A received deep-link cannot be looked up; inform the user honestly.
 
     func receive(giftID: UUID) async {
         isLoadingGift = true

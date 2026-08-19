@@ -22,6 +22,7 @@ struct WardrobeView: View {
     ]
 
     var body: some View {
+        @Bindable var vm = viewModel
         ZStack {
             EcrinColor.background.ignoresSafeArea()
 
@@ -123,6 +124,16 @@ struct WardrobeView: View {
             .environment(appState)
             .environment(ClothingCatalogService.shared)
             .presentationDetents([.large])
+        }
+        // Fix B: surface Supabase sync errors to the user.
+        .alert("Erreur de synchronisation",
+               isPresented: Binding(
+                   get: { vm.errorMessage != nil },
+                   set: { if !$0 { vm.errorMessage = nil } }
+               )) {
+            Button(L10n.Common.ok, role: .cancel) { vm.errorMessage = nil }
+        } message: {
+            Text(vm.errorMessage ?? "")
         }
     }
 
@@ -252,6 +263,7 @@ struct WardrobeView: View {
             }
         }
         .animation(EcrinAnimation.springSnap, value: viewModel.filteredItems.map { $0.id })
+        .accessibilityIdentifier("wardrobe.list")
     }
 
     // MARK: - Empty State
@@ -274,6 +286,7 @@ struct WardrobeView: View {
             }
         }
         .padding(EcrinSpacing.xl)
+        .accessibilityIdentifier("wardrobe.empty")
     }
 
     // MARK: - FAB
@@ -293,6 +306,7 @@ struct WardrobeView: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("wardrobe.add")
     }
 }
 

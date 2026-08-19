@@ -95,6 +95,10 @@ final class SocialExportViewModel: ObservableObject {
 
     private var renderTask: Task<Void, Never>?
 
+    deinit {
+        renderTask?.cancel()
+    }
+
     func scheduleRender() {
         renderTask?.cancel()
         renderTask = Task {

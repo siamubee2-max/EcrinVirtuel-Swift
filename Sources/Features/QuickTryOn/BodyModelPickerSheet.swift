@@ -241,7 +241,7 @@ private struct BodyModelCard: View {
                     .fill(EcrinColor.glassFill)
 
                 if let url = model.imageURL {
-                    AsyncImage(url: url) { phase in
+                    DownsampledAsyncImage(url: url) { phase in
                         switch phase {
                         case .empty:
                             ProgressView().tint(EcrinColor.gold)

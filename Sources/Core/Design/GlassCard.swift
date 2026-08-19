@@ -55,7 +55,7 @@ extension View {
     @ViewBuilder
     func glassCircleButton(active: Bool = false) -> some View {
         if #available(iOS 26, *) {
-            self.glassEffect(active ? .regular.tint(EcrinColor.gold.opacity(0.2)) : .regular, in: .circle)
+            self.glassEffect(active ? .regular.tint(EcrinColor.gold.opacity(0.12)) : .regular, in: .circle)
         } else {
             self
                 .background(EcrinColor.glassFill)

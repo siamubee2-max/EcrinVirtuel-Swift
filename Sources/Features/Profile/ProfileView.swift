@@ -4,6 +4,7 @@ struct ProfileView: View {
     @Environment(AppState.self) private var appState
     @State private var showStoneGuide = false
     @State private var showGiftCreator = false
+    @State private var showDressing = false
     @State private var showDeleteConfirmation = false
     @State private var isDeletingAccount = false
     @State private var deleteError: String?
@@ -73,6 +74,7 @@ struct ProfileView: View {
                             }
                         }
                         .buttonStyle(.plain)
+                        .accessibilityIdentifier("profile.premium")
                         .padding(.horizontal, EcrinSpacing.lg)
 
                         // Secondaire : achat à l'unité
@@ -177,6 +179,93 @@ struct ProfileView: View {
                     .padding(.horizontal, EcrinSpacing.lg)
                     .accessibilityLabel(L10n.ProfileUI.giftAJewelA11y)
 
+                    // Mon Dressing — galerie persistante des essayages générés
+                    Button {
+                        showDressing = true
+                    } label: {
+                        HStack(spacing: EcrinSpacing.md) {
+                            ZStack {
+                                Circle()
+                                    .fill(EcrinColor.gold.opacity(0.15))
+                                    .frame(width: 44, height: 44)
+                                Image(systemName: "sparkles.rectangle.stack")
+                                    .font(.system(size: 18, weight: .thin))
+                                    .foregroundStyle(EcrinColor.gold)
+                            }
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Mes créations")
+                                    .font(EcrinFont.cardTitle)
+                                    .foregroundStyle(EcrinColor.textPrimary)
+                                Text("Tous vos essayages sauvegardés")
+                                    .font(EcrinFont.caption)
+                                    .foregroundStyle(EcrinColor.textSecondary)
+                            }
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .light))
+                                .foregroundStyle(EcrinColor.textMuted)
+                        }
+                        .padding(EcrinSpacing.lg)
+                        .background {
+                            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                .fill(EcrinColor.glassFill)
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                        .strokeBorder(EcrinColor.glassStroke, lineWidth: 0.5)
+                                }
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, EcrinSpacing.lg)
+
+                    // Parrainage — « Invitez une amie, 3 essais offerts chacune »
+                    if let userID = appState.currentUser?.id {
+                        ShareLink(
+                            item: URL(string: "https://ecrin.app/ecrin/ref/\(userID.uuidString)")!,
+                            message: Text("Essaie L'Écrin Virtuel — l'essayage de bijoux par IA. Avec mon lien, on gagne 3 essais offerts chacune ✨")
+                        ) {
+                            HStack(spacing: EcrinSpacing.md) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(hex: "#2E86AB").opacity(0.15))
+                                        .frame(width: 44, height: 44)
+                                    Image(systemName: "person.badge.plus")
+                                        .font(.system(size: 18, weight: .thin))
+                                        .foregroundStyle(Color(hex: "#2E86AB"))
+                                }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Invitez une amie")
+                                        .font(EcrinFont.cardTitle)
+                                        .foregroundStyle(EcrinColor.textPrimary)
+                                    Text("3 essais offerts pour elle et pour vous")
+                                        .font(EcrinFont.caption)
+                                        .foregroundStyle(EcrinColor.textSecondary)
+                                }
+
+                                Spacer()
+
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.system(size: 14, weight: .light))
+                                    .foregroundStyle(EcrinColor.textMuted)
+                            }
+                            .padding(EcrinSpacing.lg)
+                            .background {
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .fill(EcrinColor.glassFill)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                            .strokeBorder(EcrinColor.glassStroke, lineWidth: 0.5)
+                                    }
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, EcrinSpacing.lg)
+                    }
+
                     // Stone Guide entry point
                     Button {
                         showStoneGuide = true
@@ -241,6 +330,7 @@ struct ProfileView: View {
                         }
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
+                        .accessibilityIdentifier("profile.signout")
 
                         if let error = deleteError {
                             Text(error)
@@ -278,6 +368,9 @@ struct ProfileView: View {
         .fullScreenCover(isPresented: $showGiftCreator) {
             GiftCreatorView()
         }
+        .sheet(isPresented: $showDressing) {
+            DressingView()
+        }
         .sheet(isPresented: $showSubscription) {
             PaywallView()
         }
@@ -287,7 +380,16 @@ struct ProfileView: View {
             CreditsPackView()
         }
         .task {
-            remainingCredits = try? await SupabaseService.shared.fetchRemainingCredits()
+            if AppLaunchEnvironment.isUITesting {
+                remainingCredits = AppLaunchEnvironment.mockCredits
+            } else if let credits = try? await SupabaseService.shared.fetchRemainingCredits() {
+                remainingCredits = credits
+            } else {
+                // Pas de session (ou fetch échoué) : on affiche le solde local
+                // plutôt qu'un "Chargement…" qui ne se résout jamais.
+                await CreditsManager.shared.sync()
+                remainingCredits = CreditsManager.shared.remaining
+            }
         }
         .confirmationDialog(
             L10n.ProfileUI.withdrawAiConsentQuestion,

@@ -13,6 +13,7 @@ struct MainTabView: View {
 
                 // Tab 0 — Essayage bijoux IA
                 TryOnView()
+                    .accessibilityIdentifier("screen.essayage")
                     .tabItem { Label(L10n.TryOn.title, systemImage: "sparkles") }
                     .tag(0)
 
@@ -33,11 +34,13 @@ struct MainTabView: View {
                             }
                         }
                 }
+                .accessibilityIdentifier("screen.garderobe")
                 .tabItem { Label(L10n.AppUI.wardrobe, systemImage: "tshirt.fill") }
                 .tag(1)
 
                 // Tab 2 — Boutique partenaires
                 PartnerStoreView()
+                    .accessibilityIdentifier("screen.boutique")
                     .tabItem { Label(L10n.Home.boutique, systemImage: "bag") }
                     .tag(2)
 
@@ -54,11 +57,13 @@ struct MainTabView: View {
                             }
                         }
                 }
+                .accessibilityIdentifier("screen.communaute")
                 .tabItem { Label(L10n.AppUI.community, systemImage: "person.2") }
                 .tag(3)
 
                 // Tab 4 — Profil
                 ProfileView()
+                    .accessibilityIdentifier("screen.profil")
                     .tabItem { Label(L10n.AppUI.profile, systemImage: "person.circle") }
                     .tag(4)
             }
@@ -81,6 +86,7 @@ struct MainTabView: View {
             }
             .accessibilityLabel(L10n.AppUI.quickTryOn)
             .accessibilityHint("Ouvre l'essayage virtuel")
+            .accessibilityIdentifier("fab.quicktryon")
             .offset(y: -28)
             .sheet(isPresented: $showQuickTryOn) {
                 QuickTryOnView()
@@ -108,7 +114,9 @@ struct MainTabView: View {
                 .environment(ClothingCatalogService.shared)
         }
         .task {
-            await ClothingCatalogService.shared.fetchAll(force: true)
+            // force: false — the app boot sequence already calls fetchAll(force: true).
+            // Forcing here triggers a duplicate 3-gender network fetch on every tab switch.
+            await ClothingCatalogService.shared.fetchAll(force: false)
         }
     }
 }

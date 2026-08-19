@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Photos
 
 // MARK: - Snapshot Renderer
 /// Renders a LookSnapshot to a UIImage at the target social format resolution.
@@ -30,9 +31,8 @@ final class SnapshotRenderer {
         guard let image = await render(snapshot) else {
             throw RenderError.renderFailed
         }
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil)
-            continuation.resume()
+        try await PHPhotoLibrary.shared().performChanges {
+            PHAssetChangeRequest.creationRequestForAsset(from: image)
         }
     }
 

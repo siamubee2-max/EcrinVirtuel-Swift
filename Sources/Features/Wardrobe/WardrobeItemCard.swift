@@ -83,6 +83,7 @@ struct WardrobeItemCard: View {
         .scaleEffect(pressed ? 0.96 : 1.0)
         .animation(EcrinAnimation.springSnap, value: pressed)
         .animation(EcrinAnimation.springSnap, value: isSelected)
+        .accessibilityIdentifier("wardrobe.item")
         .onTapGesture { onTap?() }
         .onLongPressGesture(minimumDuration: 0.4,
                             pressing: { pressing in
@@ -103,7 +104,7 @@ struct WardrobeItemCard: View {
                     .resizable()
                     .scaledToFit()
             } else if let url = item.imageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFit()

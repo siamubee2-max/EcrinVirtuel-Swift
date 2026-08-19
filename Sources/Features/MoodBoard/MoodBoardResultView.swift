@@ -5,6 +5,7 @@ import SwiftUI
 struct MoodBoardResultView: View {
     let board: MoodBoard
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
     @State private var showSaveSheet   = false
     @State private var savedSuccessfully = false
     @State private var descriptionVisible = false
@@ -71,7 +72,11 @@ struct MoodBoardResultView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4)  { jewelryVisible = true }
         }
         .sheet(isPresented: $showSaveSheet) {
-            MoodSaveLookSheet(board: board, onSave: {
+            MoodSaveLookSheet(board: board, onSave: { savedTitle in
+                // Persist to MoodBoardStore so the gallery reflects this board.
+                var saved = board
+                saved.title = savedTitle
+                MoodBoardStore.shared.save(saved)
                 savedSuccessfully = true
                 showSaveSheet = false
             })
@@ -286,7 +291,11 @@ struct MoodBoardResultView: View {
 
     private var actionsSection: some View {
         VStack(spacing: EcrinSpacing.md) {
+            // "Essayer ces bijoux" — pose pendingMoodBoardJewelry dans AppState puis
+            // dismisse ; MoodBoardGalleryView observe et ouvre ARTryOnWrapperView.
             GoldButton(title: L10n.MoodBoardUI.tryTheseJewels) {
+                guard !board.jewelryItems.isEmpty else { return }
+                appState.pendingMoodBoardJewelry = board.jewelryItems
                 dismiss()
             }
 
@@ -392,7 +401,7 @@ private struct SavedToastView: View {
 
 struct MoodSaveLookSheet: View {
     let board: MoodBoard
-    let onSave: () -> Void
+    let onSave: (String) -> Void   // passes the final title to the caller
     @Environment(\.dismiss) private var dismiss
     @State private var customTitle: String = ""
 
@@ -442,7 +451,7 @@ struct MoodSaveLookSheet: View {
 
                 VStack(spacing: EcrinSpacing.md) {
                     GoldButton(title: L10n.OutfitBuilderUI.save) {
-                        onSave()
+                        onSave(customTitle.trimmingCharacters(in: .whitespaces).isEmpty ? board.title : customTitle)
                     }
                     Button(L10n.Common.cancel) { dismiss() }
                         .font(EcrinFont.caption)
@@ -468,4 +477,5 @@ struct MoodSaveLookSheet: View {
         colorPalette: ["#080808", "#CA8A04", "#F5D37A", "#1A1A2E", "#4A4080"],
         keywords: ["Gala", "Classique", "Hiver", "Grandiose", "Somptueux"]
     ))
+    .environment(AppState())
 }

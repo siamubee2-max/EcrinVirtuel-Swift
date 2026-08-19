@@ -17,6 +17,10 @@ struct ARTryOnWrapperView: View {
     @State private var capturedImage: UIImage? = nil
     @State private var showCapturePreview: Bool = false
     @State private var isARAvailable: Bool = ARFaceTrackingConfiguration.isSupported || ARBodyTrackingConfiguration.isSupported
+    /// Fix C: real jewelry catalog fetched from Supabase on appear.
+    /// Falls back to JewelryItem.samples when the fetch returns empty or fails,
+    /// so AR remains usable offline and in UI tests.
+    @State private var jewelryCatalog: [JewelryItem] = JewelryItem.samples
 
     init(jewelry: JewelryItem, onDismiss: @escaping () -> Void, onCapture: @escaping (UIImage) -> Void) {
         self.jewelry = jewelry
@@ -51,6 +55,21 @@ struct ARTryOnWrapperView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 withAnimation(EcrinAnimation.easeSlide) {
                     showInstructions = false
+                }
+            }
+            // Fix C: load real jewelry catalog from Supabase.
+            // Under UI tests keep static samples for determinism.
+            guard !AppLaunchEnvironment.isUITesting else { return }
+            Task {
+                do {
+                    let fetched = try await SupabaseService.shared.fetchJewelryCatalog()
+                    let mapped = fetched.map { $0.asJewelryItem }
+                    if !mapped.isEmpty {
+                        jewelryCatalog = mapped
+                    }
+                    // If fetch returns empty, jewelryCatalog keeps its JewelryItem.samples default.
+                } catch {
+                    // Network/Supabase error — AR still works with samples fallback.
                 }
             }
         }
@@ -236,7 +255,8 @@ struct ARTryOnWrapperView: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: EcrinSpacing.md) {
-                        ForEach(JewelryItem.samples) { item in
+                        // Fix C: use real Supabase catalog; falls back to samples if fetch failed.
+                        ForEach(jewelryCatalog) { item in
                             JewelryPickerItem(
                                 item: item,
                                 isSelected: item.id == selectedJewelry.id

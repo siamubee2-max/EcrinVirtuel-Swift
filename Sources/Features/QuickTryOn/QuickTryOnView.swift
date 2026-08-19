@@ -148,7 +148,8 @@ struct QuickTryOnView: View {
                         showResult = false
                         vm.result = nil
                         vm.currentStep = 1
-                    }
+                    },
+                    beforeImage: vm.userPhoto
                 )
             }
         }
@@ -158,6 +159,7 @@ struct QuickTryOnView: View {
                 showResult = true
             }
         }
+        .accessibilityIdentifier("quicktryon.root")
     }
 
     // MARK: - Header
@@ -730,16 +732,9 @@ struct QuickTryOnView: View {
 
                 // CTA principal
                 if vm.isGenerating {
-                    VStack(spacing: EcrinSpacing.md) {
-                        ProgressView()
-                            .tint(EcrinColor.gold)
-                            .scaleEffect(1.4)
-                        Text(L10n.MultiPoseUI.generationInProgress)
-                            .font(EcrinFont.caption)
-                            .foregroundStyle(EcrinColor.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, EcrinSpacing.lg)
+                    GenerationProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, EcrinSpacing.lg)
                 } else {
                     VStack(spacing: EcrinSpacing.sm) {
                         // Toggle multi-vues
@@ -767,7 +762,7 @@ struct QuickTryOnView: View {
     // MARK: - Bottom Nav
 
     private func generateWithAuth() async {
-        if await GenerationAuthGate.hasSession() {
+        if await GenerationAuthGate.ensureSession() {
             await vm.generate(showPaywall: { showPaywall = true })
             // Synchronise le contexte corporel vers AppState pour le scoring bijoux
             if let ctx = vm.lastBodyContext {

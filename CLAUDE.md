@@ -24,6 +24,15 @@ xcodebuild build -project EcrinVirtuel.xcodeproj -scheme EcrinVirtuel \
 - Storage buckets: `community-posts` (public), `tryon-temp` (public, transient uploads for Kie), `tryon-results`, `gift-previews` (private).
 - AI secrets (FAL_API_KEY, GOOGLE_API_KEY, OPENAI_API_KEY, RC_WEBHOOK_SECRET) live ONLY in Supabase Edge Function secrets — never in the IPA / source. They must be re-entered on the new project (Dashboard → Functions → Secrets).
 
+## App Store compliance (audit 3 July 2026)
+
+- **UGC moderation (guideline 1.2)**: Community feed has per-post "…" menu → report (5 reasons) + block author, wired to `CommunityViewModel.report/blockAuthor` and `SupabaseService.reportPost` (table `post_reports`). Feed renders `visiblePosts` (excludes blocked/reported). Terms `terms.html` §5 states zero-tolerance policy. NOTE: sample-seed posts aren't in `community_posts`, so the FK-guarded server insert only persists for real user posts — UI masking always works.
+- **Info.plist**: `NSPhotoLibraryAddUsageDescription` added (app saves try-ons via `PHPhotoLibrary.addOnly`). `ITSAppUsesNonExemptEncryption=false`. Privacy manifest `Sources/Resources/PrivacyInfo.xcprivacy` (tracking=false).
+- **Legal URLs**: privacy live at `inferencevision.store/ecrin/privacy(.html)`. `terms` was 404 — canonical `terms.html` staged in `web/public/ecrin/` and the site deploy dirs (`inferencevision-site/deploy-ready-hubv3/ecrin/`, `site/ecrin/`). **ACTION REQUIRED: redeploy inferencevision.store so `/ecrin/terms` resolves before submission.**
+- **Paywall (3.1.2)**: PaywallView + CreditsPackView show auto-renew disclosure + CGU/Confidentialité links + "Restaurer mes achats".
+- **Weather attribution**: Open-Meteo credit shown in `LookDuJourCard` (data source disclosure).
+- **DEV skip-login** in `LoginView` is `#if DEBUG` only (stripped from Release).
+
 ## Conventions
 
 - Logging: `os.Logger` (subsystem `com.ecrin.jewelry`, category per feature). No `print()` in production code.

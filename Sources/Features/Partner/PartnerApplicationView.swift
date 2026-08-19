@@ -351,31 +351,27 @@ struct PartnerApplicationView: View {
         Task {
             defer { isSubmitting = false }
             do {
-                struct ApplicationRow: Encodable {
-                    let brand_name:    String
-                    let category:      String
-                    let country:       String
-                    let contact_email: String
-                    let website_url:   String?
-                    let instagram:     String?
-                    let description:   String
-                    let user_id:       String?
+                // Maps to prod table `partnership_requests` (partner_applications absent).
+                // Prod columns: id, brand_name, email, website, description, status, created_at.
+                struct PartnershipRequestRow: Encodable {
+                    let id:          String
+                    let brand_name:  String
+                    let email:       String
+                    let website:     String?
+                    let description: String
+                    let created_at:  String
                 }
 
-                let userId = try? await SupabaseService.shared.client.auth.session.user.id.uuidString
-
-                let row = ApplicationRow(
-                    brand_name:    brandName.trimmingCharacters(in: .whitespaces),
-                    category:      category.rawValue,
-                    country:       country.trimmingCharacters(in: .whitespaces),
-                    contact_email: contactEmail.trimmingCharacters(in: .whitespaces).lowercased(),
-                    website_url:   websiteURL.trimmingCharacters(in: .whitespaces).isEmpty ? nil : websiteURL.trimmingCharacters(in: .whitespaces),
-                    instagram:     instagram.trimmingCharacters(in: .whitespaces).isEmpty ? nil : instagram.trimmingCharacters(in: .whitespaces),
-                    description:   description.trimmingCharacters(in: .whitespaces),
-                    user_id:       userId
+                let row = PartnershipRequestRow(
+                    id:          UUID().uuidString,
+                    brand_name:  brandName.trimmingCharacters(in: .whitespaces),
+                    email:       contactEmail.trimmingCharacters(in: .whitespaces).lowercased(),
+                    website:     websiteURL.trimmingCharacters(in: .whitespaces).isEmpty ? nil : websiteURL.trimmingCharacters(in: .whitespaces),
+                    description: description.trimmingCharacters(in: .whitespaces),
+                    created_at:  ISO8601DateFormatter().string(from: .now)
                 )
 
-                try await SupabaseService.shared.insertRow(row, into: SupabaseService.partnerApplications)
+                try await SupabaseService.shared.insertRow(row, into: SupabaseService.partnershipRequests)
 
                 withAnimation(EcrinAnimation.springSnap) {
                     submitted = true

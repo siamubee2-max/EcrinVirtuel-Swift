@@ -215,6 +215,11 @@ struct MultiPoseFlowView: View {
                     onSaveToDressing: { saveResultsToDressing() },
                     onClose: { dismiss() }
                 )
+                .onAppear {
+                    // Persiste automatiquement chaque vue générée dans « Mes créations »
+                    // pour qu'elles ne soient jamais perdues au glissement/fermeture.
+                    vm.results.compactMap(\.image).forEach { SessionCreationsStore.add($0) }
+                }
             }
         }
         .id(flowStep)
@@ -548,8 +553,12 @@ struct MultiPoseFlowView: View {
             ? L10n.MultiPoseUI.viewsAddedToWardrobe(images.count)
             : L10n.MultiPoseUI.addedToWardrobe
 
-        // Dismiss après un court délai pour laisser voir la confirmation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+        // Dismiss après un court délai pour laisser voir la confirmation.
+        // Using structured Task so the work is tied to view lifecycle and can be cancelled;
+        // avoids calling dismiss() on an already-dismissed sheet (DispatchQueue.main.asyncAfter
+        // is not cancellable and can double-dismiss a SwiftUI sheet).
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(1.2))
             dismiss()
         }
     }

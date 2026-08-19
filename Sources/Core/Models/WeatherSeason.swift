@@ -8,16 +8,20 @@ enum WeatherSeason: String, Codable, Sendable, CaseIterable {
     case automne
     case hiver
 
-    /// Hémisphère nord — combine mois civil et température actuelle.
+    /// Hémisphère nord — dérivé principalement du mois civil.
+    /// La température affine uniquement le cas extrême (printemps glacial → hiver).
     static func from(month: Int, temperatureC: Double) -> WeatherSeason {
         switch month {
-        case 3...5 where temperatureC > 5:
-            return .printemps
+        case 3...5:
+            // Printemps calendaire ; si température vraiment hivernale, traiter comme hiver
+            return temperatureC > 5 ? .printemps : .hiver
         case 6...8:
             return .ete
-        case 9...11 where temperatureC < 20:
+        case 9...11:
+            // Automne calendaire quelle que soit la température
             return .automne
         default:
+            // Décembre, janvier, février
             return .hiver
         }
     }

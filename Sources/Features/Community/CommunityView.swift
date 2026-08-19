@@ -112,6 +112,23 @@ struct CommunityView: View {
 
 private struct FeedTab: View {
     @ObservedObject var vm: CommunityViewModel
+    @State private var postForComments: CommunityPost?
+
+    private var inspirationBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 12))
+                .foregroundStyle(EcrinColor.gold)
+            Text("Inspiration L'Écrin — exemples de rendus")
+                .font(EcrinFont.caption)
+                .foregroundStyle(EcrinColor.textSecondary)
+            Spacer()
+        }
+        .padding(.horizontal, EcrinSpacing.md)
+        .padding(.vertical, EcrinSpacing.sm)
+        .background(EcrinColor.gold.opacity(0.08), in: Capsule())
+        .overlay(Capsule().strokeBorder(EcrinColor.gold.opacity(0.2), lineWidth: 0.5))
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -132,19 +149,24 @@ private struct FeedTab: View {
     private var feedScroll: some View {
         ScrollView {
             LazyVStack(spacing: EcrinSpacing.md) {
-                // Stories row
-                StoriesRow(entries: vm.leaderboard, onCompose: { vm.showCompose = true })
+                // Bandeau « Inspiration » — ce feed présente des exemples de rendus
+                // L'Écrin (pas des publications d'utilisateurs réels). Transparence.
+                inspirationBanner
+                    .padding(.horizontal, EcrinSpacing.md)
                     .padding(.top, EcrinSpacing.sm)
 
-                // Posts
-                ForEach(vm.posts) { post in
+                // Stories row
+                StoriesRow(entries: vm.leaderboard, onCompose: { vm.showCompose = true })
+
+                // Posts — visiblePosts exclut auteurs bloqués & posts signalés (App Store 1.2)
+                ForEach(vm.visiblePosts) { post in
                     PostCard(
                         post: post,
                         onLike: { vm.toggleLike(post: post) },
-                        isOwnPost: vm.isOwnPost(post),
-                        onReport: { vm.report(post: post) },
-                        onHide: { vm.hide(post: post) },
-                        onDelete: { vm.deletePost(post) }
+                        commentCount: vm.displayedCommentCount(for: post),
+                        onComment: { postForComments = post },
+                        onReport: { reason in vm.report(post: post, reason: reason) },
+                        onBlock: { vm.blockAuthor(of: post) }
                     )
                     .padding(.horizontal, EcrinSpacing.md)
                 }
@@ -153,8 +175,12 @@ private struct FeedTab: View {
             }
         }
         .scrollIndicators(.hidden)
+        .accessibilityIdentifier("community.feed")
         .refreshable {
             await vm.refreshFeed()
+        }
+        .sheet(item: $postForComments) { post in
+            CommentsSheet(post: post, vm: vm)
         }
     }
 }
@@ -208,7 +234,7 @@ private struct StoriesRow: View {
 
 private struct StoryAvatar: View {
     let entry: LeaderboardEntry
-    let isActive: Bool = Bool.random()
+    // isActive is derived from rank so it's deterministic and doesn't flicker on re-render
 
     private var initials: String {
         let name = entry.user.displayName ?? entry.user.email

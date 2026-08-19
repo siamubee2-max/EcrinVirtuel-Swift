@@ -30,11 +30,11 @@ struct User: Identifiable, Codable {
     }
 }
 
-enum SubscriptionStatus {
-    case free
-    case starter
-    case premium
-    case elite
+enum SubscriptionStatus: String {
+    case free    = "free"
+    case starter = "starter"
+    case premium = "premium"
+    case elite   = "elite"
 
     /// Crédits mensuels par tier — source unique, alignée sur ce que le
     /// paywall vend (15/40/100). L'Edge Function credit-generations reste

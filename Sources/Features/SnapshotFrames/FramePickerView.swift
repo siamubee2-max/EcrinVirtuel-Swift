@@ -251,18 +251,29 @@ final class FrameViewModel: ObservableObject {
     @Published var unlockedByUser: Set<String> = []
     @Published var isRendering = false
 
+    /// Set to true when the user has an active paid subscription.
+    /// Pragmatic default: premium frames (isPremium=true, isUnlockableByXP=false) are
+    /// unlocked for subscribers via CreditsManager.shared.isUnlimited OR
+    /// AppState.subscription.isSubscribed.  Caller sets this after init.
+    @Published var isPremiumUser: Bool = false
+
     var filteredFrames: [SnapshotFrame] {
         frames.filter { $0.category == selectedCategory }
     }
 
     func isUnlocked(_ frame: SnapshotFrame) -> Bool {
+        // Free frames — always accessible.
         if !frame.isPremium && !frame.isUnlockableByXP { return true }
+        // XP-unlockable frames — regardless of subscription tier.
         if frame.isUnlockableByXP { return unlockedByUser.contains(frame.id) }
+        // Premium-only frames (isPremium=true, isUnlockableByXP=false):
+        // unlocked when the user holds an active paid subscription.
+        if frame.isPremium && !frame.isUnlockableByXP { return isPremiumUser }
         return false
     }
 
     func lockLabel(_ frame: SnapshotFrame) -> String? {
-        if frame.isPremium && !frame.isUnlockableByXP { return "Premium" }
+        if frame.isPremium && !frame.isUnlockableByXP && !isPremiumUser { return "Premium" }
         if frame.isUnlockableByXP && !unlockedByUser.contains(frame.id) {
             return "\(frame.xpRequired) XP"
         }

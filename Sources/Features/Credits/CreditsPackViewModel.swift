@@ -31,7 +31,10 @@ final class CreditsPackViewModel {
         do {
             currentCredits = try await SupabaseService.shared.fetchRemainingCredits()
         } catch {
-            currentCredits = 0
+            // Pas de session (ou fetch échoué) : solde local plutôt qu'un faux "0"
+            // incohérent avec le badge "restants" de l'écran Essayage.
+            await CreditsManager.shared.sync()
+            currentCredits = CreditsManager.shared.remaining
         }
         isLoadingCredits = false
     }
@@ -98,6 +101,11 @@ final class CreditsPackViewModel {
             CreditsManager.shared.remaining = newTotal
             CreditsManager.shared.syncDetached()
             purchasedCount = pack.count + pack.bonusCount
+
+            // Refresh the single source of truth so the generation paywall
+            // reads the updated balance immediately (Bug C8).
+            await CreditsManager.shared.sync()
+
             withAnimation(EcrinAnimation.springBounce) {
                 purchaseSuccess = true
             }

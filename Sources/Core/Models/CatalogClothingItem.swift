@@ -274,6 +274,99 @@ struct CatalogClothingItem: Identifiable, Codable, Sendable {
 // MARK: - Preview Data
 
 extension CatalogClothingItem {
+
+    // MARK: Mock samples — used only under -uitest (zero live backend)
+    static let samples: [CatalogClothingItem] = [
+        // Femme ×2
+        CatalogClothingItem(
+            id: UUID(uuidString: "A1000000-0000-0000-0000-000000000001")!,
+            name: "Robe Cocktail Noire",
+            gender: .femme,
+            category: "dress",
+            subcategory: "robe cocktail",
+            brand: nil,
+            color: "noir",
+            material: "crêpe",
+            styleTags: ["soirée", "élégant"],
+            season: ["automne", "hiver"],
+            imageURL: nil,
+            tryOnPrompt: "wearing a sleek black cocktail dress, midi length, architectural cut",
+            isFeatured: true,
+            priceEur: nil,
+            purchaseURL: nil
+        ),
+        CatalogClothingItem(
+            id: UUID(uuidString: "A1000000-0000-0000-0000-000000000002")!,
+            name: "Blouse Soie Ivoire",
+            gender: .femme,
+            category: "top",
+            subcategory: "blouse",
+            brand: nil,
+            color: "ivoire",
+            material: "soie",
+            styleTags: ["bureau", "chic"],
+            season: ["printemps", "été"],
+            imageURL: nil,
+            tryOnPrompt: "wearing an ivory silk blouse, relaxed fit, editorial fashion",
+            isFeatured: false,
+            priceEur: nil,
+            purchaseURL: nil
+        ),
+        // Homme ×2
+        CatalogClothingItem(
+            id: UUID(uuidString: "A1000000-0000-0000-0000-000000000003")!,
+            name: "Blazer Navy",
+            gender: .homme,
+            category: "jacket",
+            subcategory: "blazer",
+            brand: nil,
+            color: "bleu marine",
+            material: "laine",
+            styleTags: ["bureau", "élégant"],
+            season: ["printemps", "automne"],
+            imageURL: nil,
+            tryOnPrompt: "wearing a tailored navy blue wool blazer, single button, notched lapel",
+            isFeatured: true,
+            priceEur: nil,
+            purchaseURL: nil
+        ),
+        CatalogClothingItem(
+            id: UUID(uuidString: "A1000000-0000-0000-0000-000000000004")!,
+            name: "Chino Beige",
+            gender: .homme,
+            category: "bottom",
+            subcategory: "chino",
+            brand: nil,
+            color: "beige",
+            material: "coton",
+            styleTags: ["casual", "bureau"],
+            season: ["printemps", "été"],
+            imageURL: nil,
+            tryOnPrompt: "wearing beige cotton chino trousers, slim fit, casual style",
+            isFeatured: false,
+            priceEur: nil,
+            purchaseURL: nil
+        ),
+        // Unisexe ×1
+        CatalogClothingItem(
+            id: UUID(uuidString: "A1000000-0000-0000-0000-000000000005")!,
+            name: "Manteau Camel",
+            gender: .unisexe,
+            category: "coat",
+            subcategory: "manteau droit",
+            brand: nil,
+            color: "camel",
+            material: "cachemire",
+            styleTags: ["hiver", "classique"],
+            season: ["automne", "hiver"],
+            imageURL: nil,
+            tryOnPrompt: "wearing a camel cashmere overcoat, straight cut, luxury fashion",
+            isFeatured: true,
+            priceEur: nil,
+            purchaseURL: nil
+        ),
+    ]
+
     static let preview = CatalogClothingItem(
         id: UUID(),
         name: "Robe Cocktail Noire",

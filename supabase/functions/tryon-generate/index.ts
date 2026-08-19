@@ -23,6 +23,14 @@ const SUPABASE_ANON_KEY         = Deno.env.get("SUPABASE_ANON_KEY")!
 const GOOGLE_API_KEY            = Deno.env.get("GOOGLE_API_KEY")   // optionnel — sauvetage
 const OPENAI_API_KEY            = Deno.env.get("OPENAI_API_KEY")   // optionnel — dernier recours
 
+// ── M4 App Attest (porté depuis la branche audit-007) ────────────────────────
+// APP_ATTEST_MODE: "off" | "log" | "enforce"  (default "off" — aucun overhead)
+// INTERNAL_FN_KEY: secret partagé transmis à verify-attestation (optionnel)
+const APP_ATTEST_MODE  = Deno.env.get("APP_ATTEST_MODE") ?? "off"
+const INTERNAL_FN_KEY  = Deno.env.get("INTERNAL_FN_KEY") ?? ""
+const VERIFY_ATTEST_URL = Deno.env.get("VERIFY_ATTEST_URL") ??
+  `${SUPABASE_URL}/functions/v1/verify-attestation`
+
 // CORS : restreint au domaine de l'app web et au Studio Supabase.
 // Les clients iOS natifs n'appliquent pas CORS — ce header protège les appels browser.
 const CORS = {
@@ -91,12 +99,100 @@ serve(async (req) => {
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
   try {
+    let rawBodyText: string | undefined
+    let parsedBody: Record<string, unknown> | undefined
+
+    if (APP_ATTEST_MODE !== "off") {
+      // Read body as text so we can hash it AND parse it.
+      rawBodyText = await req.text()
+      try { parsedBody = JSON.parse(rawBodyText) } catch { /* invalid JSON caught below */ }
+
+      // Compute clientDataHash = SHA-256(raw request body bytes).
+      const bodyBytes       = new TextEncoder().encode(rawBodyText)
+      const hashBuffer      = await crypto.subtle.digest("SHA-256", bodyBytes)
+      const clientDataHashB64 = btoa(String.fromCharCode(...new Uint8Array(hashBuffer)))
+
+      const keyId      = req.headers.get("x-attest-keyid")
+      const attestObj  = req.headers.get("x-attest-object")    // base64 CBOR, first call
+      const assertionH = req.headers.get("x-attest-assertion") // base64 CBOR, subsequent
+
+      if (keyId && (attestObj || assertionH)) {
+        // Attempt attestation verification — wrapped in total try/catch so
+        // any bug here can NEVER crash the main generation flow.
+        try {
+          const verifyBody = JSON.stringify({
+            keyId,
+            ...(attestObj  ? { attestation: attestObj   } : {}),
+            ...(assertionH ? { assertion:   assertionH  } : {}),
+            clientDataHashB64,
+          })
+
+          const verifyHeaders: Record<string, string> = {
+            "Content-Type":  "application/json",
+            // Forward service role key so verify-attestation can write to device_attest.
+            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          }
+          if (INTERNAL_FN_KEY) verifyHeaders["x-internal-key"] = INTERNAL_FN_KEY
+
+          const verifyRes = await fetch(VERIFY_ATTEST_URL, {
+            method:  "POST",
+            headers: verifyHeaders,
+            body:    verifyBody,
+            // Short timeout — never let attestation stall generation beyond 3 s.
+            signal:  AbortSignal.timeout(3_000),
+          })
+
+          const verifyJson = await verifyRes.json().catch(() => ({ ok: false, reason: "json_parse" }))
+          const attestOk   = verifyJson?.ok === true
+
+          if (attestOk) {
+            // Fire-and-forget log (same pattern as moderation logging).
+            adminClient.from("monitoring_events").insert({
+              event_type:    "attestation_ok",
+              user_id:       userId,
+              error_domain:  "app_attest",
+              error_message: `keyId=${keyId} mode=${APP_ATTEST_MODE}`,
+              platform:      "edge",
+            }).catch(() => {})
+          } else {
+            const reason = verifyJson?.reason ?? `http_${verifyRes.status}`
+            adminClient.from("monitoring_events").insert({
+              event_type:    "attestation_fail",
+              user_id:       userId,
+              error_domain:  "app_attest",
+              error_message: `keyId=${keyId} reason=${reason} mode=${APP_ATTEST_MODE}`.slice(0, 500),
+              platform:      "edge",
+            }).catch(() => {})
+
+            if (APP_ATTEST_MODE === "enforce") {
+              return jsonError("attestation_required", 401)
+            }
+            // In "log" mode: fall through, allow generation.
+          }
+        } catch (attestErr) {
+          // Network error, timeout, or any other failure — never block generation.
+          console.warn("[tryon-generate] App Attest check error (non-blocking):", attestErr)
+          if (APP_ATTEST_MODE === "enforce") {
+            // In enforce mode even a network error blocks (fail-closed).
+            return jsonError("attestation_required", 401)
+          }
+        }
+      } else if (APP_ATTEST_MODE === "enforce") {
+        // enforce requires attest headers; missing → reject.
+        return jsonError("attestation_required", 401)
+      }
+    }
+    // ── end App Attest hook ─────────────────────────────────────────────────
+
+    // Si le hook App Attest est actif, le corps a déjà été lu et parsé.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bodyJson: any = parsedBody ?? await req.json()
     const {
       imageBase64,
       prompt,
       model = "standard",
       aspectRatio: aspectRatioRaw,
-    } = await req.json()
+    } = bodyJson
 
     // Validation AVANT tout traitement
     if (!imageBase64 || !prompt)  return jsonError("imageBase64 and prompt required", 400)

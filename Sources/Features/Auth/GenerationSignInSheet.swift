@@ -1,12 +1,22 @@
 import SwiftUI
 import AuthenticationServices
 
-// MARK: - Auth gate avant génération IA (Option B — Apple Sign-In obligatoire)
+// MARK: - Auth gate avant génération IA
+// Une session anonyme silencieuse honore « 3 essais offerts · Aucune carte
+// requise » ; le sheet Apple Sign-In n'apparaît qu'en dernier recours.
 
 @MainActor
 enum GenerationAuthGate {
     static func hasSession() async -> Bool {
         await SupabaseService.shared.hasValidSession()
+    }
+
+    /// Session existante, sinon tentative de session anonyme silencieuse.
+    /// Retourne false uniquement si les deux échouent (hors-ligne, etc.) —
+    /// dans ce cas l'appelant affiche GenerationSignInSheet.
+    static func ensureSession() async -> Bool {
+        if await SupabaseService.shared.hasValidSession() { return true }
+        return await SupabaseService.shared.signInAnonymously()
     }
 }
 

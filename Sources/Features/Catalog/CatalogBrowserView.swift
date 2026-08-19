@@ -40,7 +40,9 @@ struct CatalogBrowserView: View {
                 itemsGrid
             }
         }
-        .task { await catalogService.fetchAll(force: true) }
+        // Réutilise le cache s'il est déjà chargé (force: false) — avant, force: true
+        // re-téléchargeait tout le catalogue à CHAQUE ouverture de l'écran.
+        .task { await catalogService.fetchAll(force: false) }
         .sheet(item: $tryOnItem) { item in
             TryOnFromCatalogSheet(item: item)
         }
@@ -194,6 +196,7 @@ struct CatalogBrowserView: View {
                     .padding(.bottom, EcrinSpacing.xxl)
                 }
                 .refreshable { await catalogService.fetchAll(force: true) }
+                .accessibilityIdentifier("catalog.grid")
             }
         }
     }
@@ -415,7 +418,7 @@ struct CatalogItemCard: View {
                             .brightness(0.05)
 
                         if let url = item.displayImageURL {
-                            AsyncImage(url: url) { phase in
+                            DownsampledAsyncImage(url: url) { phase in
                                 switch phase {
                                 case .success(let image):
                                     image

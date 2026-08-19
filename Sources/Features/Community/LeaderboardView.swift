@@ -18,7 +18,7 @@ struct LeaderboardView: View {
                         Text(L10n.CommunityUI.leaderboard)
                             .font(EcrinFont.sectionHead)
                             .foregroundStyle(EcrinColor.textPrimary)
-                        Text(L10n.CommunityUI.topMembersThisMonth)
+                        Text("Exemple — le classement s'animera avec la communauté")
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                     }
@@ -70,33 +70,29 @@ struct LeaderboardView: View {
 
     // MARK: - Sticky Current Rank
 
+    // Invitation honnête au lieu d'un faux rang perso « #7 » : tant que l'utilisateur
+    // n'a pas de vrai classement, on ne lui invente pas de position.
     private var currentRankBanner: some View {
-        let entry = entries.first(where: { $0.rank == currentUserRank })
-        return HStack(spacing: EcrinSpacing.md) {
-            // Rank badge
+        HStack(spacing: EcrinSpacing.md) {
             ZStack {
                 Circle()
-                    .fill(EcrinColor.gold)
+                    .fill(EcrinColor.gold.opacity(0.15))
                     .frame(width: 38, height: 38)
-                Text("#\(currentUserRank)")
-                    .font(EcrinFont.sans(12, weight: .bold))
-                    .foregroundStyle(EcrinColor.background)
+                Image(systemName: "sparkles")
+                    .font(.system(size: 15))
+                    .foregroundStyle(EcrinColor.gold)
             }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(L10n.CommunityUI.yourRanking)
                     .font(EcrinFont.label)
                     .foregroundStyle(EcrinColor.textSecondary)
-                Text(entry?.user.displayName ?? "Vous")
+                Text("Participez aux défis pour y apparaître")
                     .font(EcrinFont.sans(14, weight: .semibold))
                     .foregroundStyle(EcrinColor.textPrimary)
             }
 
             Spacer()
-
-            Text("\(entry?.score ?? 0) pts")
-                .font(EcrinFont.sans(15, weight: .semibold))
-                .foregroundStyle(EcrinColor.gold)
         }
         .padding(.horizontal, EcrinSpacing.lg)
         .padding(.vertical, EcrinSpacing.md)

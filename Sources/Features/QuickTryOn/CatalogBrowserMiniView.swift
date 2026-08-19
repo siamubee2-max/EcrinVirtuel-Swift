@@ -16,12 +16,16 @@ struct CatalogBrowserMiniView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            genderChips
-                .padding(.horizontal, EcrinSpacing.md)
-                .padding(.bottom, EcrinSpacing.sm)
+            // Les filtres n'ont pas de sens quand le catalogue vêtements
+            // ne s'applique pas au mode courant (ex. « Bijoux seuls »).
+            if !vm.isCatalogIncompatibleWithMode {
+                genderChips
+                    .padding(.horizontal, EcrinSpacing.md)
+                    .padding(.bottom, EcrinSpacing.sm)
 
-            categoryGroupChips
-                .padding(.bottom, EcrinSpacing.sm)
+                categoryGroupChips
+                    .padding(.bottom, EcrinSpacing.sm)
+            }
 
             contentArea
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -231,7 +235,7 @@ struct CatalogMiniCard: View {
                                     .fill(item.cardBackgroundColor)
 
                                 if let url = item.imageURL {
-                                    AsyncImage(url: url) { phase in
+                                    DownsampledAsyncImage(url: url) { phase in
                                         switch phase {
                                         case .success(let image):
                                             image

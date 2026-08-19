@@ -19737,6 +19737,9 @@
     "%@j" : {
 
     },
+    "%@s" : {
+
+    },
     "→" : {
 
     },
@@ -19777,7 +19780,13 @@
     "3 essais offerts · Aucune carte requise" : {
 
     },
+    "3 essais offerts pour elle et pour vous" : {
+
+    },
     "a essayé virtuellement" : {
+
+    },
+    "Abonnement à renouvellement automatique. Le paiement est débité sur votre compte Apple. L'abonnement se renouvelle sauf annulation au moins 24 h avant la fin de la période. Gérez-le dans vos réglages App Store." : {
 
     },
     "Accès à la caméra" : {
@@ -22141,6 +22150,9 @@
     "Chaque bijou est placé avec précision pour respecter votre morphologie et votre teinte de peau" : {
 
     },
+    "Chaque photo générée est sauvegardée automatiquement." : {
+
+    },
     "Chargement du catalogue…" : {
 
     },
@@ -24247,6 +24259,9 @@
     "Disponible en boutique partenaire" : {
 
     },
+    "Données météo · Open-Meteo.com" : {
+
+    },
     "Dressing" : {
 
     },
@@ -24553,6 +24568,9 @@
         }
       }
     },
+    "Essaie L'Écrin Virtuel — l'essayage de bijoux par IA. Avec mon lien, on gagne 3 essais offerts chacune ✨" : {
+
+    },
     "Essais disponibles" : {
 
     },
@@ -24602,6 +24620,9 @@
 
     },
     "Essayez un autre mot-clé" : {
+
+    },
+    "Estimation ~%@ s · gardez l'app ouverte" : {
 
     },
     "Étape 1 sur 3 · Votre photo" : {
@@ -25241,6 +25262,9 @@
       }
     },
     "Ex: Mon look du jour…" : {
+
+    },
+    "Exemple — le classement s'animera avec la communauté" : {
 
     },
     "EXPORTER" : {
@@ -25888,6 +25912,9 @@
     "Indiquez votre ville pour adapter le look à la météo locale." : {
 
     },
+    "Inspiration L'Écrin — exemples de rendus" : {
+
+    },
     "Inspirations look" : {
 
     },
@@ -25895,6 +25922,9 @@
 
     },
     "INVITÉES (%@)" : {
+
+    },
+    "Invitez une amie" : {
 
     },
     "jewelryStyles.bronze" : {
@@ -26683,9 +26713,6 @@
     "LES EMPLACEMENTS" : {
 
     },
-    "Les membres les plus actifs ce mois-ci" : {
-
-    },
     "Lien créé !" : {
 
     },
@@ -26731,6 +26758,9 @@
     "Merci pour votre intérêt. Notre équipe examinera votre dossier et vous contactera à **%@** sous 72 heures." : {
 
     },
+    "Mes créations" : {
+
+    },
     "Mes looks sauvegardés" : {
 
     },
@@ -26741,6 +26771,9 @@
 
     },
     "Modèle Gemini Image haute précision. Positionnement réaliste des chaussures sur photo statique. 1 crédit consommé." : {
+
+    },
+    "MON" : {
 
     },
     "MON DRESSING" : {
@@ -29675,6 +29708,9 @@
 
     },
     "Participantes" : {
+
+    },
+    "Participez aux défis pour y apparaître" : {
 
     },
     "partnership.becomePartner" : {
@@ -33943,6 +33979,9 @@
     "Solde actuel : " : {
 
     },
+    "Soyez la première à commenter cet essayage." : {
+
+    },
     "STAR ✦" : {
 
     },
@@ -34942,6 +34981,9 @@
     "Tous les défis" : {
 
     },
+    "Tous vos essayages sauvegardés" : {
+
+    },
     "Toutes" : {
 
     },
@@ -35669,6 +35711,9 @@
 
     },
     "VOS ESSAYAGES" : {
+
+    },
+    "Vos essayages apparaîtront ici" : {
 
     },
     "Vos looks sauvegardés" : {

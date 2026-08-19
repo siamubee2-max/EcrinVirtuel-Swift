@@ -138,7 +138,7 @@ struct CreditsPackView: View {
     private var reassuranceCard: some View {
         GlassCard(cornerRadius: 16) {
             VStack(spacing: EcrinSpacing.sm) {
-                ReassuranceRow(icon: "checkmark.shield", text: "Les essais achetés ne expirent pas")
+                ReassuranceRow(icon: "checkmark.shield", text: "Les essais achetés n'expirent pas")
                 ReassuranceRow(icon: "arrow.triangle.2.circlepath", text: "S'ajoutent à votre solde existant")
                 ReassuranceRow(icon: "bolt.badge.checkmark", text: "Crédités instantanément après l'achat")
             }
@@ -172,6 +172,15 @@ struct CreditsPackView: View {
             Text(L10n.CreditsUI.oneTimePurchaseNote)
                 .font(.system(size: 10))
                 .foregroundStyle(EcrinColor.textDecorative)
+
+            HStack(spacing: 4) {
+                Link("CGU", destination: URL(string: "https://inferencevision.store/ecrin/terms")!)
+                Text("·").foregroundStyle(EcrinColor.textMuted)
+                Link("Confidentialité", destination: URL(string: "https://inferencevision.store/ecrin/privacy")!)
+            }
+            .font(.system(size: 10, weight: .medium))
+            .foregroundStyle(EcrinColor.gold.opacity(0.7))
+            .padding(.top, 2)
         }
     }
 }

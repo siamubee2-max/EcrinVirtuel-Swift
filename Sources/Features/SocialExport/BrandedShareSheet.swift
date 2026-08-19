@@ -174,7 +174,8 @@ struct BrandedShareSheet: View {
             guard status == .authorized || status == .limited else { return }
             PHPhotoLibrary.shared().performChanges {
                 PHAssetChangeRequest.creationRequestForAsset(from: branded)
-            } completionHandler: { _, _ in
+            } completionHandler: { success, _ in
+                guard success else { return }
                 DispatchQueue.main.async {
                     withAnimation(EcrinAnimation.springSnap) {
                         savedToPhotos = true

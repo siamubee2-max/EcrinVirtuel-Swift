@@ -28,7 +28,7 @@ final class CreditsManager {
 
     var isSyncing: Bool = false
 
-    /// Compte fondateur (ex. siamubee2@gmail.com) — pas de paywall ni décompte serveur.
+    /// Compte illimité (solde serveur ≥ seuil) — pas de paywall ni décompte local.
     private(set) var isUnlimited: Bool = false
 
     // MARK: - Consume
@@ -72,25 +72,20 @@ final class CreditsManager {
             return
         }
 
-        if UnlimitedAccess.isUnlimited(email: session.user.email) {
-            isUnlimited = true
-            remaining = UnlimitedAccess.quotaDisplayValue
-            hasLoaded = true
-            return
-        }
-
-        isUnlimited = false
         if let count = try? await SupabaseService.shared.fetchRemainingCredits() {
             remaining = max(0, count)
+            isUnlimited = UnlimitedAccess.isUnlimited(remainingCredits: count)
+        } else {
+            isUnlimited = false
         }
         hasLoaded = true
     }
 
     /// Déclenche un sync en arrière-plan (fire-and-forget).
     func syncDetached() {
-        Task.detached { [weak self] in
-            await self?.sync()
-        }
+        // CreditsManager is a singleton — [weak self] is unnecessary and misleading.
+        // Task (not Task.detached) inherits the caller's actor context where needed.
+        Task { await CreditsManager.shared.sync() }
     }
 
     /// Réinitialise l'état après une déconnexion : le solde — y compris le

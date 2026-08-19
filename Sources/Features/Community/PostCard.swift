@@ -8,12 +8,14 @@ import SwiftUI
 struct PostCard: View {
     let post: CommunityPost
     let onLike: () -> Void
-    // Modération UGC (guideline 1.2) — défauts nil pour ne pas casser les
-    // usages qui n'affichent pas le menu.
-    var isOwnPost: Bool = false
-    var onReport: (() -> Void)? = nil
-    var onHide: (() -> Void)? = nil
-    var onDelete: (() -> Void)? = nil
+    /// Nombre de commentaires à afficher (baseline + ajouts locaux).
+    var commentCount: Int = 0
+    /// Ouvre la feuille de commentaires reliée à l'image de ce post.
+    var onComment: () -> Void = {}
+    /// Signalement de contenu (App Store 1.2) — motif choisi par l'utilisateur.
+    var onReport: (CommunityViewModel.ReportReason) -> Void = { _ in }
+    /// Blocage de l'auteur du post.
+    var onBlock: () -> Void = {}
 
     @Environment(AppState.self) private var appState
     @State private var showReportConfirmation = false
@@ -110,41 +112,7 @@ struct PostCard: View {
                     .fixedSize(horizontal: true, vertical: false)
             }
 
-            // Modération : signaler/masquer (tous), supprimer (ses posts)
-            if onReport != nil || onHide != nil || onDelete != nil {
-                Menu {
-                    if isOwnPost, onDelete != nil {
-                        Button(role: .destructive) {
-                            showDeleteConfirmation = true
-                        } label: {
-                            Label(L10n.CommunityUI.deleteMyPost, systemImage: "trash")
-                        }
-                    } else {
-                        if onReport != nil {
-                            Button(role: .destructive) {
-                                showReportConfirmation = true
-                            } label: {
-                                Label(L10n.CommunityUI.reportContent, systemImage: "exclamationmark.bubble")
-                            }
-                        }
-                        if let onHide {
-                            Button {
-                                onHide()
-                            } label: {
-                                Label(L10n.CommunityUI.hide, systemImage: "eye.slash")
-                            }
-                        }
-                    }
-                } label: {
-                    Image(systemName: "ellipsis")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(EcrinColor.textMuted)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 10)
-                        .contentShape(Rectangle())
-                }
-                .accessibilityLabel(L10n.CommunityUI.postOptions)
-            }
+            moderationMenu
         }
         .padding(.horizontal, EcrinSpacing.md)
         .padding(.vertical, EcrinSpacing.sm + 4)
@@ -166,6 +134,31 @@ struct PostCard: View {
             Button(L10n.Common.delete, role: .destructive) { onDelete?() }
             Button(L10n.Common.cancel, role: .cancel) {}
         }
+    }
+
+    // MARK: - Modération (App Store 1.2)
+
+    /// Menu « … » : signaler le contenu (avec motifs) ou bloquer l'auteur.
+    private var moderationMenu: some View {
+        Menu {
+            Menu("Signaler ce contenu") {
+                ForEach(CommunityViewModel.ReportReason.allCases) { reason in
+                    Button(reason.rawValue) { onReport(reason) }
+                }
+            }
+            Button(role: .destructive) {
+                onBlock()
+            } label: {
+                Label("Bloquer \(post.author.displayName ?? "cet utilisateur")", systemImage: "hand.raised")
+            }
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(EcrinColor.textSecondary)
+                .frame(width: 32, height: 32)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Options de modération")
     }
 
     // MARK: - Cadre "essayage virtuel" autour du bijou
@@ -299,7 +292,7 @@ struct PostCard: View {
                         )
                 )
 
-            AsyncImage(url: url) { phase in
+            DownsampledAsyncImage(url: url) { phase in
                 switch phase {
                 case .success(let img):
                     img.resizable()
@@ -412,30 +405,24 @@ struct PostCard: View {
 
     private var actionsBar: some View {
         HStack(spacing: EcrinSpacing.lg) {
-            // Like
+            // Like — icône interactive, SANS compteur fabriqué (feed = inspiration)
             Button {
                 withAnimation(EcrinAnimation.springSnap) { onLike() }
             } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: post.isLiked ? "heart.fill" : "heart")
-                        .font(.system(size: 18))
-                        .foregroundStyle(post.isLiked ? EcrinColor.gold : EcrinColor.textSecondary)
-                    Text("\(post.likes)")
-                        .font(EcrinFont.sans(12, weight: .medium))
-                        .foregroundStyle(EcrinColor.textSecondary)
-                }
+                Image(systemName: post.isLiked ? "heart.fill" : "heart")
+                    .font(.system(size: 18))
+                    .foregroundStyle(post.isLiked ? EcrinColor.gold : EcrinColor.textSecondary)
             }
             .buttonStyle(.plain)
 
-            // Comment
-            HStack(spacing: 5) {
+            // Comment — ouvre la feuille de commentaires reliée à l'image de ce post
+            Button(action: onComment) {
                 Image(systemName: "bubble.right")
                     .font(.system(size: 17))
                     .foregroundStyle(EcrinColor.textSecondary)
-                Text("\(post.comments)")
-                    .font(EcrinFont.sans(12, weight: .medium))
-                    .foregroundStyle(EcrinColor.textSecondary)
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Voir et ajouter des commentaires")
 
             Spacer()
 

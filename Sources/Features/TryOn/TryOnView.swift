@@ -5,6 +5,14 @@ struct TryOnView: View {
     @Environment(AppState.self) private var appState
     @Environment(ClothingCatalogService.self) private var catalogService
     @State private var viewModel = TryOnViewModel()
+
+    /// Bijou présélectionné (ex. depuis la boutique partenaire). `nil` = sélection manuelle.
+    private let preselectedJewelry: JewelryItem?
+
+    init(preselectedJewelry: JewelryItem? = nil) {
+        self.preselectedJewelry = preselectedJewelry
+    }
+
     @State private var lookDuJourVM = LookDuJourViewModel()
     @State private var showPhotoPicker = false
     @State private var selectedLookRecommendation: LookRecommendation?
@@ -119,6 +127,13 @@ struct TryOnView: View {
             await viewModel.loadCatalog()
             await lookDuJourVM.bootstrap(appState: appState)
         }
+        .onAppear {
+            // Injecte le bijou choisi dans la boutique partenaire : sans ça la
+            // sélection était perdue et le bouton « Essayer maintenant » restait grisé.
+            if let preselectedJewelry, viewModel.selectedJewelry == nil {
+                viewModel.selectedJewelry = preselectedJewelry
+            }
+        }
         // `.sheet(item:)` garantit que la valeur est non-nil au rendu
         // — évite l'écran noir causé par une évaluation `if let` trop tôt.
         .sheet(item: $selectedLookRecommendation) { look in
@@ -199,7 +214,7 @@ struct TryOnView: View {
     // MARK: - Photo source helpers
 
     private func generateWithAuth() async {
-        if await GenerationAuthGate.hasSession() {
+        if await GenerationAuthGate.ensureSession() {
             await viewModel.generate(showPaywall: { showPaywall = true })
         } else {
             showGenerationAuth = true
@@ -287,10 +302,8 @@ struct PhotoDropZone: View {
 
                     if isLoading {
                         ZStack {
-                            Color.black.opacity(0.5)
-                            ProgressView()
-                                .tint(EcrinColor.gold)
-                                .scaleEffect(1.5)
+                            Color.black.opacity(0.55)
+                            GenerationProgressView()
                         }
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                     }
@@ -351,7 +364,7 @@ struct JewelryThumb: View {
             VStack(spacing: EcrinSpacing.sm) {
                 // Photo réelle si disponible, icône SF Symbol en fallback
                 if let url = item.imageURL {
-                    AsyncImage(url: url) { phase in
+                    DownsampledAsyncImage(url: url) { phase in
                         switch phase {
                         case .success(let img):
                             img.resizable()

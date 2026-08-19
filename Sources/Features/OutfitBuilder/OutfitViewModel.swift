@@ -86,7 +86,9 @@ final class OutfitViewModel: ObservableObject {
     func loadPhoto(from item: PhotosPickerItem?) async {
         guard let item else { return }
         guard let data = try? await item.loadTransferable(type: Data.self),
-              let image = UIImage(data: data) else { return }
+              // Décodage borné à ~2048 px — évite ~120 Mo de RAM pour une photo 48 Mpx
+              let image = DownsampledImageLoader.downsample(data: data, maxPixelSize: 2048)
+                ?? UIImage(data: data) else { return }
         userPhoto = image
         result = nil
     }

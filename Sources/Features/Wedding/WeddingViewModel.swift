@@ -84,12 +84,13 @@ final class WeddingViewModel: ObservableObject {
         showToast("Look finalisé !")
     }
 
-    // MARK: - Persistence (Supabase + UserDefaults fallback)
+    // MARK: - Persistence (UserDefaults only — wedding_looks absent from prod)
+    // NOTE: `wedding_looks` table does not exist in prod (migration 009).
+    // All persistence is local via UserDefaults; cloud sync deferred.
 
     private static let storageKey = "weddingLook_v2"
 
-    /// Charge le look depuis Supabase si l'utilisateur est connecté,
-    /// sinon depuis UserDefaults (mode offline / anonyme).
+    /// Loads from UserDefaults (wedding_looks not in prod, no remote load).
     func loadFromRemote() async {
         isLoading = true
         defer { isLoading = false }
@@ -135,9 +136,8 @@ final class WeddingViewModel: ObservableObject {
         }
     }
 
-    /// Sauvegarde dans UserDefaults (cache local) + Supabase (si connecté).
+    /// Saves to UserDefaults only (no Supabase sync — table absent from prod).
     private func save() {
-        // Cache local immédiat
         if let data = try? JSONEncoder().encode(weddingLook) {
             UserDefaults.standard.set(data, forKey: Self.storageKey)
         }

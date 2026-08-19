@@ -80,6 +80,7 @@ struct AddWardrobeItemSheet: View {
             }
         }
         .preferredColorScheme(.dark)
+        .accessibilityIdentifier("wardrobe.addsheet")
     }
 }
 
