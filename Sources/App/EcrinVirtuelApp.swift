@@ -32,8 +32,12 @@ struct EcrinVirtuelApp: App {
 
                     // 2. Restaurer le statut d'abonnement depuis RevenueCat.
                     // Résolution par productIdentifier — même convention que l'achat.
+                    // Les comptes fondateur sont forcés au tier maximal.
                     if let info = try? await Purchases.shared.customerInfo() {
-                        appState.subscription = RevenueCatService.resolveStatus(from: info)
+                        appState.subscription = UnlimitedAccess.effectiveStatus(
+                            resolved: RevenueCatService.resolveStatus(from: info),
+                            email: appState.currentUser?.email
+                        )
                     }
 
                     // 3. Synchroniser les crédits et le profil gaming depuis Supabase.
@@ -66,7 +70,10 @@ struct EcrinVirtuelApp: App {
                     // sans ce stream, l'état d'abonnement n'était lu qu'au launch
                     // et après un achat.
                     for await info in Purchases.shared.customerInfoStream {
-                        appState.subscription = RevenueCatService.resolveStatus(from: info)
+                        appState.subscription = UnlimitedAccess.effectiveStatus(
+                            resolved: RevenueCatService.resolveStatus(from: info),
+                            email: appState.currentUser?.email
+                        )
                     }
                 }
                 .onChange(of: scenePhase) { _, phase in

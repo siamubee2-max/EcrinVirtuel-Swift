@@ -95,6 +95,11 @@ final class AppState {
         if let gender = user.preferredGender {
             preferredGender = gender
         }
+        // Comptes fondateur : tier maximal immédiat, sans attendre le
+        // round-trip RevenueCat (le stream confirmera avec le même résultat).
+        if UnlimitedAccess.isUnlimited(email: user.email) {
+            subscription = .elite
+        }
         phase = .authenticated
         // Basculer la garde-robe sur le scope de ce compte et resynchroniser
         // depuis le cloud — l'init de WardrobeViewModel tourne avant la

@@ -23,8 +23,14 @@ final class BackgroundViewModel: ObservableObject {
 
     init() {
         Task { [weak self] in
+            let email = try? await SupabaseService.shared.client.auth.session.user.email
             if let info = try? await Purchases.shared.customerInfo() {
-                self?.subscription = RevenueCatService.resolveStatus(from: info)
+                self?.subscription = UnlimitedAccess.effectiveStatus(
+                    resolved: RevenueCatService.resolveStatus(from: info),
+                    email: email
+                )
+            } else if UnlimitedAccess.isUnlimited(email: email) {
+                self?.subscription = .elite
             }
         }
     }
