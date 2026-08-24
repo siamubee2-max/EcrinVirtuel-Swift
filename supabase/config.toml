@@ -21,6 +21,20 @@ content_path = "./supabase/templates/otp_code.html"
 subject = "Votre code de connexion — L'Écrin Virtuel"
 content_path = "./supabase/templates/otp_code.html"
 
+# SMTP dédié (Resend) — le mailer intégré Supabase est limité à ~2 emails/h.
+# La clé API Resend n'est JAMAIS committée : elle est lue depuis la variable
+# d'environnement au moment du push : RESEND_SMTP_PASS=re_… supabase config push
+# admin_email : domaine de test Resend tant que inferencevision.store n'est pas
+# vérifié dans Resend → Domains (ensuite : ecrin@inferencevision.store).
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_SMTP_PASS)"
+admin_email = "onboarding@resend.dev"
+sender_name = "L'Écrin Virtuel"
+
 # Native Sign in with Apple (signInWithIdToken) — client_id = app bundle id.
 [auth.external.apple]
 enabled = true
