@@ -1,6 +1,33 @@
-project_id = "itjtshfzpknlzownpwte"
+# Canonical Supabase project (see CLAUDE.md — former projects are DEAD).
+project_id = "vffafgzlsmfecqejoytw"
 
-# Edge Function deploy settings (read by `supabase functions deploy`).
+# ── Auth ─────────────────────────────────────────────────────────────────────
+# Applied to the remote project with `supabase config push` (review the diff!).
+[auth]
+site_url = "https://inferencevision.store/ecrin"
+additional_redirect_urls = [
+  "ecrin://login-callback",
+  "https://inferencevision.store/ecrin",
+]
+
+# The iOS app signs in with a 6-digit EMAIL OTP CODE (verifyOTP), not a link.
+# Default templates send {{ .ConfirmationURL }} — these override them so both
+# new signups (confirmation) and returning users (magic_link) receive a code.
+[auth.email.template.confirmation]
+subject = "Votre code de connexion — L'Écrin Virtuel"
+content_path = "./supabase/templates/otp_code.html"
+
+[auth.email.template.magic_link]
+subject = "Votre code de connexion — L'Écrin Virtuel"
+content_path = "./supabase/templates/otp_code.html"
+
+# Native Sign in with Apple (signInWithIdToken) — client_id = app bundle id.
+[auth.external.apple]
+enabled = true
+client_id = "com.ecrin.jewelry"
+secret = ""
+
+# ── Edge Functions (read by `supabase functions deploy`) ─────────────────────
 # verify-attestation is called server-to-server by tryon-generate → no user JWT.
 [functions.verify-attestation]
 verify_jwt = false
@@ -8,3 +35,8 @@ verify_jwt = false
 # tryon-generate is user-facing → keep JWT verification on.
 [functions.tryon-generate]
 verify_jwt = true
+
+# revenuecat-webhook is called by RevenueCat's servers (shared-secret auth,
+# no Supabase JWT) → verification must stay off.
+[functions.revenuecat-webhook]
+verify_jwt = false
