@@ -48,6 +48,7 @@ const POLL_MAX_ATTEMPTS      = 30                  // 30 × 3s = 90s max
 const UNLIMITED_EMAILS = new Set([
   "siamubee2@gmail.com",
   "monia.valenza@gmail.com",
+  "chrweber@skynet.be",
 ])
 
 function isUnlimitedEmail(email: string | undefined): boolean {

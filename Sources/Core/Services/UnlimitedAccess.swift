@@ -14,6 +14,7 @@ enum UnlimitedAccess {
     private static let emails: Set<String> = [
         "siamubee2@gmail.com",
         "monia.valenza@gmail.com",
+        "chrweber@skynet.be",
     ]
 
     static func isUnlimited(email: String?) -> Bool {
