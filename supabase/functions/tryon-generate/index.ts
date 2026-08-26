@@ -327,7 +327,11 @@ function normalizeAspectRatio(raw: unknown): string {
 }
 
 function withTryOnFramingPrompt(prompt: string, aspectRatio: string): string {
-  return `${prompt}\n\nOUTPUT FRAMING: Vertical ${aspectRatio} portrait (mobile story). Full-body head-to-toe when outfit try-on applies. Do not output a square 1:1 crop.`
+  // NE JAMAIS forcer le corps entier : sur un essayage bijou en gros plan,
+  // "full-body head-to-toe" faisait dézoomer le modèle (silhouette en robe
+  // au lieu du portrait 3/4 demandé). Le cadrage suit la photo d'entrée et
+  // les instructions de pose du prompt client.
+  return `${prompt}\n\nOUTPUT FRAMING: Vertical ${aspectRatio} portrait (mobile story). Keep the same framing and camera distance as the input photo: a close-up stays a close-up, a full-body shot stays full-body. Never zoom out wider than the input photo. Follow the pose instructions above exactly. Do not output a square 1:1 crop.`
 }
 
 async function generateWithFal(
