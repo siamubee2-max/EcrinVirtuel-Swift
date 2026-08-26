@@ -193,6 +193,7 @@ serve(async (req) => {
       prompt,
       model = "standard",
       aspectRatio: aspectRatioRaw,
+      referenceImageBase64,
     } = bodyJson
 
     // Validation AVANT tout traitement
@@ -224,7 +225,8 @@ serve(async (req) => {
     // ── Upload Storage pour fal.ai (besoin d'une URL publique) ───────────────
     const falConfig  = FAL_MODELS[model] ?? FAL_MODELS.standard
     const imageBytes = base64ToBytes(imageBase64)
-    const tempPath   = `${userId}/${Date.now()}.jpg`
+    const stamp      = Date.now()
+    const tempPath   = `${userId}/${stamp}.jpg`
 
     const { error: uploadError } = await adminClient.storage
       .from(STORAGE_BUCKET)
@@ -237,6 +239,31 @@ serve(async (req) => {
     if (uploadError) {
       console.warn("Storage upload failed — fal.ai unavailable, using direct APIs:", uploadError)
     }
+
+    // Photo produit du bijou/vêtement sélectionné — SANS elle le modèle invente
+    // un bijou différent à chaque génération. Transmise comme 2e image de
+    // référence aux modèles multi-images (Nano Banana 2 / Pro, Gemini).
+    let refUrl: string | null = null
+    let refPath: string | null = null
+    const hasValidRef = typeof referenceImageBase64 === "string"
+      && referenceImageBase64.length > 0
+      && referenceImageBase64.length <= MAX_IMAGE_BASE64_CHARS
+    if (hasValidRef && !uploadError) {
+      refPath = `${userId}/${stamp}-ref.jpg`
+      const { error: refUploadError } = await adminClient.storage
+        .from(STORAGE_BUCKET)
+        .upload(refPath, base64ToBytes(referenceImageBase64), { contentType: "image/jpeg", upsert: true })
+      if (refUploadError) {
+        console.warn("Reference upload failed — generating without product reference:", refUploadError)
+        refPath = null
+      } else {
+        refUrl = adminClient.storage.from(STORAGE_BUCKET).getPublicUrl(refPath).data.publicUrl
+      }
+    }
+
+    const promptWithRef = refUrl
+      ? `${generationPrompt}\n\nPRODUCT REFERENCE: the jewelry/item to add is EXACTLY the product shown in the SECOND reference image. Reproduce its exact design, shape, materials, stones, colors and proportions faithfully — do not invent a different design.`
+      : generationPrompt
 
     // ── Cascade de fournisseurs ───────────────────────────────────────────────
     let resultBase64: string | null = null
@@ -252,7 +279,7 @@ serve(async (req) => {
 
       for (const cfg of cascade) {
         try {
-          resultBase64 = await generateWithFal(cfg, publicUrl, generationPrompt, aspectRatio)
+          resultBase64 = await generateWithFal(cfg, publicUrl, refUrl, promptWithRef, aspectRatio)
           provider = cfg.id
           break // succès → on sort de la cascade
         } catch (err) {
@@ -262,15 +289,16 @@ serve(async (req) => {
       }
 
       // Nettoyage Storage — loggé en cas d'échec pour détecter les fuites
-      adminClient.storage.from(STORAGE_BUCKET).remove([tempPath]).catch((cleanupErr) => {
-        console.error(`[tryon-generate] Storage cleanup failed (orphaned file: ${tempPath}):`, cleanupErr)
+      const toClean = refPath ? [tempPath, refPath] : [tempPath]
+      adminClient.storage.from(STORAGE_BUCKET).remove(toClean).catch((cleanupErr) => {
+        console.error(`[tryon-generate] Storage cleanup failed (orphaned: ${toClean.join(",")}):`, cleanupErr)
       })
     }
 
     // ── Fournisseur 2 : Google Gemini ─────────────────────────────────────────
     if (!resultBase64 && GOOGLE_API_KEY) {
       try {
-        resultBase64 = await generateWithGemini(imageBase64, generationPrompt, aspectRatio)
+        resultBase64 = await generateWithGemini(imageBase64, promptWithRef, aspectRatio, hasValidRef ? referenceImageBase64 : null)
         provider = "gemini-3.1-flash-image"
         console.warn(`Fell back to Gemini. fal errors: ${errors.join(" | ")}`)
       } catch (e3) {
@@ -337,19 +365,22 @@ function withTryOnFramingPrompt(prompt: string, aspectRatio: string): string {
 async function generateWithFal(
   cfg: FalModel,
   imageUrl: string,
+  refUrl: string | null,
   prompt: string,
   aspectRatio: string
 ): Promise<string> {
   // Schéma d'entrée par famille (vérifié fal.ai/models/*/api) :
   //   nano-banana-2/edit & gemini-3-pro-image-preview/edit → image_urls: [..]
   //   flux-pro/kontext                                     → image_url: ".."
+  // Multi-images : [photo personne, photo produit] — le prompt désigne la 2e
+  // image comme référence produit. flux-kontext ne prend qu'une seule image.
   const input: Record<string, unknown> = {
     prompt,
     aspect_ratio:  aspectRatio,
     output_format: "jpeg",
     num_images:    1,
   }
-  if (cfg.input === "image_urls") input.image_urls = [imageUrl]
+  if (cfg.input === "image_urls") input.image_urls = refUrl ? [imageUrl, refUrl] : [imageUrl]
   else                            input.image_url  = imageUrl
 
   // Soumission en file (queue.fal.run) — les URLs de suivi sont renvoyées
@@ -408,7 +439,8 @@ async function generateWithFal(
 async function generateWithGemini(
   imageBase64: string,
   prompt: string,
-  aspectRatio: string
+  aspectRatio: string,
+  referenceImageBase64: string | null = null
 ): Promise<string> {
   if (!GOOGLE_API_KEY) throw new Error("GOOGLE_API_KEY not configured")
 
@@ -428,7 +460,10 @@ async function generateWithGemini(
         contents: [{
           parts: [
             { text: prompt },
-            { inlineData: { mimeType: "image/jpeg", data: imageBase64 } }
+            { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
+            ...(referenceImageBase64
+              ? [{ inlineData: { mimeType: "image/jpeg", data: referenceImageBase64 } }]
+              : []),
           ]
         }],
         generationConfig: {
