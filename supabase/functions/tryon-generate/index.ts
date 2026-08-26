@@ -262,7 +262,7 @@ serve(async (req) => {
     }
 
     const promptWithRef = refUrl
-      ? `${generationPrompt}\n\nPRODUCT REFERENCE: the jewelry/item to add is EXACTLY the product shown in the SECOND reference image. Reproduce its exact design, shape, materials, stones, colors and proportions faithfully — do not invent a different design.`
+      ? `${generationPrompt}\n\nPRODUCT REFERENCE: the jewelry/item to add is EXACTLY the product shown in the SECOND reference image. Reproduce its exact design, shape, materials, stones and colors faithfully — do not invent a different design. CRITICAL SCALE: render it at realistic true-to-life size relative to the person (artisan earrings are typically 3-6 cm long, pendants a few cm) — the product photo is a macro close-up, so scale it DOWN to natural proportions on the body; never oversized.`
       : generationPrompt
 
     // ── Cascade de fournisseurs ───────────────────────────────────────────────
