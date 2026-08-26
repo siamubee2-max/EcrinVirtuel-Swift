@@ -43,8 +43,6 @@
 	<string>L'Écrin Virtuel enregistre vos essayages virtuels dans votre photothèque lorsque vous le demandez.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>L'Écrin Virtuel utilise vos photos pour l'essayage virtuel de bijoux.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>L'Écrin Virtuel enregistre vos essayages virtuels dans votre photothèque lorsque vous le demandez.</string>
 	<key>NSPrivacyPolicyURL</key>
 	<string>https://inferencevision.store/ecrin/privacy.html</string>
 	<key>REVENUECAT_IOS_KEY</key>
