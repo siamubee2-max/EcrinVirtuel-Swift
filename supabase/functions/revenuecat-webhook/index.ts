@@ -8,6 +8,10 @@
 //
 // Idempotent par event.id via credit_transactions (UNIQUE transaction_id).
 // Barème : starter=15, premium=40, elite/founder=100 (aligné credit-generations).
+//
+// Chaque livraison est journalisée (best-effort) dans public.webhook_deliveries
+// (migration 013) pour permettre la vérification par SQL même quand l'API
+// analytics des logs Supabase est indisponible.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
@@ -32,26 +36,64 @@ function planForProduct(productId: string): { plan: string, credits: number } | 
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
+interface DeliveryMeta {
+  auth_ok: boolean
+  event_type: string | null
+  app_user_id: string | null
+  outcome: string
+}
+
 serve(async (req) => {
+  const meta: DeliveryMeta = { auth_ok: false, event_type: null, app_user_id: null, outcome: "" }
+  const res = await handle(req, meta)
+  // Best-effort delivery log — must never break the webhook response.
+  try {
+    const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    await admin.from("webhook_deliveries").insert({
+      source:      "revenuecat",
+      auth_ok:     meta.auth_ok,
+      event_type:  meta.event_type,
+      app_user_id: meta.app_user_id,
+      outcome:     `${res.status} ${meta.outcome}`.trim(),
+      user_agent:  req.headers.get("user-agent"),
+    })
+  } catch (e) {
+    console.error("[revenuecat-webhook] delivery log failed:", e)
+  }
+  return res
+})
+
+async function handle(req: Request, meta: DeliveryMeta): Promise<Response> {
   if (RC_WEBHOOK_SECRET) {
     const auth = req.headers.get("Authorization") ?? ""
     if (auth !== RC_WEBHOOK_SECRET && auth !== `Bearer ${RC_WEBHOOK_SECRET}`) {
+      meta.outcome = "unauthorized"
       return json({ error: "unauthorized" }, 401)
     }
+    meta.auth_ok = true
   } else {
     // Sans secret configuré, refuser — ne jamais traiter un webhook non authentifié.
     console.error("[revenuecat-webhook] RC_WEBHOOK_SECRET not configured — rejecting")
+    meta.outcome = "webhook_secret_not_configured"
     return json({ error: "webhook_secret_not_configured" }, 503)
   }
 
   try {
     const { event } = await req.json()
-    if (!event?.type) return json({ error: "bad_payload" }, 400)
+    if (!event?.type) {
+      meta.outcome = "bad_payload"
+      return json({ error: "bad_payload" }, 400)
+    }
+    meta.event_type = event.type
 
     // app_user_id = auth.uid (RevenueCatService.logIn côté iOS). Les ids
     // anonymes ($RCAnonymousID:…) ne sont pas mappables → ignorés proprement.
     const appUserId: string = event.app_user_id ?? ""
-    if (!UUID_RE.test(appUserId)) return json({ ignored: "non_uuid_app_user_id" })
+    meta.app_user_id = appUserId || null
+    if (!UUID_RE.test(appUserId)) {
+      meta.outcome = "ignored non_uuid_app_user_id"
+      return json({ ignored: "non_uuid_app_user_id" })
+    }
 
     const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
@@ -59,14 +101,21 @@ serve(async (req) => {
       await admin.from("user_quotas")
         .update({ plan_type: "free" })
         .eq("user_id", appUserId)
+      meta.outcome = "downgraded"
       return json({ ok: true, action: "downgraded" })
     }
 
-    if (!CREDIT_EVENTS.has(event.type)) return json({ ignored: event.type })
+    if (!CREDIT_EVENTS.has(event.type)) {
+      meta.outcome = `ignored ${event.type}`
+      return json({ ignored: event.type })
+    }
 
     const productId: string = event.product_id ?? ""
     const mapping = planForProduct(productId)
-    if (!mapping) return json({ ignored: "unknown_product", product_id: productId })
+    if (!mapping) {
+      meta.outcome = `ignored unknown_product ${productId}`
+      return json({ ignored: "unknown_product", product_id: productId })
+    }
 
     // Idempotence par event.id
     const eventId: string = event.id ?? crypto.randomUUID()
@@ -77,8 +126,12 @@ serve(async (req) => {
       credits_added:  mapping.credits,
     })
     if (txError) {
-      if (txError.code === "23505") return json({ ok: true, action: "already_processed" })
+      if (txError.code === "23505") {
+        meta.outcome = "already_processed"
+        return json({ ok: true, action: "already_processed" })
+      }
       console.error("[revenuecat-webhook] tx insert failed:", txError)
+      meta.outcome = "tx_insert_failed"
       return json({ error: "service_unavailable" }, 503)
     }
 
@@ -94,15 +147,18 @@ serve(async (req) => {
     }, { onConflict: "user_id" })
     if (upsertError) {
       console.error("[revenuecat-webhook] quota upsert failed:", upsertError)
+      meta.outcome = "quota_upsert_failed"
       return json({ error: "service_unavailable" }, 503)
     }
 
+    meta.outcome = `credited ${mapping.credits}`
     return json({ ok: true, new_total: newTotal })
   } catch (e) {
     console.error("[revenuecat-webhook] Unhandled error:", e)
+    meta.outcome = "unhandled_error"
     return json({ error: "bad_request" }, 400)
   }
-})
+}
 
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
