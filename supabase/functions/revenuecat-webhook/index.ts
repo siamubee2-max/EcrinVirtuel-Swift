@@ -117,12 +117,17 @@ async function handle(req: Request, meta: DeliveryMeta): Promise<Response> {
       return json({ ignored: "unknown_product", product_id: productId })
     }
 
-    // Idempotence par event.id
+    // Idempotence : clé = transaction_id du store quand RevenueCat le fournit,
+    // pour partager la même clé que credit-generations (appelée par l'app avec
+    // le transaction_id StoreKit brut) — sinon un même achat serait crédité
+    // deux fois (une fois par chemin). Repli : rc_<event.id>.
+    const storeTxId = typeof event.transaction_id === "string" && event.transaction_id
+      ? event.transaction_id : null
     const eventId: string = event.id ?? crypto.randomUUID()
     const { error: txError } = await admin.from("credit_transactions").insert({
       user_id:        appUserId,
       product_id:     productId,
-      transaction_id: `rc_${eventId}`,
+      transaction_id: storeTxId ?? `rc_${eventId}`,
       credits_added:  mapping.credits,
     })
     if (txError) {
