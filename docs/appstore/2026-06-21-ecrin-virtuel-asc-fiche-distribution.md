@@ -14,7 +14,7 @@ Version 1.0.0 · Partenaire MONI'ATTITUDE (bijoux artisanaux, Belgique)
 | Champ | Valeur | Notes |
 |---|---|---|
 | **Nom** (≤30) | `L'Écrin Virtuel : Bijoux IA` | 27 car. Marque + mot-clé indexé « Bijoux IA ». |
-| **Sous-titre** (≤30) | `Essayage virtuel & garde-robe` | 29 car. Proposition de valeur. Aucun mot dupliqué du nom. |
+| **Sous-titre** (≤30) | `Essayage, garde-robe & style` | 28 car. Proposition de valeur. Aucun mot dupliqué du nom (l'ancien « Essayage virtuel & garde-robe » gaspillait « virtuel », déjà indexé par le nom). |
 | **Catégorie principale** | **Lifestyle** | Cœur = essayage/style perso ; moins saturé que Shopping. |
 | **Catégorie secondaire** | **Shopping** | Boutique partenaire / try-before-buy. |
 | **Classification d'âge** | **12+** | UGC communauté (modération + signalement requis, déjà en place : `post_reports`, modération IA M1). Photos perso = pas de contenu sensible par design. |
@@ -29,21 +29,21 @@ Les métadonnées EN doivent être **réécrites** (pas traduites) avec recherch
 ## 3. URLs & contact
 | Champ | Valeur |
 |---|---|
-| Support URL | `https://ecrin.app/support` *(à créer — obligatoire)* |
-| Marketing URL | `https://ecrin.app` |
-| Privacy Policy URL | `https://ecrin.app/privacy` *(déjà référencée dans Info.plist ; héberger la page `web/public/ecrin/privacy.html`)* |
-| Conditions (EULA) | EULA standard Apple, ou `https://ecrin.app/terms` (`web/public/ecrin/terms.html`) |
+| Support URL | `https://inferencevision.store/ecrin/support` *(page `web/public/ecrin/support.html` — à inclure dans le prochain déploiement du site, comme `terms`)* |
+| Marketing URL | `https://inferencevision.store/ecrin` |
+| Privacy Policy URL | `https://inferencevision.store/ecrin/privacy` *(live, vérifiée 200 — alignée avec Info.plist)* |
+| Conditions (EULA) | EULA standard Apple, ou `https://inferencevision.store/ecrin/terms` (`web/public/ecrin/terms.html`, live) |
 
 ## 4. Texte promotionnel (≤170, modifiable sans soumission)
 > `Nouveau : essayez n'importe quel bijou ou tenue sur VOTRE photo en quelques secondes grâce à l'IA. Look du Jour selon la météo + garde-robe intelligente. ✨`
 (157 car.) — à faire tourner par saison/feature (cf. §10).
 
 ## 5. Mots-clés (champ 100 car., virgules sans espaces, singulier, pas de doublon nom/sous-titre/catégorie)
-Exclus car déjà indexés : *bijou, ia, essayage, virtuel, garde-robe, lifestyle, shopping*.
+Exclus car déjà indexés : *bijou, ia, essayage, virtuel, garde-robe, style, lifestyle, shopping*.
 ```
-essai,collier,bague,bracelet,boucle,mode,tenue,look,miroir,vetement,style,relooking,joaillerie,cadeau,coffret,parure,montre,accessoire,dressing,outfit
+collier,bague,boucle,bracelet,tenue,mode,look,vetement,miroir,cadeau,parure,dressing,essai,mariage
 ```
-(99 car.) — prioriser **intention** (essai/collier/bague/tenue/dressing) sur volume. Itérer chaque release via Apple Search Ads + App Analytics.
+(98 car. — vérifié ; la liste précédente faisait 150 car. et aurait été rejetée par ASC). Prioriser **intention** (collier/bague/tenue/dressing/mariage) sur volume. Réserve si un slot se libère : *joaillerie, coffret, montre, relooking, accessoire, outfit*. Itérer chaque release via Apple Search Ads + App Analytics.
 
 ## 6. Description (FR — structure accroche / features / preuve / CTA ; pas de markdown, puces Unicode)
 
@@ -93,7 +93,7 @@ D'après le code (`PrivacyInfo.xcprivacy`, Info.plist) :
 ## 9. Informations de App Review (notes au reviewer)
 ```
 Compte de démo : créez un compte via "Connexion par e-mail" (code OTP à 6 chiffres) OU Sign in with Apple. 
-Compte de test fourni : review@ecrin.app / OTP envoyé à la demande (ou compte de test dédié à créer dans ASC > App Review).
+Compte de test : la connexion email envoie un code OTP à 6 chiffres — utiliser une boîte contrôlée par l'équipe (ex. support@inferencevision.store) comme compte de démo, ou préciser au reviewer que Sign in with Apple fonctionne sans compte préalable.
 Parcours à tester : onglet Essayage → importer une photo (une photo de test est fournie) → choisir un bijou → générer (≈20–60 s, génération IA via backend). 
 La génération d'image passe par un proxy serveur sécurisé (clés IA jamais dans l'app). 
 UGC communauté : modération automatique (catégories interdites bloquées) + signalement (post_reports) + masquage — conforme Guideline 1.2.
