@@ -56,7 +56,7 @@ struct WardrobeItemCard: View {
             if item.source == .catalog {
                 VStack {
                     HStack {
-                        Text("BOUTIQUE")
+                        Text(L10n.WardrobeUI.shopCaps)
                             .font(.system(size: 7, weight: .semibold))
                             .kerning(0.5)
                             .foregroundStyle(EcrinColor.background)
@@ -83,6 +83,7 @@ struct WardrobeItemCard: View {
         .scaleEffect(pressed ? 0.96 : 1.0)
         .animation(EcrinAnimation.springSnap, value: pressed)
         .animation(EcrinAnimation.springSnap, value: isSelected)
+        .accessibilityIdentifier("wardrobe.item")
         .onTapGesture { onTap?() }
         .onLongPressGesture(minimumDuration: 0.4,
                             pressing: { pressing in
@@ -103,7 +104,7 @@ struct WardrobeItemCard: View {
                     .resizable()
                     .scaledToFit()
             } else if let url = item.imageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFit()
@@ -161,7 +162,7 @@ struct WardrobeItemContextMenu: View {
             Button {
                 onTryOn()
             } label: {
-                Label("Essayer", systemImage: "sparkles")
+                Label(L10n.LookOfDay.tryButton, systemImage: "sparkles")
             }
 
             // Complète ce look — visible pour vêtements et chaussures
@@ -170,7 +171,7 @@ struct WardrobeItemContextMenu: View {
                 Button {
                     completeLook()
                 } label: {
-                    Label("Complète ce look", systemImage: "person.crop.rectangle.stack.fill")
+                    Label(L10n.WardrobeUI.completesThisLook, systemImage: "person.crop.rectangle.stack.fill")
                 }
             }
 
@@ -184,7 +185,7 @@ struct WardrobeItemContextMenu: View {
                 onToggleFavorite()
             } label: {
                 Label(
-                    item.isFavorite ? "Retirer des favoris" : "Ajouter aux favoris",
+                    item.isFavorite ? L10n.Boutique.removeFromFavorites : L10n.Boutique.addToFavorites,
                     systemImage: item.isFavorite ? "heart.slash" : "heart.fill"
                 )
             }

@@ -13,11 +13,11 @@ struct GenderPickerSheet: View {
 
             VStack(spacing: EcrinSpacing.xl) {
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("VOTRE STYLE")
+                    Text(L10n.LookOfDay.yourStyle)
                         .font(EcrinFont.label)
                         .kerning(3)
                         .foregroundStyle(EcrinColor.gold)
-                    Text("Pour quel look souhaitez-vous des suggestions ?")
+                    Text(L10n.LookOfDay.genderQuestion)
                         .font(EcrinFont.body)
                         .foregroundStyle(EcrinColor.textSecondary)
                         .multilineTextAlignment(.center)
@@ -30,7 +30,7 @@ struct GenderPickerSheet: View {
                 }
                 .padding(.horizontal, EcrinSpacing.lg)
 
-                Text("Vous pourrez modifier ce choix dans Profil.")
+                Text(L10n.LookOfDay.genderChangeHint)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
                     .multilineTextAlignment(.center)

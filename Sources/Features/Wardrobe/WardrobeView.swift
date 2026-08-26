@@ -22,6 +22,7 @@ struct WardrobeView: View {
     ]
 
     var body: some View {
+        @Bindable var vm = viewModel
         ZStack {
             EcrinColor.background.ignoresSafeArea()
 
@@ -87,7 +88,7 @@ struct WardrobeView: View {
                 }
                 // Visible uniquement pour les vêtements (pas les bijoux/accessoires seuls)
                 if item.category.group == .clothing || item.category.group == .shoes {
-                    Button("Complète ce look") {
+                    Button(L10n.WardrobeUI.completesThisLook) {
                         itemToCompleteLook = item
                     }
                 }
@@ -124,6 +125,16 @@ struct WardrobeView: View {
             .environment(ClothingCatalogService.shared)
             .presentationDetents([.large])
         }
+        // Fix B: surface Supabase sync errors to the user.
+        .alert("Erreur de synchronisation",
+               isPresented: Binding(
+                   get: { vm.errorMessage != nil },
+                   set: { if !$0 { vm.errorMessage = nil } }
+               )) {
+            Button(L10n.Common.ok, role: .cancel) { vm.errorMessage = nil }
+        } message: {
+            Text(vm.errorMessage ?? "")
+        }
     }
 
     // MARK: - Header
@@ -131,11 +142,11 @@ struct WardrobeView: View {
     private var wardrobeHeader: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("MA GARDE-ROBE")
+                Text(L10n.WardrobeUI.myWardrobeCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Virtuelle")
+                Text(L10n.WardrobeUI.virtual)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                 Text("\(viewModel.totalCount) pièces")
@@ -252,6 +263,7 @@ struct WardrobeView: View {
             }
         }
         .animation(EcrinAnimation.springSnap, value: viewModel.filteredItems.map { $0.id })
+        .accessibilityIdentifier("wardrobe.list")
     }
 
     // MARK: - Empty State
@@ -264,7 +276,7 @@ struct WardrobeView: View {
                 .foregroundStyle(viewModel.selectedGroup.color.opacity(0.4))
 
             VStack(spacing: EcrinSpacing.sm) {
-                Text("Aucune pièce")
+                Text(L10n.WardrobeUI.noPieces)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textPrimary)
                 Text("Ajoutez vos \(viewModel.selectedGroup.rawValue.lowercased()) avec le bouton +")
@@ -274,6 +286,7 @@ struct WardrobeView: View {
             }
         }
         .padding(EcrinSpacing.xl)
+        .accessibilityIdentifier("wardrobe.empty")
     }
 
     // MARK: - FAB
@@ -293,6 +306,7 @@ struct WardrobeView: View {
             }
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("wardrobe.add")
     }
 }
 
@@ -581,7 +595,7 @@ struct GenericItemTryOnView: View {
                         .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }
 
-                GoldButton(title: vm.isGenerating ? "Génération…" : "Essayer maintenant") {
+                GoldButton(title: vm.isGenerating ? L10n.CommonUI.generating : L10n.WardrobeUI.tryNow) {
                     Task {
                         await vm.generateFashion(
                             item: item,

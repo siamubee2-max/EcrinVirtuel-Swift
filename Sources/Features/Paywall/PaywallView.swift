@@ -6,11 +6,13 @@ import RevenueCat
 enum PaywallError: LocalizedError {
     case productNotFound(String)
     case entitlementNotActivated
+    case creditGrantFailed
 
     var errorDescription: String? {
         switch self {
         case .productNotFound(let id): return "Produit introuvable : \(id)"
         case .entitlementNotActivated: return "L'achat n'a pas pu être activé. Essayez 'Restaurer mes achats'."
+        case .creditGrantFailed: return "Votre achat a bien été validé, mais vos crédits n'ont pas encore été ajoutés. Ils arrivent sous peu — utilisez 'Restaurer mes achats' si le solde ne se met pas à jour."
         }
     }
 }
@@ -27,17 +29,17 @@ enum PlanPeriod: String, CaseIterable {
 
 enum PaywallProductID {
     // ── Abonnements mensuels ──────────────────────────────────────────
-    static let starterMonthly   = "ecrin_starter_monthly"
-    static let premiumMonthly   = "ecrin_premium_monthly"
-    static let eliteMonthly     = "ecrin_elite_monthly"
+    static let starterMonthly   = "ecrin.starter.monthly"
+    static let premiumMonthly   = "ecrin.premium.month"   // ecrin.premium.monthly locked by legacy app
+    static let eliteMonthly     = "ecrin.elite.monthly"
 
     // ── Abonnements annuels ───────────────────────────────────────────
-    static let starterYearly    = "ecrin_starter_yearly"
-    static let premiumYearly    = "ecrin_premium_yearly"
-    static let eliteYearly      = "ecrin_elite_yearly"
+    static let starterYearly    = "ecrin.starter.yearly"
+    static let premiumYearly    = "ecrin.premium.year"    // ecrin.premium.yearly locked by legacy app
+    static let eliteYearly      = "ecrin.elite.yearly"
 
     // ── Accès à vie ───────────────────────────────────────────────────
-    static let founderLifetime  = "ecrin_founder_lifetime"
+    static let founderLifetime  = "ecrin.founder.lifetime"
 }
 
 // MARK: - Models
@@ -59,6 +61,9 @@ struct PaywallPlan: Identifiable {
         if id.contains("elite")   { return .elite }
         if id.contains("premium") { return .premium }
         if id.contains("starter") { return .starter }
+        // Plan Fondateur à vie : accès maximal — sans ce mapping, l'acheteur
+        // du lifetime retombait en .free avec 3 crédits.
+        if id.contains("founder") || id.contains("lifetime") { return .elite }
         return .free
     }
 }
@@ -88,6 +93,8 @@ final class PaywallViewModel: ObservableObject {
     @Published var liveProducts: [String: StoreProduct] = [:]
     /// Plan acheté avec succès — observé par PaywallView pour mettre à jour AppState.
     @Published var purchasedPlan: PaywallPlan?
+    /// Statut restauré avec succès — observé par PaywallView (même mécanique).
+    @Published var restoredStatus: SubscriptionStatus?
 
     // MARK: All Plans (7 plans complets)
 
@@ -182,14 +189,19 @@ final class PaywallViewModel: ObservableObject {
 
     var ctaTitle: String {
         guard let plan = selectedPlan else { return "Choisir un plan" }
-        return isPurchasing ? "En cours…" : "Commencer avec \(plan.name)"
+        return isPurchasing ? L10n.PaywallUI.inProgress : "Commencer avec \(plan.name)"
     }
 
     // MARK: Init
 
     init() {
         selectedPlan = allPlans.first { $0.id == "premium_monthly" }
-        Task { await loadLiveProducts() }
+        // Skip live product loading in UI-test mode — RC is not configured,
+        // and Purchases.shared.offerings() would fatalError. Static fallback
+        // prices in PaywallPlan are used instead (the paywall UI is fully assertable).
+        if !AppLaunchEnvironment.isUITesting {
+            Task { await loadLiveProducts() }
+        }
     }
 
     // MARK: Display Price (dynamique via RC, fallback statique)
@@ -208,11 +220,40 @@ final class PaywallViewModel: ObservableObject {
         do {
             let product = try await fetchProduct(plan)
             let result = try await Purchases.shared.purchase(product: product)
-            if result.customerInfo.entitlements["premium"]?.isActive == true {
-                _ = try? await SupabaseService.shared.creditGenerations(
-                    productId: plan.rcIdentifier,
-                    transactionId: result.transaction?.transactionIdentifier ?? UUID().uuidString
-                )
+            // RevenueCat 5.x ne throw pas sur l'annulation utilisateur — sans ce check,
+            // annuler affichait « L'achat n'a pas pu être activé » + un faux mismatch.
+            if result.userCancelled { return }
+            // Résolution par productIdentifier — même convention que le launch et le
+            // customerInfoStream, quel que soit le découpage des entitlements RC.
+            if RevenueCatService.resolveStatus(from: result.customerInfo) != .free {
+                // L'identifiant de transaction DOIT venir d'Apple : le serveur le
+                // confronte à RevenueCat — un identifiant fabriqué (UUID local) ne
+                // serait jamais vérifiable, donc achat payé sans crédits accordés.
+                guard let txnId = result.transaction?.transactionIdentifier else {
+                    MonitoringService.shared.recordCreditGrantFailure(
+                        nil, productId: plan.rcIdentifier, transactionId: nil
+                    )
+                    purchaseError = PaywallError.creditGrantFailed.errorDescription
+                    return
+                }
+
+                do {
+                    _ = try await SupabaseService.shared.creditGenerations(
+                        productId: plan.rcIdentifier,
+                        transactionId: txnId
+                    )
+                } catch {
+                    // L'achat Apple a abouti mais l'octroi a échoué : ne PAS fermer en
+                    // silence. L'entitlement reste actif ; seuls les crédits manquent
+                    // (le webhook revenuecat-webhook reste le filet serveur).
+                    MonitoringService.shared.recordCreditGrantFailure(
+                        error, productId: plan.rcIdentifier, transactionId: txnId
+                    )
+                    await CreditsManager.shared.sync()
+                    purchaseError = PaywallError.creditGrantFailed.errorDescription
+                    return
+                }
+
                 purchasedPlan = plan          // ← notifie la vue
                 await CreditsManager.shared.sync() // ← rafraîchit le compteur
                 dismiss()
@@ -232,14 +273,21 @@ final class PaywallViewModel: ObservableObject {
 
     // MARK: Restore
 
-    func restore() async {
+    func restore(dismiss: @escaping () -> Void) async {
         isPurchasing = true
         purchaseError = nil
         defer { isPurchasing = false }
         do {
             let info = try await Purchases.shared.restorePurchases()
-            if info.entitlements["premium"]?.isActive != true {
+            let status = RevenueCatService.resolveStatus(from: info)
+            if status == .free {
                 purchaseError = "Aucun achat trouvé à restaurer."
+            } else {
+                // Observé par la vue : applique le statut à AppState, resynchronise
+                // les crédits et ferme le paywall — avant, une restauration réussie
+                // ne produisait aucun effet visible jusqu'au relaunch.
+                restoredStatus = status
+                dismiss()
             }
         } catch {
             MonitoringService.shared.recordRestoreError(error)
@@ -290,6 +338,7 @@ struct PaywallView: View {
     var body: some View {
         ZStack {
             EcrinColor.background.ignoresSafeArea()
+            // paywall.root accessibility anchor — stable even when RC offerings are empty
 
             // Gold ambient
             Ellipse()
@@ -310,6 +359,7 @@ struct PaywallView: View {
                             .contentShape(Rectangle())
                     }
                     .accessibilityLabel(L10n.Common.close)
+                    .accessibilityIdentifier("paywall.close")
                 }
                 .padding(.horizontal, EcrinSpacing.lg)
                 .padding(.top, 20)
@@ -322,12 +372,12 @@ struct PaywallView: View {
                                 .font(.system(size: 32))
                                 .foregroundStyle(EcrinColor.gold)
 
-                            Text("L'Écrin\nPremium")
+                            Text(L10n.PaywallUI.ecrinPremiumTitle)
                                 .font(EcrinFont.heroTitle)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(EcrinColor.textPrimary)
 
-                            Text("Essayage illimité · Styliste IA · Dressing premium")
+                            Text(L10n.PaywallUI.premiumFeaturesLine)
                                 .font(EcrinFont.caption)
                                 .multilineTextAlignment(.center)
                                 .foregroundStyle(EcrinColor.textSecondary)
@@ -402,12 +452,30 @@ struct PaywallView: View {
                                 Task { await viewModel.purchase(dismiss: { dismiss() }) }
                             }
                             .disabled(viewModel.isPurchasing)
+                            .accessibilityIdentifier("paywall.cta")
 
-                            Button("Restaurer mes achats") {
-                                Task { await viewModel.restore() }
+                            Button(L10n.PaywallUI.restorePurchases) {
+                                Task { await viewModel.restore(dismiss: { dismiss() }) }
                             }
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)
+                            .accessibilityIdentifier("paywall.restore")
+
+                            // Mentions abonnement + liens légaux (App Store 3.1.2)
+                            VStack(spacing: 6) {
+                                Text("Abonnement à renouvellement automatique. Le paiement est débité sur votre compte Apple. L'abonnement se renouvelle sauf annulation au moins 24 h avant la fin de la période. Gérez-le dans vos réglages App Store.")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(EcrinColor.textMuted.opacity(0.8))
+                                    .multilineTextAlignment(.center)
+                                HStack(spacing: 4) {
+                                    Link("CGU", destination: URL(string: "https://inferencevision.store/ecrin/terms")!)
+                                    Text("·").foregroundStyle(EcrinColor.textMuted)
+                                    Link("Confidentialité", destination: URL(string: "https://inferencevision.store/ecrin/privacy")!)
+                                }
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(EcrinColor.gold.opacity(0.7))
+                            }
+                            .padding(.top, EcrinSpacing.sm)
                         }
                         .padding(.horizontal, EcrinSpacing.lg)
                         .padding(.bottom, EcrinSpacing.xxl)
@@ -415,11 +483,19 @@ struct PaywallView: View {
                 }
             }
         }
+        .accessibilityIdentifier("paywall.root")
         // Mettre à jour AppState dès qu'un achat est confirmé
         .onChange(of: viewModel.purchasedPlan?.id) { _, _ in
             guard let plan = viewModel.purchasedPlan else { return }
             appState.subscription = plan.resolvedSubscriptionStatus
             CreditsManager.shared.handleSubscriptionUpgrade(to: appState.subscription)
+        }
+        // Appliquer une restauration réussie (statut + crédits) puis fermer
+        .onChange(of: viewModel.restoredStatus) { _, status in
+            guard let status else { return }
+            appState.subscription = status
+            CreditsManager.shared.syncDetached()
+            dismiss()
         }
     }
 }
@@ -442,7 +518,7 @@ struct PlanCard: View {
                             .foregroundStyle(EcrinColor.textPrimary)
 
                         if plan.isBestValue {
-                            Text("MEILLEURE OFFRE")
+                            Text(L10n.PaywallUI.bestOffer)
                                 .font(.system(size: 8, weight: .semibold))
                                 .kerning(1.5)
                                 .foregroundStyle(EcrinColor.background)

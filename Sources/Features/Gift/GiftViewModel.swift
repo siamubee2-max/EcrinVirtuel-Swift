@@ -41,6 +41,12 @@ final class GiftViewModel: ObservableObject {
     // MARK: Try-on images (populated from dressing/history)
     @Published var availableTryOns: [TryOnEntry] = TryOnEntry.samples
 
+    /// Remplace les samples par le vrai catalogue Supabase (39 bijoux).
+    func loadJewelryCatalog() async {
+        guard let raw = try? await SupabaseService.shared.fetchJewelryCatalog(), !raw.isEmpty else { return }
+        availableTryOns = raw.map { TryOnEntry(id: UUID(), jewelry: $0.asJewelryItem, image: nil) }
+    }
+
     // MARK: Validation
     var canProceedToCustomize: Bool { selectedJewelry != nil }
     var canProceedToSend: Bool { !message.trimmingCharacters(in: .whitespaces).isEmpty }
@@ -65,7 +71,8 @@ final class GiftViewModel: ObservableObject {
         withAnimation(EcrinAnimation.springSnap) { currentStep = step }
     }
 
-    // MARK: - Gift Creation (Supabase backend)
+    // MARK: - Gift Creation (local-only)
+    // gift_cards table not provisioned in prod — gift is local-only (see docs/audits 2026-06-21 C3).
 
     func createGiftLink(fromUser: User) async {
         guard let jewelry = selectedJewelry else { return }
@@ -74,7 +81,13 @@ final class GiftViewModel: ObservableObject {
         defer { isCreatingLink = false }
 
         do {
-            let userId = try? await SupabaseService.shared.client.auth.session.user.id.uuidString
+            // gift_cards.from_user_id references users(id), not auth.uid() —
+            // resolve the profile row id so the insert satisfies the RLS
+            // ownership check (migration 007).
+            var userId: String?
+            if let authId = try? await SupabaseService.shared.client.auth.session.user.id.uuidString {
+                userId = try? await SupabaseService.shared.resolveUsersRowID(authId: authId)
+            }
 
             let giftID = UUID()
             let expiresAt = Calendar.current.date(byAdding: .day, value: 30, to: .now) ?? .now
@@ -96,6 +109,9 @@ final class GiftViewModel: ObservableObject {
                 let occasion: String
                 let is_revealed: Bool
                 let expires_at: String
+                // Colonne TEXT UNIQUE NOT NULL du schéma (migration 001) — son
+                // absence faisait échouer chaque insert. Le lookup se fait par id.
+                let share_token: String
             }
 
             let row = GiftRow(
@@ -110,13 +126,11 @@ final class GiftViewModel: ObservableObject {
                 message: message,
                 occasion: occasion.rawValue,
                 is_revealed: false,
-                expires_at: iso.string(from: expiresAt)
+                expires_at: iso.string(from: expiresAt),
+                share_token: UUID().uuidString
             )
 
-            try await SupabaseService.shared.client
-                .from(SupabaseService.giftCards)
-                .insert(row)
-                .execute()
+            try await SupabaseService.shared.insertRow(row, into: SupabaseService.giftCards)
 
             let gift = GiftCard(
                 id: giftID,
@@ -129,26 +143,24 @@ final class GiftViewModel: ObservableObject {
                 expiresAt: expiresAt
             )
             createdGift = gift
-            shareURL = gift.generatedShareURL
+            // Partager l'URL https (cliquable dans Messages/WhatsApp) — le
+            // custom scheme ecrin:// n'est pas tappable hors de l'app et est
+            // mort chez un destinataire sans l'app.
+            shareURL = gift.shareURL ?? gift.generatedShareURL
             showShareSheet = true
+            GamingService.shared.record(.giftSent)
 
         } catch {
             Logger(subsystem: "com.ecrin.jewelry", category: "gift").error("createGiftLink error: \(error.localizedDescription, privacy: .public)")
-            // Degrade gracefully: local-only gift (no persistence)
-            let gift = GiftCard(
-                fromUser: fromUser,
-                jewelryItem: jewelry,
-                tryOnImageData: selectedTryOnImage?.jpegData(compressionQuality: 0.85),
-                message: message,
-                occasionType: occasion
-            )
-            createdGift = gift
-            shareURL = gift.generatedShareURL
-            showShareSheet = true
+            // Ne PAS ouvrir la share sheet : sans ligne en base, le lien
+            // partagé serait mort pour le destinataire.
+            errorMessage = L10n.GiftUI.createFailed
         }
     }
 
-    // MARK: - Gift Reception (Supabase backend)
+    // MARK: - Gift Reception (local-only — deep-link cannot be resolved)
+    // gift_cards table not provisioned in prod — gift is local-only (see docs/audits 2026-06-21 C3).
+    // A received deep-link cannot be looked up; inform the user honestly.
 
     func receive(giftID: UUID) async {
         isLoadingGift = true
@@ -170,16 +182,19 @@ final class GiftViewModel: ObservableObject {
                 let created_at: String?
             }
 
-            let rows: [GiftRow] = try await SupabaseService.shared.client
-                .from(SupabaseService.giftCards)
-                .select("id,from_display_name,from_email,jewelry_json,jewelry_name,jewelry_image_url,message,occasion,is_revealed,expires_at,created_at")
-                .eq("id", value: giftID.uuidString)
-                .limit(1)
-                .execute()
-                .value
+            struct GiftLookupParams: Encodable { let gift_id: String }
+
+            // Single-row RPC (get_gift_card, migration 007) instead of a direct
+            // table select — gift_cards has no public SELECT policy, so an
+            // anonymous recipient can only ever fetch the one gift they hold
+            // the id for, never the whole table.
+            let rows: [GiftRow] = try await SupabaseService.shared.rpcRows(
+                "get_gift_card",
+                params: GiftLookupParams(gift_id: giftID.uuidString)
+            )
 
             guard let row = rows.first else {
-                errorMessage = "Ce cadeau est introuvable ou a expiré."
+                errorMessage = L10n.GiftUI.giftNotFoundOrExpired
                 return
             }
 
@@ -221,25 +236,16 @@ final class GiftViewModel: ObservableObject {
                 expiresAt: expiresAt
             )
 
-            // Mark as revealed
-            struct RevealPatch: Encodable { let is_revealed: Bool }
-            try? await SupabaseService.shared.client
-                .from(SupabaseService.giftCards)
-                .update(RevealPatch(is_revealed: true))
-                .eq("id", value: giftID.uuidString)
-                .execute()
-
+            // get_gift_card() already marks the gift as revealed server-side.
             withAnimation(EcrinAnimation.glassReveal) {
                 revealedGift = gift
             }
 
         } catch {
             Logger(subsystem: "com.ecrin.jewelry", category: "gift").error("receive error: \(error.localizedDescription, privacy: .public)")
-            errorMessage = "Impossible de charger ce cadeau. Vérifiez votre connexion."
-            // Fallback: show sample for demo purposes
-            withAnimation(EcrinAnimation.glassReveal) {
-                revealedGift = GiftCard.sample
-            }
+            // Pas de fallback sample : afficher un faux cadeau (« De la part de
+            // Marie ») que personne n'a envoyé serait pire que l'erreur.
+            errorMessage = L10n.GiftUI.giftLoadFailed
         }
     }
 

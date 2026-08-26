@@ -33,11 +33,11 @@ struct ARPermissionView: View {
 
                 // Title
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("Accès à la caméra")
+                    Text(L10n.ArTryOnUI.cameraAccess)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
 
-                    Text("L'Écrin Virtuel a besoin d'accéder à votre caméra pour l'essayage AR de bijoux en temps réel.")
+                    Text(L10n.ArTryOnUI.cameraPermissionRationale)
                         .font(EcrinFont.body)
                         .foregroundStyle(EcrinColor.textSecondary)
                         .multilineTextAlignment(.center)
@@ -73,7 +73,7 @@ struct ARPermissionView: View {
                             .progressViewStyle(.circular)
                             .tint(EcrinColor.gold)
                     } else {
-                        GoldButton(title: "Autoriser la caméra") {
+                        GoldButton(title: L10n.ArTryOnUI.allowCamera) {
                             requestCameraAccess()
                         }
                     }
@@ -81,7 +81,7 @@ struct ARPermissionView: View {
                     Button(action: {
                         openSettings()
                     }) {
-                        Text("Ouvrir les réglages")
+                        Text(L10n.ArTryOnUI.openSettings)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                     }

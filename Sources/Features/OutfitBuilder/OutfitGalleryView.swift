@@ -41,7 +41,7 @@ struct OutfitGalleryView: View {
                     }
                 }
             }
-            .navigationTitle("Mes Tenues")
+            .navigationTitle(L10n.OutfitBuilderUI.myOutfits)
             .navigationBarTitleDisplayMode(.large)
             .toolbarBackground(EcrinColor.surface, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
@@ -72,7 +72,7 @@ struct OutfitGalleryView: View {
                         showFavoritesOnly.toggle()
                     }
                 } label: {
-                    Label("Favoris", systemImage: showFavoritesOnly ? "heart.fill" : "heart")
+                    Label(L10n.MyLooks.sortByFavorites, systemImage: showFavoritesOnly ? "heart.fill" : "heart")
                         .font(EcrinFont.caption)
                         .foregroundStyle(showFavoritesOnly ? EcrinColor.gold : EcrinColor.textSecondary)
                         .padding(.horizontal, EcrinSpacing.sm)
@@ -97,7 +97,7 @@ struct OutfitGalleryView: View {
                         filterOccasion = nil
                     }
                 } label: {
-                    Text("Toutes")
+                    Text(L10n.Occasions.all)
                         .font(EcrinFont.caption)
                         .foregroundStyle(filterOccasion == nil ? EcrinColor.gold : EcrinColor.textSecondary)
                         .padding(.horizontal, EcrinSpacing.sm)
@@ -173,16 +173,16 @@ struct OutfitGalleryView: View {
                 .foregroundStyle(EcrinColor.textMuted)
 
             VStack(spacing: EcrinSpacing.sm) {
-                Text("Aucune tenue sauvegardée")
+                Text(L10n.OutfitBuilderUI.noSavedOutfits)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.ivory)
-                Text("Créez votre premier look\ndans l'Outfit Builder")
+                Text(L10n.OutfitBuilderUI.createFirstLook)
                     .font(EcrinFont.body)
                     .foregroundStyle(EcrinColor.textSecondary)
                     .multilineTextAlignment(.center)
             }
 
-            GoldButton(title: "Créer un look") { dismiss() }
+            GoldButton(title: L10n.OutfitBuilderUI.createALook) { dismiss() }
             Spacer()
         }
         .padding(EcrinSpacing.xl)
@@ -223,7 +223,7 @@ struct OutfitGalleryCard: View {
                 onFavorite()
             } label: {
                 Label(
-                    outfit.isFavorite ? "Retirer des favoris" : "Ajouter aux favoris",
+                    outfit.isFavorite ? L10n.Boutique.removeFromFavorites : L10n.Boutique.addToFavorites,
                     systemImage: outfit.isFavorite ? "heart.slash" : "heart"
                 )
             }
@@ -234,7 +234,7 @@ struct OutfitGalleryCard: View {
                 Label(L10n.Common.delete, systemImage: "trash")
             }
         }
-        .confirmationDialog("Supprimer cette tenue ?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+        .confirmationDialog(L10n.OutfitBuilderUI.deleteOutfitConfirm, isPresented: $showDeleteConfirm, titleVisibility: .visible) {
             Button(L10n.Common.delete, role: .destructive) { onDelete() }
             Button(L10n.Common.cancel, role: .cancel) {}
         }

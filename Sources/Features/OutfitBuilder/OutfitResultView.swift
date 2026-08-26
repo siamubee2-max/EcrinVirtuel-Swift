@@ -142,7 +142,7 @@ struct OutfitResultView: View {
                     withAnimation { showSavedToast = false }
                 }
             } label: {
-                Label("Sauvegarder", systemImage: "heart.fill")
+                Label(L10n.OutfitBuilderUI.save, systemImage: "heart.fill")
                     .font(EcrinFont.cta)
                     .kerning(1.5)
                     .textCase(.uppercase)
@@ -168,7 +168,7 @@ struct OutfitResultView: View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.green)
-            Text("Tenue sauvegardée")
+            Text(L10n.OutfitBuilderUI.outfitSaved)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.ivory)
         }

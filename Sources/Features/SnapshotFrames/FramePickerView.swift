@@ -54,11 +54,11 @@ struct FramePickerView: View {
     private var sheetHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
-                Text("SNAPSHOT FRAME")
+                Text(L10n.SnapshotFramesUI.snapshotFrameCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Cadres artistiques L99")
+                Text(L10n.SnapshotFramesUI.artisticFramesL99)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textPrimary)
             }
@@ -206,7 +206,7 @@ struct FramePickerView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "slider.horizontal.3")
                             .font(.system(size: 13))
-                        Text("Personnaliser")
+                        Text(L10n.SnapshotFramesUI.customize)
                             .font(EcrinFont.cta)
                             .kerning(1.5)
                     }
@@ -221,7 +221,7 @@ struct FramePickerView: View {
             }
 
             HStack(spacing: EcrinSpacing.md) {
-                GhostButton(title: "Sans cadre") {
+                GhostButton(title: L10n.SnapshotFramesUI.noFrame) {
                     viewModel.clearFrame()
                     dismiss()
                 }
@@ -251,18 +251,29 @@ final class FrameViewModel: ObservableObject {
     @Published var unlockedByUser: Set<String> = []
     @Published var isRendering = false
 
+    /// Set to true when the user has an active paid subscription.
+    /// Pragmatic default: premium frames (isPremium=true, isUnlockableByXP=false) are
+    /// unlocked for subscribers via CreditsManager.shared.isUnlimited OR
+    /// AppState.subscription.isSubscribed.  Caller sets this after init.
+    @Published var isPremiumUser: Bool = false
+
     var filteredFrames: [SnapshotFrame] {
         frames.filter { $0.category == selectedCategory }
     }
 
     func isUnlocked(_ frame: SnapshotFrame) -> Bool {
+        // Free frames — always accessible.
         if !frame.isPremium && !frame.isUnlockableByXP { return true }
+        // XP-unlockable frames — regardless of subscription tier.
         if frame.isUnlockableByXP { return unlockedByUser.contains(frame.id) }
+        // Premium-only frames (isPremium=true, isUnlockableByXP=false):
+        // unlocked when the user holds an active paid subscription.
+        if frame.isPremium && !frame.isUnlockableByXP { return isPremiumUser }
         return false
     }
 
     func lockLabel(_ frame: SnapshotFrame) -> String? {
-        if frame.isPremium && !frame.isUnlockableByXP { return "Premium" }
+        if frame.isPremium && !frame.isUnlockableByXP && !isPremiumUser { return "Premium" }
         if frame.isUnlockableByXP && !unlockedByUser.contains(frame.id) {
             return "\(frame.xpRequired) XP"
         }

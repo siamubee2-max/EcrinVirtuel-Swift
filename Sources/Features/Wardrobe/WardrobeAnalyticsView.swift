@@ -28,7 +28,7 @@ struct WardrobeAnalyticsView: View {
                     .padding(.top, EcrinSpacing.md)
                 }
             }
-            .navigationTitle("Analytiques")
+            .navigationTitle(L10n.WardrobeUI.analytics)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -88,7 +88,7 @@ struct WardrobeAnalyticsView: View {
     private var groupDonutSection: some View {
         GlassCard(cornerRadius: 20) {
             VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-                sectionTitle("Répartition par groupe")
+                sectionTitle(L10n.WardrobeUI.breakdownByGroup)
 
                 Chart(vm.groupStats) { stat in
                     SectorMark(
@@ -126,7 +126,7 @@ struct WardrobeAnalyticsView: View {
     private var colorsSection: some View {
         GlassCard(cornerRadius: 20) {
             VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-                sectionTitle("Couleurs dominantes")
+                sectionTitle(L10n.WardrobeUI.dominantColors)
 
                 let maxCount = vm.topColors.map(\.count).max() ?? 1
                 ForEach(vm.topColors) { stat in
@@ -164,7 +164,7 @@ struct WardrobeAnalyticsView: View {
     private var brandsSection: some View {
         GlassCard(cornerRadius: 20) {
             VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-                sectionTitle("Marques phares")
+                sectionTitle(L10n.WardrobeUI.topBrands)
 
                 let maxCount = vm.topBrands.map(\.count).max() ?? 1
                 ForEach(vm.topBrands) { stat in
@@ -203,7 +203,7 @@ struct WardrobeAnalyticsView: View {
     private var monthlySection: some View {
         GlassCard(cornerRadius: 20) {
             VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-                sectionTitle("Ajouts (6 mois)")
+                sectionTitle(L10n.WardrobeUI.additionsSixMonths)
 
                 Chart(vm.monthStats) { stat in
                     BarMark(

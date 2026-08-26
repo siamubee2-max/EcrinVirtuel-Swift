@@ -40,7 +40,9 @@ struct CatalogBrowserView: View {
                 itemsGrid
             }
         }
-        .task { await catalogService.fetchAll(force: true) }
+        // Réutilise le cache s'il est déjà chargé (force: false) — avant, force: true
+        // re-téléchargeait tout le catalogue à CHAQUE ouverture de l'écran.
+        .task { await catalogService.fetchAll(force: false) }
         .sheet(item: $tryOnItem) { item in
             TryOnFromCatalogSheet(item: item)
         }
@@ -50,11 +52,11 @@ struct CatalogBrowserView: View {
 
     private var catalogHeader: some View {
         VStack(spacing: 4) {
-            Text("CATALOGUE")
+            Text(L10n.CatalogUI.catalogCaps)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.textPrimary)
                 .kerning(4)
-            Text("Inspirations look")
+            Text(L10n.CatalogUI.lookInspirations)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.gold)
                 .kerning(2)
@@ -121,7 +123,7 @@ struct CatalogBrowserView: View {
                 .foregroundStyle(EcrinColor.textSecondary)
                 .font(.system(size: 14, weight: .regular))
 
-            TextField("Rechercher un article, une marque…", text: $searchText)
+            TextField(L10n.CatalogUI.searchItemBrand, text: $searchText)
                 .font(EcrinFont.body)
                 .foregroundStyle(EcrinColor.textPrimary)
                 .tint(EcrinColor.gold)
@@ -194,6 +196,7 @@ struct CatalogBrowserView: View {
                     .padding(.bottom, EcrinSpacing.xxl)
                 }
                 .refreshable { await catalogService.fetchAll(force: true) }
+                .accessibilityIdentifier("catalog.grid")
             }
         }
     }
@@ -204,7 +207,7 @@ struct CatalogBrowserView: View {
         VStack(spacing: EcrinSpacing.md) {
             ProgressView()
                 .tint(EcrinColor.gold)
-            Text("Chargement du catalogue…")
+            Text(L10n.CatalogUI.loadingCatalog)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textSecondary)
         }
@@ -220,10 +223,10 @@ struct CatalogBrowserView: View {
                 .foregroundStyle(EcrinColor.textMuted)
 
             VStack(spacing: EcrinSpacing.xs) {
-                Text(isSearching ? "Aucun résultat" : "Catalogue vide")
+                Text(isSearching ? L10n.CatalogUI.noResults : L10n.CatalogUI.emptyCatalog)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textPrimary)
-                Text(isSearching ? "Essayez d'autres termes de recherche" : "Les articles arrivent bientôt")
+                Text(isSearching ? L10n.CatalogUI.tryOtherSearchTerms : L10n.CatalogUI.itemsComingSoon)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textSecondary)
                     .multilineTextAlignment(.center)
@@ -375,7 +378,7 @@ struct CatalogItemCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "wand.and.sparkles")
                             .font(.system(size: 10, weight: .medium))
-                        Text("ESSAYER")
+                        Text(L10n.CatalogUI.tryOnCaps)
                             .font(EcrinFont.label)
                             .kerning(1.5)
                     }
@@ -414,8 +417,8 @@ struct CatalogItemCard: View {
                         item.cardBackgroundColor
                             .brightness(0.05)
 
-                        if let url = item.imageURL {
-                            AsyncImage(url: url) { phase in
+                        if let url = item.displayImageURL {
+                            DownsampledAsyncImage(url: url) { phase in
                                 switch phase {
                                 case .success(let image):
                                     image
@@ -440,7 +443,7 @@ struct CatalogItemCard: View {
                             HStack {
                                 Spacer()
                                 if item.isFeatured {
-                                    Text("VEDETTE")
+                                    Text(L10n.CatalogUI.featuredCaps)
                                         .font(EcrinFont.label)
                                         .kerning(1)
                                         .foregroundStyle(EcrinColor.background)
@@ -513,7 +516,7 @@ struct TryOnFromCatalogSheet: View {
 
                 // Prompt preview
                 VStack(alignment: .leading, spacing: EcrinSpacing.xs) {
-                    Text("PROMPT D'ESSAYAGE")
+                    Text(L10n.CatalogUI.tryOnPromptCaps)
                         .font(EcrinFont.label)
                         .kerning(2)
                         .foregroundStyle(EcrinColor.textMuted)
@@ -545,7 +548,7 @@ struct TryOnFromCatalogSheet: View {
 
                     if let urlString = item.purchaseURL, let url = URL(string: urlString) {
                         Link(destination: url) {
-                            Text("Voir l'article en boutique")
+                            Text(L10n.CatalogUI.viewItemInShop)
                                 .font(EcrinFont.cta)
                                 .kerning(1.5)
                                 .foregroundStyle(EcrinColor.gold)

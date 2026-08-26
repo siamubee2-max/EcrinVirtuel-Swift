@@ -53,13 +53,13 @@ struct SaveLookSheet: View {
 
     private var sheetHeader: some View {
         VStack(spacing: EcrinSpacing.xs) {
-            Text("SAUVEGARDER CE LOOK")
+            Text(L10n.OccasionVaultUI.saveThisLook)
                 .font(EcrinFont.label)
                 .kerning(3)
                 .foregroundStyle(EcrinColor.gold)
                 .padding(.top, EcrinSpacing.md)
 
-            Text("Dans mon Dressing")
+            Text(L10n.OccasionVaultUI.inMyDressing)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.textPrimary)
         }
@@ -103,13 +103,13 @@ struct SaveLookSheet: View {
 
     private var nameSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("NOM DU LOOK")
+            Text(L10n.OccasionVaultUI.lookNameLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
 
             GlassCard(cornerRadius: 16) {
-                TextField("Ex. Soirée Gala · Novembre", text: $name)
+                TextField(L10n.OccasionVaultUI.occasionPlaceholder, text: $name)
                     .font(EcrinFont.body)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .focused($nameFocused)
@@ -122,7 +122,7 @@ struct SaveLookSheet: View {
 
     private var occasionSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("OCCASION")
+            Text(L10n.OccasionVaultUI.occasionLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -147,7 +147,7 @@ struct SaveLookSheet: View {
 
     private var tagsSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("TAGS")
+            Text(L10n.OccasionVaultUI.tagsLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -158,7 +158,7 @@ struct SaveLookSheet: View {
                         .font(.system(size: 14, weight: .thin))
                         .foregroundStyle(EcrinColor.gold.opacity(0.6))
 
-                    TextField("Élégant, Or, Soirée…", text: $tagInput)
+                    TextField(L10n.OccasionVaultUI.tagsPlaceholder, text: $tagInput)
                         .font(EcrinFont.body)
                         .foregroundStyle(EcrinColor.textPrimary)
                         .focused($tagFocused)
@@ -182,7 +182,7 @@ struct SaveLookSheet: View {
 
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("NOTES")
+            Text(L10n.OccasionVaultUI.notesLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -190,7 +190,7 @@ struct SaveLookSheet: View {
             GlassCard(cornerRadius: 16) {
                 ZStack(alignment: .topLeading) {
                     if notes.isEmpty {
-                        Text("Ajoutez vos notes sur ce look…")
+                        Text(L10n.OccasionVaultUI.notesPlaceholder)
                             .font(EcrinFont.body)
                             .foregroundStyle(EcrinColor.textMuted)
                             .padding(EcrinSpacing.md)
@@ -212,7 +212,7 @@ struct SaveLookSheet: View {
     // MARK: - Save button
 
     private var saveButton: some View {
-        GoldButton(title: "Enregistrer dans mon Dressing") {
+        GoldButton(title: L10n.OccasionVaultUI.saveToDressing) {
             let finalName = name.isEmpty ? autoSuggestName() : name
             let look = SavedLook(
                 name: finalName,

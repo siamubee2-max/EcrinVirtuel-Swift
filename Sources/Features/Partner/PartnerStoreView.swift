@@ -59,12 +59,12 @@ struct PartnerStoreView: View {
     private var storeHeader: some View {
         HStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: EcrinSpacing.xs) {
-                Text("NOS PARTENAIRES")
+                Text(L10n.PartnerUI.ourPartners)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
 
-                Text("Boutiques\nSélectionnées")
+                Text(L10n.PartnerUI.selectedShops)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .lineSpacing(4)
@@ -78,7 +78,7 @@ struct PartnerStoreView: View {
                     Text("\(viewModel.partners.count)")
                         .font(EcrinFont.serif(32, weight: .light))
                         .foregroundStyle(EcrinColor.gold)
-                    Text("marques")
+                    Text(L10n.PartnerUI.brands)
                         .font(EcrinFont.caption)
                         .kerning(1)
                         .foregroundStyle(EcrinColor.textMuted)
@@ -99,7 +99,7 @@ struct PartnerStoreView: View {
                     .foregroundStyle(EcrinColor.textMuted)
 
                 TextField("", text: $viewModel.searchText, prompt:
-                    Text("Rechercher une boutique…")
+                    Text(L10n.PartnerUI.searchShopPlaceholder)
                         .foregroundStyle(EcrinColor.textMuted)
                         .font(EcrinFont.body)
                 )
@@ -192,11 +192,11 @@ struct PartnerStoreView: View {
             Image(systemName: "storefront")
                 .font(.system(size: 48, weight: .thin))
                 .foregroundStyle(EcrinColor.textMuted)
-            Text("Aucune boutique trouvée")
+            Text(L10n.PartnerUI.noShopFound)
                 .font(EcrinFont.cardTitle)
                 .foregroundStyle(EcrinColor.textSecondary)
             if !viewModel.searchText.isEmpty {
-                Text("Essayez un autre mot-clé")
+                Text(L10n.PartnerUI.tryAnotherKeyword)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
             }
@@ -237,12 +237,12 @@ struct PartnerStoreView: View {
 
                 // Texte
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("Vous êtes créateur·trice ?")
+                    Text(L10n.PartnerUI.areYouCreator)
                         .font(EcrinFont.cardTitle)
                         .foregroundStyle(EcrinColor.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Rejoignez L'Écrin Virtuel et faites découvrir vos bijoux artisanaux à des milliers de passionné·es. Candidature gratuite, réponse sous 72 h.")
+                    Text(L10n.PartnerUI.joinEcrinSubtitle)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
                         .multilineTextAlignment(.center)
@@ -270,7 +270,7 @@ struct PartnerStoreView: View {
                     HStack(spacing: EcrinSpacing.sm) {
                         Image(systemName: "paperplane")
                             .font(.system(size: 13, weight: .semibold))
-                        Text("Postuler comme partenaire")
+                        Text(L10n.PartnerUI.applyAsPartner)
                             .font(EcrinFont.cta)
                             .kerning(1.5)
                     }
@@ -405,7 +405,7 @@ struct VerifiedBadge: View {
         HStack(spacing: 3) {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 9))
-            Text("VÉRIFIÉ")
+            Text(L10n.PartnerUI.verified)
                 .font(EcrinFont.label)
                 .kerning(0.5)
         }

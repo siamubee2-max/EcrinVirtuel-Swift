@@ -18,7 +18,7 @@ struct PhotoGuideOverlay: View {
 
                 // Header
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("GUIDE PHOTO")
+                    Text(L10n.QuickTryOnUI.photoGuide)
                         .font(EcrinFont.label)
                         .kerning(3)
                         .foregroundStyle(EcrinColor.gold)
@@ -47,7 +47,7 @@ struct PhotoGuideOverlay: View {
                 Spacer()
 
                 // CTA
-                GoldButton(title: "J'ai compris") {
+                GoldButton(title: L10n.QuickTryOnUI.understood) {
                     onDismiss()
                 }
                 .opacity(appeared ? 1 : 0)

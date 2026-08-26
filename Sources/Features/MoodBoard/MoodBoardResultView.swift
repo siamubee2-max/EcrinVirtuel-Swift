@@ -5,6 +5,7 @@ import SwiftUI
 struct MoodBoardResultView: View {
     let board: MoodBoard
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
     @State private var showSaveSheet   = false
     @State private var savedSuccessfully = false
     @State private var descriptionVisible = false
@@ -71,7 +72,11 @@ struct MoodBoardResultView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4)  { jewelryVisible = true }
         }
         .sheet(isPresented: $showSaveSheet) {
-            MoodSaveLookSheet(board: board, onSave: {
+            MoodSaveLookSheet(board: board, onSave: { savedTitle in
+                // Persist to MoodBoardStore so the gallery reflects this board.
+                var saved = board
+                saved.title = savedTitle
+                MoodBoardStore.shared.save(saved)
                 savedSuccessfully = true
                 showSaveSheet = false
             })
@@ -104,7 +109,7 @@ struct MoodBoardResultView: View {
                     .overlay(Circle().strokeBorder(EcrinColor.glassStroke, lineWidth: 0.5))
             }
             Spacer()
-            Text("VOTRE LOOK")
+            Text(L10n.MoodBoardUI.yourLookLabel)
                 .font(EcrinFont.label)
                 .kerning(3)
                 .foregroundStyle(EcrinColor.textSecondary)
@@ -161,7 +166,7 @@ struct MoodBoardResultView: View {
     private var paletteSection: some View {
         VStack(spacing: EcrinSpacing.md) {
             HStack {
-                Text("PALETTE")
+                Text(L10n.MoodBoardUI.paletteLabel)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -233,7 +238,7 @@ struct MoodBoardResultView: View {
     private var jewelrySection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
             HStack {
-                Text("PIÈCES SÉLECTIONNÉES")
+                Text(L10n.MoodBoardUI.selectedPiecesLabel)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -261,7 +266,7 @@ struct MoodBoardResultView: View {
 
     private var keywordsSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("MOTS-CLÉS")
+            Text(L10n.MoodBoardUI.keywordsLabel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -286,11 +291,15 @@ struct MoodBoardResultView: View {
 
     private var actionsSection: some View {
         VStack(spacing: EcrinSpacing.md) {
-            GoldButton(title: "Essayer ces bijoux") {
+            // "Essayer ces bijoux" — pose pendingMoodBoardJewelry dans AppState puis
+            // dismisse ; MoodBoardGalleryView observe et ouvre ARTryOnWrapperView.
+            GoldButton(title: L10n.MoodBoardUI.tryTheseJewels) {
+                guard !board.jewelryItems.isEmpty else { return }
+                appState.pendingMoodBoardJewelry = board.jewelryItems
                 dismiss()
             }
 
-            GhostButton(title: "Sauvegarder le look") {
+            GhostButton(title: L10n.MoodBoardUI.saveLook) {
                 showSaveSheet = true
             }
         }
@@ -333,7 +342,7 @@ struct MoodJewelCard: View {
                         HStack(spacing: 3) {
                             Image(systemName: "camera.viewfinder")
                                 .font(.system(size: 8))
-                            Text("Essayer")
+                            Text(L10n.LookOfDay.tryButton)
                                 .font(EcrinFont.label)
                                 .kerning(1)
                         }
@@ -374,7 +383,7 @@ private struct SavedToastView: View {
         HStack(spacing: EcrinSpacing.sm) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(EcrinColor.gold)
-            Text("Look sauvegardé dans votre galerie")
+            Text(L10n.MoodBoardUI.lookSavedToGallery)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textPrimary)
         }
@@ -392,7 +401,7 @@ private struct SavedToastView: View {
 
 struct MoodSaveLookSheet: View {
     let board: MoodBoard
-    let onSave: () -> Void
+    let onSave: (String) -> Void   // passes the final title to the caller
     @Environment(\.dismiss) private var dismiss
     @State private var customTitle: String = ""
 
@@ -408,17 +417,17 @@ struct MoodSaveLookSheet: View {
                     .padding(.top, EcrinSpacing.md)
 
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("Sauvegarder ce look")
+                    Text(L10n.AiStylist.saveLook)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("Retrouvez-le dans votre galerie personnelle")
+                    Text(L10n.MoodBoardUI.findItInGallery)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
                 }
 
                 // Title field
                 GlassCard(cornerRadius: 14) {
-                    TextField("Titre du look…", text: $customTitle)
+                    TextField(L10n.MoodBoardUI.lookTitlePlaceholder, text: $customTitle)
                         .font(EcrinFont.serif(18, weight: .light))
                         .foregroundStyle(EcrinColor.textPrimary)
                         .tint(EcrinColor.gold)
@@ -441,8 +450,8 @@ struct MoodSaveLookSheet: View {
                 Spacer()
 
                 VStack(spacing: EcrinSpacing.md) {
-                    GoldButton(title: "Sauvegarder") {
-                        onSave()
+                    GoldButton(title: L10n.OutfitBuilderUI.save) {
+                        onSave(customTitle.trimmingCharacters(in: .whitespaces).isEmpty ? board.title : customTitle)
                     }
                     Button(L10n.Common.cancel) { dismiss() }
                         .font(EcrinFont.caption)
@@ -468,4 +477,5 @@ struct MoodSaveLookSheet: View {
         colorPalette: ["#080808", "#CA8A04", "#F5D37A", "#1A1A2E", "#4A4080"],
         keywords: ["Gala", "Classique", "Hiver", "Grandiose", "Somptueux"]
     ))
+    .environment(AppState())
 }

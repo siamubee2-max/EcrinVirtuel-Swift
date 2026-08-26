@@ -31,7 +31,10 @@ final class CreditsPackViewModel {
         do {
             currentCredits = try await SupabaseService.shared.fetchRemainingCredits()
         } catch {
-            currentCredits = 0
+            // Pas de session (ou fetch échoué) : solde local plutôt qu'un faux "0"
+            // incohérent avec le badge "restants" de l'écran Essayage.
+            await CreditsManager.shared.sync()
+            currentCredits = CreditsManager.shared.remaining
         }
         isLoadingCredits = false
     }
@@ -66,7 +69,7 @@ final class CreditsPackViewModel {
     func purchase() async {
         guard let pack = selectedPack else { return }
         guard let storeProduct = storeProducts[pack.id] else {
-            errorMessage = "Produit indisponible. Vérifiez votre connexion."
+            errorMessage = L10n.CreditsUI.productUnavailable
             return
         }
 
@@ -77,9 +80,12 @@ final class CreditsPackViewModel {
         do {
             let result = try await Purchases.shared.purchase(product: storeProduct)
 
+            // RevenueCat 5.x ne throw pas sur l'annulation utilisateur — il la signale ici.
+            if result.userCancelled { return }
+
             // Récupérer l'ID de transaction Apple pour l'idempotence
             guard let transactionId = result.transaction?.transactionIdentifier else {
-                errorMessage = "Achat incomplet. Contactez le support."
+                errorMessage = L10n.CreditsUI.purchaseIncomplete
                 return
             }
 
@@ -90,7 +96,16 @@ final class CreditsPackViewModel {
             )
 
             currentCredits = newTotal
+            // Répercuter immédiatement sur le solde global : sans cela, l'utilisateur
+            // à 0 crédit qui vient de payer retombe sur le paywall jusqu'au relaunch.
+            CreditsManager.shared.remaining = newTotal
+            CreditsManager.shared.syncDetached()
             purchasedCount = pack.count + pack.bonusCount
+
+            // Refresh the single source of truth so the generation paywall
+            // reads the updated balance immediately (Bug C8).
+            await CreditsManager.shared.sync()
+
             withAnimation(EcrinAnimation.springBounce) {
                 purchaseSuccess = true
             }

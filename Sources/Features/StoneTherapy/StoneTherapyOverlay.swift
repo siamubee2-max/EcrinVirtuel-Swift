@@ -101,7 +101,7 @@ struct StoneTherapyOverlay: View {
     private var headerSection: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: EcrinSpacing.xs) {
-                Text("LITHOTHÉRAPIE")
+                Text(L10n.StoneTherapyUI.lithotherapy)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(stone.stoneColor)
@@ -147,7 +147,7 @@ struct StoneTherapyOverlay: View {
 
     private var virtuesSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("VERTUS")
+            Text(L10n.StoneTherapyUI.virtues)
                 .font(EcrinFont.label)
                 .kerning(2.5)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -178,7 +178,7 @@ struct StoneTherapyOverlay: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("CHAKRA")
+                Text(L10n.StoneTherapyUI.chakra)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -191,7 +191,7 @@ struct StoneTherapyOverlay: View {
 
             // Element
             VStack(alignment: .trailing, spacing: 2) {
-                Text("ÉLÉMENT")
+                Text(L10n.StoneTherapyUI.element)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -220,7 +220,7 @@ struct StoneTherapyOverlay: View {
 
     private var intentionSection: some View {
         VStack(spacing: EcrinSpacing.sm) {
-            Text("\u{201C}")
+            Text(L10n.StoneTherapyUI.openingQuote)
                 .font(.custom("Cormorant", size: 48).weight(.thin))
                 .foregroundStyle(stone.stoneColor.opacity(0.4))
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -233,7 +233,7 @@ struct StoneTherapyOverlay: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, EcrinSpacing.xl)
 
-            Text("\u{201D}")
+            Text(L10n.StoneTherapyUI.closingQuote)
                 .font(.custom("Cormorant", size: 48).weight(.thin))
                 .foregroundStyle(stone.stoneColor.opacity(0.4))
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -245,7 +245,7 @@ struct StoneTherapyOverlay: View {
 
     private var pairsSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("PIERRES COMPLÉMENTAIRES")
+            Text(L10n.StoneTherapyUI.complementaryStones)
                 .font(EcrinFont.label)
                 .kerning(2.5)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -265,7 +265,7 @@ struct StoneTherapyOverlay: View {
 
     private var actionButtons: some View {
         VStack(spacing: EcrinSpacing.md) {
-            GoldButton(title: "En savoir plus") {
+            GoldButton(title: L10n.StoneTherapyUI.learnMore) {
                 withAnimation(EcrinAnimation.springSnap) {
                     onLearnMore()
                 }
@@ -379,7 +379,7 @@ private struct StoneChip: View {
         // Simulated try-on result
         VStack {
             Spacer()
-            Text("Try-on result here")
+            Text(L10n.StoneTherapyUI.tryOnResultPlaceholder)
                 .foregroundStyle(.white)
             Spacer()
         }

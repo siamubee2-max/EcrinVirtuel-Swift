@@ -40,24 +40,36 @@ final class TryOnViewModel {
     func loadPhoto(from item: PhotosPickerItem?) async {
         guard let item else { return }
         guard let data = try? await item.loadTransferable(type: Data.self),
-              let image = UIImage(data: data) else { return }
+              // Décodage borné à ~2048 px — évite ~120 Mo de RAM pour une photo 48 Mpx
+              let image = DownsampledImageLoader.downsample(data: data, maxPixelSize: 2048)
+                ?? UIImage(data: data) else { return }
         userPhoto = image
         result = nil
     }
 
     func generate(showPaywall: () -> Void) async {
-        guard CreditsManager.shared.consume(showPaywall: showPaywall) else { return }
+        guard !isGenerating else { return }
         guard let photo = userPhoto, let jewelry = selectedJewelry else { return }
+        guard CreditsManager.shared.consume(showPaywall: showPaywall) else { return }
 
         isGenerating = true
+        result = nil
+        errorMessage = nil
         defer { isGenerating = false }
 
         do {
             let generated = try await imageService.tryOn(photo: photo, jewelry: jewelry)
-            result = [generated]
+            // withAnimation : fait jouer la `.transition` du résultat (sinon l'image surgit sèchement).
+            withAnimation(EcrinAnimation.springBounce) { result = [generated] }
             CreditsManager.shared.syncDetached()
+            GamingService.shared.record(.tryOnGenerated)
         } catch let error as ImageGenerationService.GenerationError {
-            CreditsManager.shared.refund()
+            if case .quotaExceeded = error, !CreditsManager.shared.isUnlimited {
+                CreditsManager.shared.remaining = 0
+                showPaywall()
+            } else {
+                CreditsManager.shared.refund()
+            }
             errorMessage = error.localizedDescription
         } catch {
             CreditsManager.shared.refund()
@@ -68,16 +80,20 @@ final class TryOnViewModel {
     // MARK: - FashionItem generate (garde-robe étendue)
 
     func generateFashion(item: FashionItem, showPaywall: () -> Void) async {
-        guard CreditsManager.shared.consume(showPaywall: showPaywall) else { return }
+        guard !isGenerating else { return }
         guard let photo = userPhoto else { return }
+        guard CreditsManager.shared.consume(showPaywall: showPaywall) else { return }
 
         isGenerating = true
+        result = nil
+        errorMessage = nil
         defer { isGenerating = false }
 
         do {
             let generated = try await imageService.tryOnFashion(photo: photo, item: item)
-            result = [generated]
+            withAnimation(EcrinAnimation.springBounce) { result = [generated] }
             CreditsManager.shared.syncDetached()
+            GamingService.shared.record(.tryOnGenerated)
         } catch let error as ImageGenerationService.GenerationError {
             CreditsManager.shared.refund()
             errorMessage = error.localizedDescription

@@ -52,7 +52,7 @@ struct PoseSelectorView: View {
 
     private var header: some View {
         VStack(spacing: 4) {
-            Text("CHOISIR VOS VUES")
+            Text(L10n.MultiPoseUI.chooseYourViews)
                 .font(EcrinFont.label)
                 .kerning(3)
                 .foregroundStyle(EcrinColor.gold)
@@ -115,12 +115,12 @@ struct PoseSelectorView: View {
     private var selectionStrip: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.xs) {
             HStack {
-                Text("VUES SÉLECTIONNÉES")
+                Text(L10n.MultiPoseUI.selectedViews)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
                 Spacer()
-                Text("Appui long pour réordonner")
+                Text(L10n.MultiPoseUI.longPressToReorder)
                     .font(.system(size: 9))
                     .foregroundStyle(EcrinColor.textMuted.opacity(0.6))
             }
@@ -224,7 +224,7 @@ struct PoseCard: View {
                         .minimumScaleFactor(0.8)
 
                     if pose.isMotion {
-                        Text("Mouvement")
+                        Text(L10n.MultiPoseUI.movement)
                             .font(.system(size: 8, weight: .medium))
                             .foregroundStyle(EcrinColor.gold.opacity(0.7))
                             .kerning(1)

@@ -44,13 +44,28 @@ final class SkinToneAnalyzer {
         return computeAverageHSL(from: croppedCG)
     }
 
+    /// One-shot guard: Vision peut appeler le completion (avec erreur d'annulation)
+    /// ET faire jeter `perform()` — un double resume de continuation est fatal.
+    private final class ContinuationResumeGuard: @unchecked Sendable {
+        private let lock = NSLock()
+        private var resumed = false
+        func tryResume() -> Bool {
+            lock.lock(); defer { lock.unlock() }
+            if resumed { return false }
+            resumed = true
+            return true
+        }
+    }
+
     // `nonisolated` CRITIQUE : la classe est @MainActor ; sans ça la closure Vision
     // hériterait de l'isolation MainActor et crasherait (dispatch_assert_queue) car
     // Vision appelle le handler sur une queue background. On exécute sur queue globale.
     nonisolated private static func detectFaceRegion(cgImage: CGImage) async -> CGRect {
+        let resumeGuard = ContinuationResumeGuard()
         return await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
                 let request = VNDetectFaceRectanglesRequest { req, _ in
+                    guard resumeGuard.tryResume() else { return }
                     guard let obs = req.results?.first as? VNFaceObservation else {
                         // Fallback: use central 40% of image
                         let fallback = CGRect(x: 0.3, y: 0.2, width: 0.4, height: 0.5)
@@ -71,7 +86,9 @@ final class SkinToneAnalyzer {
                 do {
                     try handler.perform([request])
                 } catch {
-                    continuation.resume(returning: CGRect(x: 0.3, y: 0.2, width: 0.4, height: 0.5))
+                    if resumeGuard.tryResume() {
+                        continuation.resume(returning: CGRect(x: 0.3, y: 0.2, width: 0.4, height: 0.5))
+                    }
                 }
             }
         }

@@ -40,7 +40,7 @@ struct BrandedShareSheet: View {
                 shareTargetsRow
 
                 // ── CTA principal ──────────────────────────────────────
-                GoldButton(title: "PARTAGER MAINTENANT") {
+                GoldButton(title: L10n.SocialExportUI.shareNow) {
                     showSystemShare = true
                 }
                 .padding(.horizontal, EcrinSpacing.xl)
@@ -85,7 +85,7 @@ struct BrandedShareSheet: View {
 
             // Watermark bas-droite
             VStack(alignment: .trailing, spacing: 2) {
-                Text("L'ÉCRIN VIRTUEL")
+                Text(L10n.OnboardingUI.brandName)
                     .font(EcrinFont.serif(11))
                     .kerning(2)
                     .foregroundStyle(EcrinColor.gold)
@@ -130,7 +130,7 @@ struct BrandedShareSheet: View {
                 // Télécharger — glass
                 ShareTargetButton(
                     icon: savedToPhotos ? "checkmark" : "arrow.down.to.line",
-                    label: savedToPhotos ? "Sauvegardé ✓" : "Sauver",
+                    label: savedToPhotos ? L10n.SocialExportUI.savedCheck : L10n.SocialExportUI.saveShort,
                     style: .glass
                 ) {
                     downloadToPhotos()
@@ -174,7 +174,8 @@ struct BrandedShareSheet: View {
             guard status == .authorized || status == .limited else { return }
             PHPhotoLibrary.shared().performChanges {
                 PHAssetChangeRequest.creationRequestForAsset(from: branded)
-            } completionHandler: { _, _ in
+            } completionHandler: { success, _ in
+                guard success else { return }
                 DispatchQueue.main.async {
                     withAnimation(EcrinAnimation.springSnap) {
                         savedToPhotos = true

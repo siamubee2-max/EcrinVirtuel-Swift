@@ -14,7 +14,6 @@ struct PartnerDetailView: View {
     @State private var catalog: [JewelryItem] = []
     @State private var isLoadingCatalog = true
     @State private var selectedJewelryForTryOn: JewelryItem? = nil
-    @State private var showTryOn = false
 
     private let service = PartnerService.shared
 
@@ -41,9 +40,16 @@ struct PartnerDetailView: View {
             catalog = await service.fetchPartnerCatalog(id: brand.id)
             isLoadingCatalog = false
         }
-        .sheet(isPresented: $showTryOn) {
-            TryOnView()
-                .environment(appState)
+        .sheet(item: $selectedJewelryForTryOn) { jewelry in
+            // Pré-sélectionner le bijou tapé — TryOnView() nu ignorait
+            // selectedJewelryForTryOn et ouvrait l'essayage à vide.
+            QuickTryOnView(
+                preselectedItem: .wardrobe(jewelry.asFashionItem),
+                preselectedMode: .jewelsOnly
+            )
+            .environment(appState)
+            .environment(ClothingCatalogService.shared)
+            .presentationDetents([.large])
         }
     }
 
@@ -149,7 +155,7 @@ struct PartnerDetailView: View {
 
     private var aboutSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            sectionTitle("À PROPOS", icon: "doc.text")
+            sectionTitle(L10n.PartnerUI.aboutCaps, icon: "doc.text")
 
             GlassCard(cornerRadius: 18) {
                 Text(brand.description)
@@ -165,13 +171,13 @@ struct PartnerDetailView: View {
 
     private var catalogSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            sectionTitle("CATALOGUE", icon: "sparkles")
+            sectionTitle(L10n.CatalogUI.catalogCaps, icon: "sparkles")
                 .padding(.horizontal, EcrinSpacing.lg)
 
             if isLoadingCatalog {
                 catalogSkeleton
             } else if catalog.isEmpty {
-                Text("Catalogue en cours de chargement…")
+                Text(L10n.PartnerUI.catalogLoading)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
                     .padding(.horizontal, EcrinSpacing.lg)
@@ -185,10 +191,9 @@ struct PartnerDetailView: View {
                 ) {
                     ForEach(catalog) { item in
                         JewelryCatalogCard(item: item, brand: brand) {
-                            // Try-on: pre-select jewelry
-                            selectedJewelryForTryOn = item
+                            // Try-on : présélectionne le bijou → `.sheet(item:)` l'ouvre
                             service.trackClick(jewelry: item, partner: brand)
-                            showTryOn = true
+                            selectedJewelryForTryOn = item
                         } onBuy: {
                             service.trackClick(jewelry: item, partner: brand)
                             openBrandWebsite()
@@ -234,7 +239,7 @@ struct PartnerDetailView: View {
         GlassCard(cornerRadius: 20) {
             HStack(spacing: EcrinSpacing.md) {
                 VStack(alignment: .leading, spacing: EcrinSpacing.xs) {
-                    Text("Découvrir la boutique")
+                    Text(L10n.PartnerUI.discoverShop)
                         .font(EcrinFont.cardTitle)
                         .foregroundStyle(EcrinColor.textPrimary)
                     if let url = brand.websiteURL {
@@ -250,7 +255,7 @@ struct PartnerDetailView: View {
                     openBrandWebsite()
                 } label: {
                     HStack(spacing: EcrinSpacing.xs) {
-                        Text("VISITER")
+                        Text(L10n.PartnerUI.visit)
                             .font(EcrinFont.cta)
                             .kerning(2)
                         Image(systemName: "arrow.up.right")
@@ -340,7 +345,7 @@ private struct JewelryCatalogCard: View {
                     )
 
                     if let url = item.imageURL {
-                        AsyncImage(url: url) { phase in
+                        DownsampledAsyncImage(url: url) { phase in
                             switch phase {
                             case .success(let img):
                                 img.resizable()
@@ -381,9 +386,11 @@ private struct JewelryCatalogCard: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "sparkles")
                                     .font(.system(size: 10))
-                                Text("Essayer")
+                                Text(L10n.LookOfDay.tryButton)
                                     .font(EcrinFont.cta)
                                     .kerning(1)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
                             }
                             .foregroundStyle(EcrinColor.gold)
                             .padding(.horizontal, EcrinSpacing.sm)
@@ -400,9 +407,11 @@ private struct JewelryCatalogCard: View {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.up.right")
                                     .font(.system(size: 10, weight: .semibold))
-                                Text("Acheter")
+                                Text(L10n.PartnerUI.buy)
                                     .font(EcrinFont.cta)
                                     .kerning(1)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
                             }
                             .foregroundStyle(EcrinColor.background)
                             .padding(.horizontal, EcrinSpacing.sm)

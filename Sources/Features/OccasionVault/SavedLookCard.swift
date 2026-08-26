@@ -25,7 +25,7 @@ struct SavedLookCard: View {
                 Label(L10n.Common.edit, systemImage: "pencil")
             }
             Button(action: onDuplicate) {
-                Label("Dupliquer", systemImage: "doc.on.doc")
+                Label(L10n.OccasionVaultUI.duplicate, systemImage: "doc.on.doc")
             }
             Divider()
             Button(role: .destructive, action: onDelete) {

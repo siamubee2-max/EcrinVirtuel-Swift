@@ -215,7 +215,7 @@ final class GamingService: ObservableObject {
         case "share_10":             return profile.shareCount >= 10
         case "share_50":             return profile.shareCount >= 50
         case "profile_done":         return profile.profileCompletedRecorded
-        case "first_challenge":      return profile.challengeWinCount >= 0  // participation tracked externally
+        case "first_challenge":      return profile.challengeWinCount >= 1  // awarded on first challenge win
         case "challenge_3":          return profile.challengeWinCount >= 3
         case "challenge_won":        return profile.challengeWinCount >= 1
         case "challenge_won_3":      return profile.challengeWinCount >= 3

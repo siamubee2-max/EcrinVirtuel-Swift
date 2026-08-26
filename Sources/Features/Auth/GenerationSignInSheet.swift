@@ -1,12 +1,22 @@
 import SwiftUI
 import AuthenticationServices
 
-// MARK: - Auth gate avant génération IA (Option B — Apple Sign-In obligatoire)
+// MARK: - Auth gate avant génération IA
+// Une session anonyme silencieuse honore « 3 essais offerts · Aucune carte
+// requise » ; le sheet Apple Sign-In n'apparaît qu'en dernier recours.
 
 @MainActor
 enum GenerationAuthGate {
     static func hasSession() async -> Bool {
         await SupabaseService.shared.hasValidSession()
+    }
+
+    /// Session existante, sinon tentative de session anonyme silencieuse.
+    /// Retourne false uniquement si les deux échouent (hors-ligne, etc.) —
+    /// dans ce cas l'appelant affiche GenerationSignInSheet.
+    static func ensureSession() async -> Bool {
+        if await SupabaseService.shared.hasValidSession() { return true }
+        return await SupabaseService.shared.signInAnonymously()
     }
 }
 
@@ -19,6 +29,7 @@ struct GenerationSignInSheet: View {
 
     @State private var loginError: String?
     @State private var isSigningIn = false
+    @State private var currentAppleNonce: String?
 
     var body: some View {
         ZStack {
@@ -31,10 +42,10 @@ struct GenerationSignInSheet: View {
                     Image(systemName: "sparkles")
                         .font(.system(size: 32))
                         .foregroundStyle(EcrinColor.gold)
-                    Text("Connexion requise")
+                    Text(L10n.AuthUI.signInRequired)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("Connectez-vous avec Apple pour lancer votre essayage virtuel et synchroniser vos crédits.")
+                    Text(L10n.AuthUI.signInWithApplePrompt)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .multilineTextAlignment(.center)
@@ -45,7 +56,10 @@ struct GenerationSignInSheet: View {
 
                 VStack(spacing: EcrinSpacing.md) {
                     SignInWithAppleButton(.signIn) { request in
+                        let nonce = AppleSignInNonce.randomNonceString()
+                        currentAppleNonce = nonce
                         request.requestedScopes = [.fullName, .email]
+                        request.nonce = AppleSignInNonce.sha256(nonce)
                     } onCompletion: { result in
                         handleAppleSignIn(result)
                     }
@@ -61,7 +75,7 @@ struct GenerationSignInSheet: View {
                             .multilineTextAlignment(.center)
                     }
 
-                    Button("Plus tard") { dismiss() }
+                    Button(L10n.CommunityUI.later) { dismiss() }
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                 }
@@ -76,8 +90,9 @@ struct GenerationSignInSheet: View {
         guard case .success(let auth) = result,
               let creds = auth.credential as? ASAuthorizationAppleIDCredential,
               let idTokenData = creds.identityToken,
-              let idToken = String(data: idTokenData, encoding: .utf8) else {
-            loginError = "Connexion Apple annulée."
+              let idToken = String(data: idTokenData, encoding: .utf8),
+              let nonce = currentAppleNonce else {
+            loginError = L10n.AuthUI.appleSignInCancelled
             return
         }
 
@@ -87,14 +102,13 @@ struct GenerationSignInSheet: View {
         Task {
             defer { isSigningIn = false }
             do {
-                let nonce = UUID().uuidString
                 let user = try await SupabaseService.shared.signInWithApple(idToken: idToken, nonce: nonce)
                 appState.signIn(user: user)
                 await CreditsManager.shared.sync()
                 dismiss()
                 onAuthenticated()
             } catch {
-                loginError = "Connexion Apple échouée. Réessayez."
+                loginError = L10n.AuthUI.appleSignInFailed
             }
         }
     }

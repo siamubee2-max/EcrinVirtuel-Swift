@@ -19,27 +19,31 @@ final class SupabaseService: @unchecked Sendable {
     }
 }
 
-// MARK: - Tables (même schéma que l'ancienne app React Native)
+// MARK: - Tables (prod schema — 18 tables as of migration 009)
 extension SupabaseService {
 
-    // Tables existantes
-    static let jewelry        = "jewelry"
-    static let bodyParts      = "body_parts"
-    static let tryOnSessions  = "try_on_sessions"
-
-    // Nouvelles tables Swift (à créer via migration)
-    static let users            = "users"
-    static let savedLooks       = "saved_looks"
-    static let weddingLooks     = "wedding_looks"
-    static let giftCards        = "gift_cards"
-    static let communityPosts   = "community_posts"
-    static let partnerBrands         = "partner_brands"
-    static let partnerApplications   = "partner_applications"
+    // ── Prod tables (exist in production) ───────────────────────────────────
+    static let jewelry               = "jewelry"
+    static let users                 = "users"
     static let userQuotas            = "user_quotas"
+    static let communityPosts        = "community_posts"
+    static let clothingCatalog       = "clothing_catalog"
+    static let wardrobeItems         = "wardrobe_items"
     static let monitoringEvents      = "monitoring_events"
-    static let clothingCatalog  = "clothing_catalog"
-    static let wardrobeItems    = "wardrobe_items"
-    static let gamingProfiles   = "gaming_profiles"
+    static let tryOnResults          = "try_on_results"      // replaces try_on_sessions
+    static let partnershipRequests   = "partnership_requests" // replaces partner_applications
+    // Tables recréées sur le projet vffafgzlsmfecqejoytw (migration adaptée) :
+    static let giftCards             = "gift_cards"
+    static let weddingLooks          = "wedding_looks"
+    static let savedLooks            = "saved_looks"
+    static let tryOnSessions         = "try_on_sessions"
+
+    // ── ABSENT from prod — do NOT use in Supabase queries ───────────────────
+    // body_parts        → BodyModelService falls back to empty / local samples
+    // saved_looks       → saveLook is local-only no-op (LookDuJourViewModel flag only)
+    // wedding_looks     → WeddingViewModel uses UserDefaults only
+    // gaming_profiles   → GamingService uses UserDefaults only; cloud sync disabled
+    // partner_brands    → PartnerService uses static sample data only
 }
 
 // MARK: - Auth
@@ -50,6 +54,18 @@ extension SupabaseService {
     /// Vrai si une session Supabase Auth valide existe (requis pour tryon-generate).
     func hasValidSession() async -> Bool {
         (try? await auth.session) != nil
+    }
+
+    /// Crée une session anonyme silencieuse (3 essais offerts sans compte).
+    /// Le trigger `handle_new_user` crédite 3 essais côté serveur.
+    /// Retourne false si la création échoue (hors-ligne, feature désactivée).
+    func signInAnonymously() async -> Bool {
+        do {
+            _ = try await auth.signInAnonymously()
+            return true
+        } catch {
+            return false
+        }
     }
 
     func signInWithApple(idToken: String, nonce: String) async throws -> User {
@@ -129,7 +145,7 @@ extension SupabaseService {
         return user
     }
 
-    /// Lit `preferred_gender` depuis `users` (auth_id = session Supabase Auth).
+    /// Lit `preferred_gender` depuis `users` (id = auth.uid()).
     func fetchPreferredGender(authId: String) async throws -> ClothingGender? {
         struct Row: Decodable {
             let preferred_gender: String?
@@ -137,7 +153,7 @@ extension SupabaseService {
         let rows: [Row] = try await client
             .from(Self.users)
             .select("preferred_gender")
-            .eq("auth_id", value: authId)
+            .eq("id", value: authId)
             .limit(1)
             .execute()
             .value
@@ -145,7 +161,21 @@ extension SupabaseService {
         return ClothingGender(rawValue: raw)
     }
 
-    /// Persiste le genre Look du Jour (upsert profil `users` par auth_id).
+    /// Résout l'`id` interne de la table `users` (PK) depuis l'`auth_id` de session.
+    /// Nécessaire pour toute FK `REFERENCES users(id)` — `auth.uid()` ≠ `users.id`.
+    func resolveUsersRowID(authId: String) async throws -> String? {
+        struct Row: Decodable { let id: String }
+        let rows: [Row] = try await client
+            .from(Self.users)
+            .select("id")
+            .eq("auth_id", value: authId)
+            .limit(1)
+            .execute()
+            .value
+        return rows.first?.id
+    }
+
+    /// Persiste le genre Look du Jour (upsert profil `users` par id = auth.uid()).
     func updatePreferredGender(_ gender: ClothingGender) async {
         guard let session = try? await auth.session else { return }
         let authId = session.user.id.uuidString
@@ -153,24 +183,22 @@ extension SupabaseService {
         let displayName = session.user.userMetadata["full_name"]?.value as? String
 
         struct UpsertRow: Encodable {
-            let auth_id: String
+            let id: String
             let email: String?
             let display_name: String?
             let preferred_gender: String
-            let updated_at: String
         }
 
         let row = UpsertRow(
-            auth_id: authId,
+            id: authId,
             email: email,
             display_name: displayName,
-            preferred_gender: gender.rawValue,
-            updated_at: ISO8601DateFormatter().string(from: .now)
+            preferred_gender: gender.rawValue
         )
 
         _ = try? await client
             .from(Self.users)
-            .upsert(row, onConflict: "auth_id")
+            .upsert(row, onConflict: "id")
             .execute()
     }
 
@@ -212,26 +240,38 @@ extension SupabaseService {
     }
 
     /// Suppression complète du compte (obligatoire Apple Guideline 5.1.1(v)).
-    /// Supprime les données utilisateur dans Supabase puis le compte auth.
+    ///
+    /// Ordre critique : l'Edge Function `delete-user-account` (service_role)
+    /// part EN PREMIER — c'est l'autorité qui supprime le compte auth, et les
+    /// FK ON DELETE CASCADE de `users` purgent les tables liées. Le flux est
+    /// ainsi tout-ou-rien du point de vue client : si elle échoue, RIEN n'a
+    /// été détruit (l'utilisateur reste connecté, données intactes, il peut
+    /// réessayer) ; si elle réussit, le compte n'existe plus et le nettoyage
+    /// résiduel + la fin de session locale sont best-effort.
+    /// L'ancien ordre (6 deletes séquentiels PUIS la fonction PUIS signOut)
+    /// laissait, sur une coupure réseau à mi-chemin, un utilisateur
+    /// « connecté » dont profil et quotas étaient déjà effacés.
     func deleteAccount() async throws {
         guard let userId = try? await auth.session.user.id.uuidString else { return }
 
-        // Supprimer toutes les données utilisateur associées à user_id / auth_id.
-        // Ordre : dépendants en premier, profil en dernier.
-        try await client.from(Self.savedLooks).delete().eq("user_id", value: userId).execute()
-        try await client.from(Self.tryOnSessions).delete().eq("user_id", value: userId).execute()
-        try await client.from(Self.communityPosts).delete().eq("user_id", value: userId).execute()
-        try await client.from(Self.wardrobeItems).delete().eq("user_id", value: userId).execute()
-        try await client.from(Self.userQuotas).delete().eq("user_id", value: userId).execute()
-        // Fix: la table `users` utilise `auth_id` comme clé, pas `id`
-        try await client.from(Self.users).delete().eq("auth_id", value: userId).execute()
 
-        // Supprimer le compte auth (nécessite un Edge Function avec service_role)
         try await client.functions.invoke(
             "delete-user-account",
             options: FunctionInvokeOptions(body: ["user_id": userId])
         )
-        try await auth.signOut()
+
+        // Best-effort : purge les tables sans cascade FK pendant que le JWT
+        // local est encore techniquement valide. Toute erreur ici est sans
+        // conséquence utilisateur — le compte auth a déjà disparu.
+        _ = try? await client.from(Self.savedLooks).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.tryOnSessions).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.communityPosts).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.wardrobeItems).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.userQuotas).delete().eq("user_id", value: userId).execute()
+        _ = try? await client.from(Self.users).delete().eq("auth_id", value: userId).execute()
+
+        // Fin de session locale garantie — le compte n'existe plus côté serveur.
+        try? await auth.signOut()
     }
 }
 
@@ -256,6 +296,51 @@ extension SupabaseService {
                                 error_domain: domain, error_code: code, error_message: message)
         _ = try? await client.from(Self.monitoringEvents).insert(row).execute()
     }
+
+    /// Consomme un lien de parrainage : +3 essais pour la filleule ET la marraine
+    /// (RPC `redeem_referral`, SECURITY DEFINER — anti-abus côté serveur).
+    /// Retourne le nouveau solde de la filleule.
+    func redeemReferral(referrerID: UUID) async throws -> Int {
+        struct Params: Encodable { let p_referrer: String }
+        let remaining: Int = try await client
+            .rpc("redeem_referral", params: Params(p_referrer: referrerID.uuidString))
+            .execute()
+            .value
+        return remaining
+    }
+
+    /// Enregistre (ou efface) l'horodatage du consentement IA côté serveur (RGPD).
+    /// Best-effort : silencieux si pas de session ou en cas d'échec réseau.
+    func setAIConsent(granted: Bool) async {
+        guard let userID = try? await auth.session.user.id.uuidString else { return }
+        struct ConsentUpdate: Encodable { let ai_consent_at: String? }
+        let iso = granted ? ISO8601DateFormatter().string(from: Date()) : nil
+        _ = try? await client.from(Self.users)
+            .update(ConsentUpdate(ai_consent_at: iso))
+            .eq("id", value: userID)
+            .execute()
+    }
+
+    /// Signale un post à la modération (table `post_reports`, RLS : reporter = auth.uid()).
+    /// App Store guideline 1.2 — mécanisme de signalement de contenu UGC.
+    func reportPost(postID: UUID, reason: String) async {
+        guard let reporterID = try? await auth.session.user.id.uuidString else { return }
+        struct ReportRow: Encodable {
+            let id: String
+            let post_id: String
+            let reporter_id: String
+            let reason: String
+            let status: String
+        }
+        let row = ReportRow(
+            id: UUID().uuidString,
+            post_id: postID.uuidString,
+            reporter_id: reporterID,
+            reason: reason,
+            status: "pending"
+        )
+        _ = try? await client.from("post_reports").insert(row).execute()
+    }
 }
 
 final class MonitoringService: @unchecked Sendable {
@@ -276,6 +361,23 @@ final class MonitoringService: @unchecked Sendable {
 
     func recordEntitlementMismatch(productId: String) {
         Task.detached { await SupabaseService.shared.insertMonitoringEvent(type: "entitlement_mismatch", productId: productId, domain: "Paywall", code: -1, message: "Purchase succeeded but premium entitlement not active") }
+    }
+
+    /// L'achat Apple a réussi mais l'octroi des crédits a échoué : l'utilisateur a payé
+    /// sans rien recevoir. Événement à surveiller en priorité — auparavant l'échec était
+    /// avalé par un `try?` côté paywall et n'apparaissait nulle part.
+    func recordCreditGrantFailure(_ error: Error?, productId: String, transactionId: String?) {
+        let ns = error as NSError?
+        let message = "credit-generations KO — txn=\(transactionId ?? "nil") — \(error?.localizedDescription ?? "transactionIdentifier manquant")"
+        Task.detached {
+            await SupabaseService.shared.insertMonitoringEvent(
+                type: "credit_grant_failed",
+                productId: productId,
+                domain: ns?.domain ?? "Paywall",
+                code: ns?.code ?? -2,
+                message: message
+            )
+        }
     }
 }
 
@@ -321,27 +423,62 @@ extension SupabaseService {
 
     func saveTryOnSession(jewelryId: String, resultImageURL: String?) async throws {
         guard let userId = try? await auth.session.user.id.uuidString else { return }
+        // Maps to prod table `try_on_results` (try_on_sessions does not exist in prod).
+        struct TryOnResultInsert: Encodable {
+            let id: String
+            let user_id: String
+            let type: String
+            let item_type: String
+            let jewelry_item_id: String
+            let result_image_url: String
+            let is_favorite: Bool
+            let is_public: Bool
+            let created_at: String
+        }
+        let row = TryOnResultInsert(
+            id: UUID().uuidString,
+            user_id: userId,
+            type: "jewelry",
+            item_type: "jewelry",
+            jewelry_item_id: jewelryId,
+            result_image_url: resultImageURL ?? "",
+            is_favorite: false,
+            is_public: false,
+            created_at: ISO8601DateFormatter().string(from: .now)
+        )
         try await client
-            .from(Self.tryOnSessions)
-            .insert([
-                "jewelry_id": jewelryId,
-                "user_id": userId,
-                "result_image_url": resultImageURL ?? "",
-                "created_at": ISO8601DateFormatter().string(from: .now)
-            ])
+            .from(Self.tryOnResults)
+            .insert(row)
             .execute()
     }
 
     func fetchTryOnHistory(limit: Int = 20) async throws -> [TryOnSession] {
         guard let userId = try? await auth.session.user.id.uuidString else { return [] }
-        return try await client
-            .from(Self.tryOnSessions)
-            .select()
+        // Reads from prod table `try_on_results`; maps back to TryOnSession.
+        struct TryOnResultRow: Decodable {
+            let id: String
+            let user_id: String
+            let jewelry_item_id: String?
+            let result_image_url: String?
+            let created_at: String
+        }
+        let rows: [TryOnResultRow] = try await client
+            .from(Self.tryOnResults)
+            .select("id,user_id,jewelry_item_id,result_image_url,created_at")
             .eq("user_id", value: userId)
             .order("created_at", ascending: false)
             .limit(limit)
             .execute()
             .value
+        return rows.map {
+            TryOnSession(
+                id: $0.id,
+                jewelryId: $0.jewelry_item_id ?? "",
+                userId: $0.user_id,
+                resultImageURL: $0.result_image_url,
+                createdAt: $0.created_at
+            )
+        }
     }
 }
 
@@ -420,40 +557,39 @@ struct TryOnSession: Codable, Identifiable {
 // MARK: - Wardrobe (garde-robe cloud sync)
 
 /// Row Supabase pour la table `wardrobe_items`.
-/// Note : `userPhotoData` n'est pas syncé ici — les photos iront dans Supabase Storage (Phase future).
+/// Schéma prod exact (10 colonnes) : id, user_id, name, type, category, brand,
+/// color, image_url, is_favorite, created_at.
+/// `type` (NOT NULL) = `category` = FashionCategory.rawValue.
+/// Les champs non persistés (subcategory, material, tags, tryOnPrompt, source,
+/// price, purchaseURL) sont reconstruits avec des valeurs par défaut dans `asFashionItem`.
 struct SupabaseWardrobeRow: Codable, Identifiable {
     let id: String
     let user_id: String
     let name: String
+    let type: String       // NOT NULL — requis par le schéma prod
     let category: String
-    let subcategory: String?
     let brand: String?
     let color: String?
-    let material: String?
     let image_url: String?
-    let tags: [String]
-    let try_on_prompt: String
-    let source: String
-    let price: Double?
-    let purchase_url: String?
     let is_favorite: Bool
     let created_at: String
 
     var asFashionItem: FashionItem {
-        FashionItem(
+        let fashionCategory = FashionCategory(rawValue: category) ?? .top
+        return FashionItem(
             id: UUID(uuidString: id) ?? UUID(),
             name: name,
-            category: FashionCategory(rawValue: category) ?? .top,
-            subcategory: subcategory,
+            category: fashionCategory,
+            subcategory: nil,
             brand: brand,
             color: color,
-            material: material,
+            material: nil,
             imageURL: image_url.flatMap { URL(string: $0) },
-            tags: tags,
-            tryOnPrompt: try_on_prompt,
-            source: ItemSource(rawValue: source) ?? .userPhoto,
-            price: price,
-            purchaseURL: purchase_url,
+            tags: [],
+            tryOnPrompt: fashionCategory.defaultPrompt(name: name),
+            source: .userPhoto,
+            price: nil,
+            purchaseURL: nil,
             isFavorite: is_favorite,
             createdAt: ISO8601DateFormatter().date(from: created_at) ?? .now
         )
@@ -478,21 +614,16 @@ extension SupabaseService {
     /// Insère ou met à jour un article de garde-robe (upsert par `id`).
     func saveWardrobeItem(_ item: FashionItem) async throws {
         guard let userId = try? await auth.session.user.id.uuidString else { return }
+        let categoryValue = item.category.rawValue
         let row = SupabaseWardrobeRow(
             id: item.id.uuidString,
             user_id: userId,
             name: item.name,
-            category: item.category.rawValue,
-            subcategory: item.subcategory,
+            type: categoryValue,
+            category: categoryValue,
             brand: item.brand,
             color: item.color,
-            material: item.material,
             image_url: item.imageURL?.absoluteString,
-            tags: item.tags,
-            try_on_prompt: item.tryOnPrompt,
-            source: item.source.rawValue,
-            price: item.price,
-            purchase_url: item.purchaseURL,
             is_favorite: item.isFavorite,
             created_at: ISO8601DateFormatter().string(from: item.createdAt)
         )
@@ -518,12 +649,8 @@ extension SupabaseService {
         guard let userId = try? await auth.session.user.id.uuidString else { return }
         struct FavoriteUpdate: Encodable {
             let is_favorite: Bool
-            let updated_at: String
         }
-        let payload = FavoriteUpdate(
-            is_favorite: isFavorite,
-            updated_at: ISO8601DateFormatter().string(from: .now)
-        )
+        let payload = FavoriteUpdate(is_favorite: isFavorite)
         try await client
             .from(Self.wardrobeItems)
             .update(payload)
@@ -649,8 +776,10 @@ extension SupabaseService {
                 .value
 
             // Determine which posts the signed-in user has liked (best-effort).
+            // post_likes.user_id references users(id), not auth.uid() — resolve it.
             var likedIDs: Set<String> = []
-            if let userId = try? await auth.session.user.id.uuidString {
+            if let authId = try? await auth.session.user.id.uuidString,
+               let userId = try? await resolveUsersRowID(authId: authId) {
                 struct LikeRow: Decodable { let post_id: String }
                 if let likes: [LikeRow] = try? await client
                     .from(Self.postLikes)
@@ -671,7 +800,10 @@ extension SupabaseService {
     /// Persists a like toggle.  Fire-and-forget — does not throw.
     /// `liked: true` → upsert into post_likes; `liked: false` → delete.
     func setPostLike(postId: UUID, liked: Bool) async {
-        guard let userId = try? await auth.session.user.id.uuidString else { return }
+        // post_likes.user_id references users(id) (FK + RLS) — passing auth.uid()
+        // made every insert fail silently under try?.
+        guard let authId = try? await auth.session.user.id.uuidString,
+              let userId = try? await resolveUsersRowID(authId: authId) else { return }
         if liked {
             struct LikeRow: Encodable { let post_id: String; let user_id: String }
             _ = try? await client
@@ -698,7 +830,13 @@ extension SupabaseService {
         tags: [String],
         author: User
     ) async throws {
-        guard let userId = try? await auth.session.user.id.uuidString else { return }
+        // community_posts.user_id references users(id) — same resolution as post_likes.
+        // Throw (au lieu d'un return silencieux) : le composeur doit savoir que
+        // rien n'a été publié pour ne pas afficher un faux succès.
+        guard let authId = try? await auth.session.user.id.uuidString,
+              let userId = try? await resolveUsersRowID(authId: authId) else {
+            throw URLError(.userAuthenticationRequired)
+        }
         let row = SupabaseCommunityPostInsert(
             id: UUID().uuidString,
             user_id: userId,
@@ -720,134 +858,58 @@ extension SupabaseService {
             .insert(row)
             .execute()
     }
+
+    /// Supprime un post de l'utilisateur courant. La policy RLS
+    /// « Users own their posts » garantit côté serveur qu'on ne peut
+    /// supprimer que les siens — le eq(id) suffit côté client.
+    func deleteCommunityPost(id: UUID) async {
+        _ = try? await client
+            .from(Self.communityPosts)
+            .delete()
+            .eq("id", value: id.uuidString)
+            .execute()
+    }
+
+    /// Héberge l'image d'un post dans le bucket public `community-posts`
+    /// et retourne son URL publique. Le bucket doit exister sur le projet
+    /// (Dashboard → Storage → New bucket, public). En cas d'absence ou
+    /// d'erreur, l'appelant publie sans image.
+    func uploadCommunityImage(_ data: Data) async throws -> String {
+        let path = "\(UUID().uuidString).jpg"
+        _ = try await client.storage
+            .from("community-posts")
+            .upload(path, data: data, options: FileOptions(contentType: "image/jpeg"))
+        return try client.storage
+            .from("community-posts")
+            .getPublicURL(path: path)
+            .absoluteString
+    }
 }
 
-// MARK: - Lookbook (saved_looks)
-
-/// Ligne upsertée dans la table `saved_looks` lors de la sauvegarde d'un Look du Jour.
-struct SupabaseSavedLookRow: Encodable {
-    let user_id: String
-    let headline: String
-    let subline: String
-    let style_tag: String
-    let weather_emoji: String
-    let weather_description: String
-    let gender: String
-    let catalog_item_ids: [String]
-    let wardrobe_item_ids: [String]
-    let created_at: String
-}
+// MARK: - Lookbook (saved_looks — absent from prod)
 
 extension SupabaseService {
 
-    /// Sauvegarde un look complet dans la table `saved_looks`.
-    /// Fire-and-forget safe — ne throw pas.
+    /// No-op: `saved_looks` table does not exist in prod (migration 009).
+    /// The save flag is managed locally in LookDuJourViewModel only.
     func saveLook(_ look: LookRecommendation) async {
-        guard let userId = try? await auth.session.user.id.uuidString else { return }
-        let row = SupabaseSavedLookRow(
-            user_id:              userId,
-            headline:             look.headline,
-            subline:              look.subline,
-            style_tag:            look.styleTag,
-            weather_emoji:        look.weatherEmoji,
-            weather_description:  look.weather.weatherEmojiLine,
-            gender:               look.gender.rawValue,
-            catalog_item_ids:     look.items.map { $0.id.uuidString },
-            wardrobe_item_ids:    look.wardrobeItems.map { $0.id.uuidString },
-            created_at:           ISO8601DateFormatter().string(from: .now)
-        )
-        _ = try? await client
-            .from(Self.savedLooks)
-            .insert(row)
-            .execute()
+        // Intentionally empty — no cloud sync until table is created in prod.
     }
 }
 
-// MARK: - Gaming Profile cloud sync
-
-/// Représentation Supabase de la table `gaming_profiles`.
-/// Les champs array (earned_badge_ids, completed_quest_ids) sont des colonnes text[].
-struct SupabaseGamingProfileRow: Codable {
-    let user_id: String
-    var total_xp: Int
-    var current_level: Int               // StyleLevel.rawValue (1–5)
-    var streak: Int
-    var longest_streak: Int
-    var last_login_date: String          // ISO8601
-    var earned_badge_ids: [String]
-    var completed_quest_ids: [String]    // UUID strings
-    var rank: Int?
-    var try_on_count: Int
-    var outfit_count: Int
-    var share_count: Int
-    var challenge_win_count: Int
-    var referral_count: Int
-    var profile_completed_recorded: Bool
-    var updated_at: String               // ISO8601
-
-    var asGamingProfile: GamingProfile {
-        let iso = ISO8601DateFormatter()
-        var p = GamingProfile()
-        p.totalXP                    = total_xp
-        p.currentLevel               = StyleLevel(rawValue: current_level) ?? .debutante
-        p.streak                     = streak
-        p.longestStreak              = longest_streak
-        p.lastLoginDate              = iso.date(from: last_login_date) ?? .distantPast
-        p.earnedBadgeIDs             = earned_badge_ids
-        p.completedQuestIDs          = completed_quest_ids.compactMap { UUID(uuidString: $0) }
-        p.rank                       = rank
-        p.tryOnCount                 = try_on_count
-        p.outfitCount                = outfit_count
-        p.shareCount                 = share_count
-        p.challengeWinCount          = challenge_win_count
-        p.referralCount              = referral_count
-        p.profileCompletedRecorded   = profile_completed_recorded
-        return p
-    }
-}
+// MARK: - Gaming Profile cloud sync (disabled — gaming_profiles absent from prod)
 
 extension SupabaseService {
 
-    /// Récupère le profil gaming depuis Supabase pour l'utilisateur connecté.
-    /// Retourne `nil` si non connecté ou si aucun profil n'existe encore.
+    /// No-op: `gaming_profiles` table does not exist in prod (migration 009).
+    /// GamingService persists locally via UserDefaults; cloud sync deferred.
     func fetchGamingProfile() async throws -> GamingProfile? {
-        guard let userId = try? await auth.session.user.id.uuidString else { return nil }
-        let rows: [SupabaseGamingProfileRow] = try await client
-            .from(Self.gamingProfiles)
-            .select()
-            .eq("user_id", value: userId)
-            .limit(1)
-            .execute()
-            .value
-        return rows.first?.asGamingProfile
+        return nil
     }
 
-    /// Upsert le profil gaming dans Supabase — fire-and-forget safe (ne throw pas).
+    /// No-op: `gaming_profiles` table does not exist in prod (migration 009).
     func saveGamingProfile(_ profile: GamingProfile) async {
-        guard let userId = try? await auth.session.user.id.uuidString else { return }
-        let iso = ISO8601DateFormatter()
-        let row = SupabaseGamingProfileRow(
-            user_id:                    userId,
-            total_xp:                   profile.totalXP,
-            current_level:              profile.currentLevel.rawValue,
-            streak:                     profile.streak,
-            longest_streak:             profile.longestStreak,
-            last_login_date:            iso.string(from: profile.lastLoginDate),
-            earned_badge_ids:           profile.earnedBadgeIDs,
-            completed_quest_ids:        profile.completedQuestIDs.map(\.uuidString),
-            rank:                       profile.rank,
-            try_on_count:               profile.tryOnCount,
-            outfit_count:               profile.outfitCount,
-            share_count:                profile.shareCount,
-            challenge_win_count:        profile.challengeWinCount,
-            referral_count:             profile.referralCount,
-            profile_completed_recorded: profile.profileCompletedRecorded,
-            updated_at:                 iso.string(from: .now)
-        )
-        _ = try? await client
-            .from(Self.gamingProfiles)
-            .upsert(row, onConflict: "user_id")
-            .execute()
+        // Intentionally empty — no cloud sync until table is created in prod.
     }
 }
 
@@ -872,5 +934,45 @@ extension SupabaseService {
             options: FunctionInvokeOptions(body: Request(messages: history, context: context))
         )
         return response.reply
+    }
+}
+
+// MARK: - MainActor bridging (Swift 6 strict concurrency)
+//
+// PostgrestResponse is not Sendable, so `client...execute()` cannot be
+// awaited directly from @MainActor view models — the response would cross
+// into the main actor. These helpers run the query in this service's
+// nonisolated context and only let Sendable values (Void / decoded rows)
+// cross back.
+extension SupabaseService {
+
+    /// Insert a row and discard the non-Sendable response.
+    func insertRow<Row: Encodable & Sendable>(_ row: Row, into table: String) async throws {
+        _ = try await client.from(table).insert(row).execute()
+    }
+
+    /// Upsert a row and discard the non-Sendable response.
+    func upsertRow<Row: Encodable & Sendable>(_ row: Row, into table: String) async throws {
+        _ = try await client.from(table).upsert(row).execute()
+    }
+
+    /// Call an RPC and decode its rows.
+    func rpcRows<Row: Decodable & Sendable, Params: Encodable & Sendable>(
+        _ fn: String,
+        params: Params
+    ) async throws -> [Row] {
+        try await client.rpc(fn, params: params).execute().value
+    }
+
+    /// Latest wedding look rows for a user (WeddingViewModel).
+    func latestWeddingRows<Row: Decodable & Sendable>(userId: String) async throws -> [Row] {
+        try await client
+            .from(Self.weddingLooks)
+            .select("id,name,wedding_date,pieces,bridesmaid_emails,is_finalized,created_at")
+            .eq("user_id", value: userId)
+            .order("created_at", ascending: false)
+            .limit(1)
+            .execute()
+            .value
     }
 }

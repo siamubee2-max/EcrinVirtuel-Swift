@@ -490,6 +490,47 @@ enum L10n {
     }
 
     // MARK: WeatherConditions
+    enum LookOfDay {
+        static var title: String { String(localized: "lookOfDay.title") }
+        static var tagline: String { String(localized: "lookOfDay.tagline") }
+        static var catalogLoading: String { String(localized: "lookOfDay.catalogLoading") }
+        static var discover: String { String(localized: "lookOfDay.discover") }
+        static var seeMyLook: String { String(localized: "lookOfDay.seeMyLook") }
+        static var analyzing: String { String(localized: "lookOfDay.analyzing") }
+        static var tryButton: String { String(localized: "lookOfDay.tryButton") }
+        static var catalogButton: String { String(localized: "lookOfDay.catalogButton") }
+        static var chooseGender: String { String(localized: "lookOfDay.chooseGender") }
+        static var genderCTA: String { String(localized: "lookOfDay.genderCTA") }
+        static var offline: String { String(localized: "lookOfDay.offline") }
+        static var myCity: String { String(localized: "lookOfDay.myCity") }
+        static var noOutfit: String { String(localized: "lookOfDay.noOutfit") }
+        static func yourJewelry(_ names: String) -> String {
+            String(format: String(localized: "lookOfDay.yourJewelry"), names)
+        }
+        static var cityPrompt: String { String(localized: "lookOfDay.cityPrompt") }
+        static var cityPlaceholder: String { String(localized: "lookOfDay.cityPlaceholder") }
+        static var citySearching: String { String(localized: "lookOfDay.citySearching") }
+        static var cityValidate: String { String(localized: "lookOfDay.cityValidate") }
+        static var yourStyle: String { String(localized: "lookOfDay.yourStyle") }
+        static var genderQuestion: String { String(localized: "lookOfDay.genderQuestion") }
+        static var genderChangeHint: String { String(localized: "lookOfDay.genderChangeHint") }
+        static var budgetTitle: String { String(localized: "lookOfDay.budgetTitle") }
+        static var budgetDesc: String { String(localized: "lookOfDay.budgetDesc") }
+        static var notifTitle: String { String(localized: "lookOfDay.notifTitle") }
+        static var notifBody: String { String(localized: "lookOfDay.notifBody") }
+    }
+
+    /// Labels des conditions WMO (WeatherCondition.label).
+    enum WeatherConditionLabels {
+        static var clearSky: String { String(localized: "weatherCondition.clearSky") }
+        static var partlyCloudy: String { String(localized: "weatherCondition.partlyCloudy") }
+        static var foggy: String { String(localized: "weatherCondition.foggy") }
+        static var drizzle: String { String(localized: "weatherCondition.drizzle") }
+        static var rain: String { String(localized: "weatherCondition.rain") }
+        static var snow: String { String(localized: "weatherCondition.snow") }
+        static var thunderstorm: String { String(localized: "weatherCondition.thunderstorm") }
+    }
+
     enum WeatherConditions {
         static var cloudy: String { String(localized: "weatherConditions.cloudy") }
         static var cold: String { String(localized: "weatherConditions.cold") }
@@ -504,3 +545,617 @@ enum L10n {
     }
 }
 // swiftlint:enable type_body_length file_length
+
+// MARK: - Generated accessors (localization sweep)
+
+extension L10n {
+    enum AppUI {
+        static var community: String { String(localized: "appUI.community") }
+        static var dashboard: String { String(localized: "appUI.dashboard") }
+        static var profile: String { String(localized: "appUI.profile") }
+        static var quickTryOn: String { String(localized: "appUI.quickTryOn") }
+        static var wardrobe: String { String(localized: "appUI.wardrobe") }
+    }
+}
+extension L10n {
+    enum ArTryOnUI {
+        static var allowCamera: String { String(localized: "arTryOnUI.allowCamera") }
+        static var arRequiresCompatibleIphone: String { String(localized: "arTryOnUI.arRequiresCompatibleIphone") }
+        static var arUnavailable: String { String(localized: "arTryOnUI.arUnavailable") }
+        static var cameraAccess: String { String(localized: "arTryOnUI.cameraAccess") }
+        static var cameraPermissionRationale: String { String(localized: "arTryOnUI.cameraPermissionRationale") }
+        static var changeJewel: String { String(localized: "arTryOnUI.changeJewel") }
+        static var lookCaptured: String { String(localized: "arTryOnUI.lookCaptured") }
+        static var openSettings: String { String(localized: "arTryOnUI.openSettings") }
+        static var photoTryOn: String { String(localized: "arTryOnUI.photoTryOn") }
+        static var retake: String { String(localized: "arTryOnUI.retake") }
+    }
+}
+extension L10n {
+    enum AuthUI {
+        static var signInRequired: String { String(localized: "authUI.signInRequired") }
+        static var signInWithApplePrompt: String { String(localized: "authUI.signInWithApplePrompt") }
+    }
+}
+extension L10n {
+    enum BackgroundsUI {
+        static var backgroundCaps: String { String(localized: "backgroundsUI.backgroundCaps") }
+        static var chooseBackdrop: String { String(localized: "backgroundsUI.chooseBackdrop") }
+        static var myPersonalBackground: String { String(localized: "backgroundsUI.myPersonalBackground") }
+        static var noBackground: String { String(localized: "backgroundsUI.noBackground") }
+        static var usePhotoAsBackdrop: String { String(localized: "backgroundsUI.usePhotoAsBackdrop") }
+    }
+}
+extension L10n {
+    enum CatalogUI {
+        static var catalogCaps: String { String(localized: "catalogUI.catalogCaps") }
+        static var featuredCaps: String { String(localized: "catalogUI.featuredCaps") }
+        static var loadingCatalog: String { String(localized: "catalogUI.loadingCatalog") }
+        static var lookInspirations: String { String(localized: "catalogUI.lookInspirations") }
+        static var searchItemBrand: String { String(localized: "catalogUI.searchItemBrand") }
+        static var tryOnCaps: String { String(localized: "catalogUI.tryOnCaps") }
+        static var tryOnPromptCaps: String { String(localized: "catalogUI.tryOnPromptCaps") }
+        static var viewItemInShop: String { String(localized: "catalogUI.viewItemInShop") }
+    }
+}
+extension L10n {
+    enum CommunityUI {
+        static var activeChallenge: String { String(localized: "communityUI.activeChallenge") }
+        static var allChallenges: String { String(localized: "communityUI.allChallenges") }
+        static var deleteMyPost: String { String(localized: "communityUI.deleteMyPost") }
+        static var deletePostConfirm: String { String(localized: "communityUI.deletePostConfirm") }
+        static var endsIn: String { String(localized: "communityUI.endsIn") }
+        static var hide: String { String(localized: "communityUI.hide") }
+        static var inspireBeInspired: String { String(localized: "communityUI.inspireBeInspired") }
+        static var joinChallenge: String { String(localized: "communityUI.joinChallenge") }
+        static var joined: String { String(localized: "communityUI.joined") }
+        static var later: String { String(localized: "communityUI.later") }
+        static var leaderboard: String { String(localized: "communityUI.leaderboard") }
+        static var leaveChallenge: String { String(localized: "communityUI.leaveChallenge") }
+        static var participantsCount: String { String(localized: "communityUI.participantsCount") }
+        static var participantsTitle: String { String(localized: "communityUI.participantsTitle") }
+        static var postOptions: String { String(localized: "communityUI.postOptions") }
+        static var remaining: String { String(localized: "communityUI.remaining") }
+        static var report: String { String(localized: "communityUI.report") }
+        static var reportContent: String { String(localized: "communityUI.reportContent") }
+        static var reportContentConfirm: String { String(localized: "communityUI.reportContentConfirm") }
+        static var reportReviewNotice: String { String(localized: "communityUI.reportReviewNotice") }
+        static var rewardPrefix: String { String(localized: "communityUI.rewardPrefix") }
+        static var shareALook: String { String(localized: "communityUI.shareALook") }
+        static var tellYourLookPlaceholder: String { String(localized: "communityUI.tellYourLookPlaceholder") }
+        static var topMembersThisMonth: String { String(localized: "communityUI.topMembersThisMonth") }
+        static var triedVirtually: String { String(localized: "communityUI.triedVirtually") }
+        static var tryItToo: String { String(localized: "communityUI.tryItToo") }
+        static var tryJewelNow: String { String(localized: "communityUI.tryJewelNow") }
+        static var tryJewelVirtually: String { String(localized: "communityUI.tryJewelVirtually") }
+        static var virtualTryOnCaps: String { String(localized: "communityUI.virtualTryOnCaps") }
+        static var yourRanking: String { String(localized: "communityUI.yourRanking") }
+        static var yourRewardCaps: String { String(localized: "communityUI.yourRewardCaps") }
+    }
+}
+extension L10n {
+    enum CreditsUI {
+        static var buyExtraTriesSubtitle: String { String(localized: "creditsUI.buyExtraTriesSubtitle") }
+        static var currentBalance: String { String(localized: "creditsUI.currentBalance") }
+        static var oneTimePurchaseNote: String { String(localized: "creditsUI.oneTimePurchaseNote") }
+        static var startTrying: String { String(localized: "creditsUI.startTrying") }
+        static var topUpDone: String { String(localized: "creditsUI.topUpDone") }
+        static var topUpMyTries: String { String(localized: "creditsUI.topUpMyTries") }
+    }
+}
+extension L10n {
+    enum GamingUI {
+        static var celebrate: String { String(localized: "gamingUI.celebrate") }
+        static var claimReward: String { String(localized: "gamingUI.claimReward") }
+        static var congratulations: String { String(localized: "gamingUI.congratulations") }
+        static var howToGetIt: String { String(localized: "gamingUI.howToGetIt") }
+        static var maxLevelReached: String { String(localized: "gamingUI.maxLevelReached") }
+        static var myEcrinSpace: String { String(localized: "gamingUI.myEcrinSpace") }
+        static var progressAndRewards: String { String(localized: "gamingUI.progressAndRewards") }
+        static var rewardClaimed: String { String(localized: "gamingUI.rewardClaimed") }
+        static var totalXP: String { String(localized: "gamingUI.totalXP") }
+        static var unlockedPerks: String { String(localized: "gamingUI.unlockedPerks") }
+    }
+}
+extension L10n {
+    enum GiftUI {
+        static var buyItNow: String { String(localized: "giftUI.buyItNow") }
+        static var giftAwaitsYou: String { String(localized: "giftUI.giftAwaitsYou") }
+        static var giftCaps: String { String(localized: "giftUI.giftCaps") }
+        static var givenWithLove: String { String(localized: "giftUI.givenWithLove") }
+        static var linkCreated: String { String(localized: "giftUI.linkCreated") }
+        static var linkValid30Days: String { String(localized: "giftUI.linkValid30Days") }
+        static var magical: String { String(localized: "giftUI.magical") }
+        static var openGift: String { String(localized: "giftUI.openGift") }
+        static var openingGift: String { String(localized: "giftUI.openingGift") }
+        static var personalize: String { String(localized: "giftUI.personalize") }
+        static var readyToGift: String { String(localized: "giftUI.readyToGift") }
+        static var recipientCanTryAR: String { String(localized: "giftUI.recipientCanTryAR") }
+        static var shareMagicLink: String { String(localized: "giftUI.shareMagicLink") }
+        static var tryOnMe: String { String(localized: "giftUI.tryOnMe") }
+        static var whichJewelToGift: String { String(localized: "giftUI.whichJewelToGift") }
+        static var writeWordsWithLove: String { String(localized: "giftUI.writeWordsWithLove") }
+        static var yourMessageCaps: String { String(localized: "giftUI.yourMessageCaps") }
+    }
+}
+extension L10n {
+    enum JewelryDetectionUI {
+        static var add: String { String(localized: "jewelryDetectionUI.add") }
+        static var addToWardrobe: String { String(localized: "jewelryDetectionUI.addToWardrobe") }
+        static var analysisResults: String { String(localized: "jewelryDetectionUI.analysisResults") }
+        static var analyzeJewel: String { String(localized: "jewelryDetectionUI.analyzeJewel") }
+        static var analyzing: String { String(localized: "jewelryDetectionUI.analyzing") }
+        static var autoDetection: String { String(localized: "jewelryDetectionUI.autoDetection") }
+        static var brandOptional: String { String(localized: "jewelryDetectionUI.brandOptional") }
+        static var colorOptional: String { String(localized: "jewelryDetectionUI.colorOptional") }
+        static var detectIntro: String { String(localized: "jewelryDetectionUI.detectIntro") }
+        static var detectJewel: String { String(localized: "jewelryDetectionUI.detectJewel") }
+        static var detectedType: String { String(localized: "jewelryDetectionUI.detectedType") }
+        static var gallery: String { String(localized: "jewelryDetectionUI.gallery") }
+        static var jewelAdded: String { String(localized: "jewelryDetectionUI.jewelAdded") }
+        static var namePlaceholder: String { String(localized: "jewelryDetectionUI.namePlaceholder") }
+        static var noJewelDetected: String { String(localized: "jewelryDetectionUI.noJewelDetected") }
+    }
+}
+extension L10n {
+    enum MoodBoardUI {
+        static var aiStylistComposing: String { String(localized: "moodBoardUI.aiStylistComposing") }
+        static var composingSteps: String { String(localized: "moodBoardUI.composingSteps") }
+        static var createFirstLook: String { String(localized: "moodBoardUI.createFirstLook") }
+        static var createYourUniverse: String { String(localized: "moodBoardUI.createYourUniverse") }
+        static var describeYourMoment: String { String(localized: "moodBoardUI.describeYourMoment") }
+        static var emptyGallery: String { String(localized: "moodBoardUI.emptyGallery") }
+        static var findItInGallery: String { String(localized: "moodBoardUI.findItInGallery") }
+        static var firstMoodBoardHint: String { String(localized: "moodBoardUI.firstMoodBoardHint") }
+        static var galleryTitle: String { String(localized: "moodBoardUI.galleryTitle") }
+        static var generateMyLook: String { String(localized: "moodBoardUI.generateMyLook") }
+        static var keywordsLabel: String { String(localized: "moodBoardUI.keywordsLabel") }
+        static var lookSavedToGallery: String { String(localized: "moodBoardUI.lookSavedToGallery") }
+        static var lookTitlePlaceholder: String { String(localized: "moodBoardUI.lookTitlePlaceholder") }
+        static var momentPlaceholder: String { String(localized: "moodBoardUI.momentPlaceholder") }
+        static var moodBoardTitle: String { String(localized: "moodBoardUI.moodBoardTitle") }
+        static var mySavedLooks: String { String(localized: "moodBoardUI.mySavedLooks") }
+        static var newLook: String { String(localized: "moodBoardUI.newLook") }
+        static var optionalRefineFilters: String { String(localized: "moodBoardUI.optionalRefineFilters") }
+        static var paletteLabel: String { String(localized: "moodBoardUI.paletteLabel") }
+        static var poweredByEcrinAI: String { String(localized: "moodBoardUI.poweredByEcrinAI") }
+        static var saveLook: String { String(localized: "moodBoardUI.saveLook") }
+        static var selectedPiecesLabel: String { String(localized: "moodBoardUI.selectedPiecesLabel") }
+        static var tryTheseJewels: String { String(localized: "moodBoardUI.tryTheseJewels") }
+        static var yourLookLabel: String { String(localized: "moodBoardUI.yourLookLabel") }
+    }
+}
+extension L10n {
+    enum MultiPoseUI {
+        static var addYourPhoto: String { String(localized: "multiPoseUI.addYourPhoto") }
+        static var chooseYourViews: String { String(localized: "multiPoseUI.chooseYourViews") }
+        static var dressing: String { String(localized: "multiPoseUI.dressing") }
+        static var earringsTryOnTitle: String { String(localized: "multiPoseUI.earringsTryOnTitle") }
+        static var generatedViews: String { String(localized: "multiPoseUI.generatedViews") }
+        static var generationInProgress: String { String(localized: "multiPoseUI.generationInProgress") }
+        static var longPressToReorder: String { String(localized: "multiPoseUI.longPressToReorder") }
+        static var movement: String { String(localized: "multiPoseUI.movement") }
+        static var multiViewGenerating: String { String(localized: "multiPoseUI.multiViewGenerating") }
+        static var multiViews: String { String(localized: "multiPoseUI.multiViews") }
+        static var multiViewsCaps: String { String(localized: "multiPoseUI.multiViewsCaps") }
+        static var nbPro: String { String(localized: "multiPoseUI.nbPro") }
+        static var noViewAvailable: String { String(localized: "multiPoseUI.noViewAvailable") }
+        static var portraitEarsVisible: String { String(localized: "multiPoseUI.portraitEarsVisible") }
+        static var selectedViews: String { String(localized: "multiPoseUI.selectedViews") }
+        static var shareAll: String { String(localized: "multiPoseUI.shareAll") }
+        static var yourTryOns: String { String(localized: "multiPoseUI.yourTryOns") }
+    }
+}
+extension L10n {
+    enum OccasionVaultUI {
+        static var deleteLookConfirm: String { String(localized: "occasionVaultUI.deleteLookConfirm") }
+        static var duplicate: String { String(localized: "occasionVaultUI.duplicate") }
+        static var emptyVaultHint: String { String(localized: "occasionVaultUI.emptyVaultHint") }
+        static var inMyDressing: String { String(localized: "occasionVaultUI.inMyDressing") }
+        static var lookJewelsLabel: String { String(localized: "occasionVaultUI.lookJewelsLabel") }
+        static var lookNameLabel: String { String(localized: "occasionVaultUI.lookNameLabel") }
+        static var myDressingTitle: String { String(localized: "occasionVaultUI.myDressingTitle") }
+        static var notesLabel: String { String(localized: "occasionVaultUI.notesLabel") }
+        static var notesPlaceholder: String { String(localized: "occasionVaultUI.notesPlaceholder") }
+        static var occasionLabel: String { String(localized: "occasionVaultUI.occasionLabel") }
+        static var occasionPlaceholder: String { String(localized: "occasionVaultUI.occasionPlaceholder") }
+        static var saveThisLook: String { String(localized: "occasionVaultUI.saveThisLook") }
+        static var saveToDressing: String { String(localized: "occasionVaultUI.saveToDressing") }
+        static var tagPlaceholder: String { String(localized: "occasionVaultUI.tagPlaceholder") }
+        static var tagsLabel: String { String(localized: "occasionVaultUI.tagsLabel") }
+        static var tagsPlaceholder: String { String(localized: "occasionVaultUI.tagsPlaceholder") }
+        static var yourSavedLooks: String { String(localized: "occasionVaultUI.yourSavedLooks") }
+    }
+}
+extension L10n {
+    enum OnboardingUI {
+        static var aiEightSecondsSwipe: String { String(localized: "onboardingUI.aiEightSecondsSwipe") }
+        static var allJewelryOnYou: String { String(localized: "onboardingUI.allJewelryOnYou") }
+        static var brandName: String { String(localized: "onboardingUI.brandName") }
+        static var dismiss: String { String(localized: "onboardingUI.dismiss") }
+        static var freeTrialsNoCard: String { String(localized: "onboardingUI.freeTrialsNoCard") }
+        static var getStarted: String { String(localized: "onboardingUI.getStarted") }
+        static var nextCta: String { String(localized: "onboardingUI.nextCta") }
+        static var readyToTry: String { String(localized: "onboardingUI.readyToTry") }
+        static var signIn: String { String(localized: "onboardingUI.signIn") }
+        static var skip: String { String(localized: "onboardingUI.skip") }
+        static var tryBeforeYouBuy: String { String(localized: "onboardingUI.tryBeforeYouBuy") }
+        static var tryNowCta: String { String(localized: "onboardingUI.tryNowCta") }
+        static var withAiJewel: String { String(localized: "onboardingUI.withAiJewel") }
+        static var withoutJewel: String { String(localized: "onboardingUI.withoutJewel") }
+    }
+}
+extension L10n {
+    enum OutfitBuilderUI {
+        static var continueAnyway: String { String(localized: "outfitBuilderUI.continueAnyway") }
+        static var createALook: String { String(localized: "outfitBuilderUI.createALook") }
+        static var createFirstLook: String { String(localized: "outfitBuilderUI.createFirstLook") }
+        static var deleteOutfitConfirm: String { String(localized: "outfitBuilderUI.deleteOutfitConfirm") }
+        static var myOutfits: String { String(localized: "outfitBuilderUI.myOutfits") }
+        static var noItemsInCategory: String { String(localized: "outfitBuilderUI.noItemsInCategory") }
+        static var noSavedOutfits: String { String(localized: "outfitBuilderUI.noSavedOutfits") }
+        static var outfit: String { String(localized: "outfitBuilderUI.outfit") }
+        static var outfitBuilder: String { String(localized: "outfitBuilderUI.outfitBuilder") }
+        static var outfitSaved: String { String(localized: "outfitBuilderUI.outfitSaved") }
+        static var save: String { String(localized: "outfitBuilderUI.save") }
+        static var selectPiecesBelow: String { String(localized: "outfitBuilderUI.selectPiecesBelow") }
+    }
+}
+extension L10n {
+    enum PartnerUI {
+        static var applicationSent: String { String(localized: "partnerUI.applicationSent") }
+        static var applyAsPartner: String { String(localized: "partnerUI.applyAsPartner") }
+        static var applyIntro: String { String(localized: "partnerUI.applyIntro") }
+        static var areYouCreator: String { String(localized: "partnerUI.areYouCreator") }
+        static var becomePartner: String { String(localized: "partnerUI.becomePartner") }
+        static var brands: String { String(localized: "partnerUI.brands") }
+        static var buy: String { String(localized: "partnerUI.buy") }
+        static var catalogLoading: String { String(localized: "partnerUI.catalogLoading") }
+        static var categoryField: String { String(localized: "partnerUI.categoryField") }
+        static var describeCreativeUniverse: String { String(localized: "partnerUI.describeCreativeUniverse") }
+        static var describeHint: String { String(localized: "partnerUI.describeHint") }
+        static var discoverShop: String { String(localized: "partnerUI.discoverShop") }
+        static var joinEcrin: String { String(localized: "partnerUI.joinEcrin") }
+        static var joinEcrinSubtitle: String { String(localized: "partnerUI.joinEcrinSubtitle") }
+        static var noShopFound: String { String(localized: "partnerUI.noShopFound") }
+        static var ourPartners: String { String(localized: "partnerUI.ourPartners") }
+        static var searchShopPlaceholder: String { String(localized: "partnerUI.searchShopPlaceholder") }
+        static var selectedShops: String { String(localized: "partnerUI.selectedShops") }
+        static var tryAnotherKeyword: String { String(localized: "partnerUI.tryAnotherKeyword") }
+        static var verified: String { String(localized: "partnerUI.verified") }
+        static var visit: String { String(localized: "partnerUI.visit") }
+    }
+}
+extension L10n {
+    enum PaywallUI {
+        static var bestOffer: String { String(localized: "paywallUI.bestOffer") }
+        static var continueMyTryOns: String { String(localized: "paywallUI.continueMyTryOns") }
+        static var continueTheStory: String { String(localized: "paywallUI.continueTheStory") }
+        static var ecrinPremiumTitle: String { String(localized: "paywallUI.ecrinPremiumTitle") }
+        static var popular: String { String(localized: "paywallUI.popular") }
+        static var premiumFeaturesLine: String { String(localized: "paywallUI.premiumFeaturesLine") }
+        static var restorePurchases: String { String(localized: "paywallUI.restorePurchases") }
+        static var seeAllPlansRestore: String { String(localized: "paywallUI.seeAllPlansRestore") }
+        static var socialProof: String { String(localized: "paywallUI.socialProof") }
+        static var unlimited: String { String(localized: "paywallUI.unlimited") }
+        static var youFoundYourStyle: String { String(localized: "paywallUI.youFoundYourStyle") }
+        static var yourCreations: String { String(localized: "paywallUI.yourCreations") }
+    }
+}
+extension L10n {
+    enum ProfileUI {
+        static var aiConsentWithdrawInfo: String { String(localized: "profileUI.aiConsentWithdrawInfo") }
+        static var alreadyHaveCode: String { String(localized: "profileUI.alreadyHaveCode") }
+        static var byContinuingYouAccept: String { String(localized: "profileUI.byContinuingYouAccept") }
+        static var createGiftToShare: String { String(localized: "profileUI.createGiftToShare") }
+        static var deleteAccountQuestion: String { String(localized: "profileUI.deleteAccountQuestion") }
+        static var deleteAccountWarning: String { String(localized: "profileUI.deleteAccountWarning") }
+        static var deleteMyAccount: String { String(localized: "profileUI.deleteMyAccount") }
+        static var deleting: String { String(localized: "profileUI.deleting") }
+        static var devSkipLogin: String { String(localized: "profileUI.devSkipLogin") }
+        static var emailPlaceholder: String { String(localized: "profileUI.emailPlaceholder") }
+        static var giftAJewel: String { String(localized: "profileUI.giftAJewel") }
+        static var giftAJewelA11y: String { String(localized: "profileUI.giftAJewelA11y") }
+        static var mySpace: String { String(localized: "profileUI.mySpace") }
+        static var orBuySingleTries: String { String(localized: "profileUI.orBuySingleTries") }
+        static var profileTitle: String { String(localized: "profileUI.profileTitle") }
+        static var resendCodeChangeEmail: String { String(localized: "profileUI.resendCodeChangeEmail") }
+        static var signOut: String { String(localized: "profileUI.signOut") }
+        static var sixDigitCode: String { String(localized: "profileUI.sixDigitCode") }
+        static var stoneTherapyVirtues: String { String(localized: "profileUI.stoneTherapyVirtues") }
+        static var subscribe: String { String(localized: "profileUI.subscribe") }
+        static var topUp: String { String(localized: "profileUI.topUp") }
+        static var triesAvailable: String { String(localized: "profileUI.triesAvailable") }
+        static var triesExhausted: String { String(localized: "profileUI.triesExhausted") }
+        static var upgradeToContinue: String { String(localized: "profileUI.upgradeToContinue") }
+        static var virtualJewelry: String { String(localized: "profileUI.virtualJewelry") }
+        static var withdrawAiConsent: String { String(localized: "profileUI.withdrawAiConsent") }
+        static var withdrawAiConsentQuestion: String { String(localized: "profileUI.withdrawAiConsentQuestion") }
+        static var withdrawConsent: String { String(localized: "profileUI.withdrawConsent") }
+    }
+}
+extension L10n {
+    enum QuickTryOnUI {
+        static var chooseModel: String { String(localized: "quickTryOnUI.chooseModel") }
+        static var closeCaps: String { String(localized: "quickTryOnUI.closeCaps") }
+        static var clothingCatalogNotApplicable: String { String(localized: "quickTryOnUI.clothingCatalogNotApplicable") }
+        static var creationInProgress: String { String(localized: "quickTryOnUI.creationInProgress") }
+        static var currentFavorites: String { String(localized: "quickTryOnUI.currentFavorites") }
+        static var downloading: String { String(localized: "quickTryOnUI.downloading") }
+        static var forPreciseTryOn: String { String(localized: "quickTryOnUI.forPreciseTryOn") }
+        static var generateCta: String { String(localized: "quickTryOnUI.generateCta") }
+        static var gotIt: String { String(localized: "quickTryOnUI.gotIt") }
+        static var jewelryOnlyMode: String { String(localized: "quickTryOnUI.jewelryOnlyMode") }
+        static var nextCta: String { String(localized: "quickTryOnUI.nextCta") }
+        static var nextJewel: String { String(localized: "quickTryOnUI.nextJewel") }
+        static var noCompatiblePiece: String { String(localized: "quickTryOnUI.noCompatiblePiece") }
+        static var noModelAvailable: String { String(localized: "quickTryOnUI.noModelAvailable") }
+        static var noPhotoChooseModel: String { String(localized: "quickTryOnUI.noPhotoChooseModel") }
+        static var oneMore: String { String(localized: "quickTryOnUI.oneMore") }
+        static var photoGuide: String { String(localized: "quickTryOnUI.photoGuide") }
+        static var photoHardToProcess: String { String(localized: "quickTryOnUI.photoHardToProcess") }
+        static var photoTips: String { String(localized: "quickTryOnUI.photoTips") }
+        static var preciseJewelPlacement: String { String(localized: "quickTryOnUI.preciseJewelPlacement") }
+        static var preselectedFirstTryOn: String { String(localized: "quickTryOnUI.preselectedFirstTryOn") }
+        static var quickTryOnTitle: String { String(localized: "quickTryOnUI.quickTryOnTitle") }
+        static var referenceModels: String { String(localized: "quickTryOnUI.referenceModels") }
+        static var removeThisItem: String { String(localized: "quickTryOnUI.removeThisItem") }
+        static var rightPhotoMatters: String { String(localized: "quickTryOnUI.rightPhotoMatters") }
+        static var selectedItems: String { String(localized: "quickTryOnUI.selectedItems") }
+        static var shareCta: String { String(localized: "quickTryOnUI.shareCta") }
+        static var starBadge: String { String(localized: "quickTryOnUI.starBadge") }
+        static var step1YourPhoto: String { String(localized: "quickTryOnUI.step1YourPhoto") }
+        static var step2YourJewel: String { String(localized: "quickTryOnUI.step2YourJewel") }
+        static var tapToChoosePhoto: String { String(localized: "quickTryOnUI.tapToChoosePhoto") }
+        static var understood: String { String(localized: "quickTryOnUI.understood") }
+    }
+}
+extension L10n {
+    enum SkinToneUI {
+        static var advisor: String { String(localized: "skinToneUI.advisor") }
+        static var aiAnalysisIntro: String { String(localized: "skinToneUI.aiAnalysisIntro") }
+        static var analyzeMyPhoto: String { String(localized: "skinToneUI.analyzeMyPhoto") }
+        static var discoverPerfectJewels: String { String(localized: "skinToneUI.discoverPerfectJewels") }
+        static var discoverPerfectMetal: String { String(localized: "skinToneUI.discoverPerfectMetal") }
+        static var filteredByProfile: String { String(localized: "skinToneUI.filteredByProfile") }
+        static var metalsToAvoid: String { String(localized: "skinToneUI.metalsToAvoid") }
+        static var newPhoto: String { String(localized: "skinToneUI.newPhoto") }
+        static var okay: String { String(localized: "skinToneUI.okay") }
+        static var skinAndMetals: String { String(localized: "skinToneUI.skinAndMetals") }
+        static var topPick: String { String(localized: "skinToneUI.topPick") }
+    }
+}
+extension L10n {
+    enum SnapshotFramesUI {
+        static var artisticFramesL99: String { String(localized: "snapshotFramesUI.artisticFramesL99") }
+        static var createMySnapshot: String { String(localized: "snapshotFramesUI.createMySnapshot") }
+        static var customize: String { String(localized: "snapshotFramesUI.customize") }
+        static var customizeCaps: String { String(localized: "snapshotFramesUI.customizeCaps") }
+        static var noFrame: String { String(localized: "snapshotFramesUI.noFrame") }
+        static var savedToPhotoLibrary: String { String(localized: "snapshotFramesUI.savedToPhotoLibrary") }
+        static var snapshotCaps: String { String(localized: "snapshotFramesUI.snapshotCaps") }
+        static var snapshotFrameCaps: String { String(localized: "snapshotFramesUI.snapshotFrameCaps") }
+        static var titlePlaceholder: String { String(localized: "snapshotFramesUI.titlePlaceholder") }
+    }
+}
+extension L10n {
+    enum SocialExportUI {
+        static var exportButton: String { String(localized: "socialExportUI.exportButton") }
+        static var formatLabel: String { String(localized: "socialExportUI.formatLabel") }
+        static var lookSavedToPhotos: String { String(localized: "socialExportUI.lookSavedToPhotos") }
+        static var shareNow: String { String(localized: "socialExportUI.shareNow") }
+        static var watermarkLabel: String { String(localized: "socialExportUI.watermarkLabel") }
+        static var yourLookTitle: String { String(localized: "socialExportUI.yourLookTitle") }
+    }
+}
+extension L10n {
+    enum StoneTherapyUI {
+        static var byChakra: String { String(localized: "stoneTherapyUI.byChakra") }
+        static var byIntention: String { String(localized: "stoneTherapyUI.byIntention") }
+        static var chakra: String { String(localized: "stoneTherapyUI.chakra") }
+        static var closingQuote: String { String(localized: "stoneTherapyUI.closingQuote") }
+        static var complementaryStones: String { String(localized: "stoneTherapyUI.complementaryStones") }
+        static var element: String { String(localized: "stoneTherapyUI.element") }
+        static var learnMore: String { String(localized: "stoneTherapyUI.learnMore") }
+        static var lithotherapy: String { String(localized: "stoneTherapyUI.lithotherapy") }
+        static var noStoneFound: String { String(localized: "stoneTherapyUI.noStoneFound") }
+        static var openingQuote: String { String(localized: "stoneTherapyUI.openingQuote") }
+        static var searchStonePlaceholder: String { String(localized: "stoneTherapyUI.searchStonePlaceholder") }
+        static var stoneGuide: String { String(localized: "stoneTherapyUI.stoneGuide") }
+        static var tryOnResultPlaceholder: String { String(localized: "stoneTherapyUI.tryOnResultPlaceholder") }
+        static var tryOtherFilters: String { String(localized: "stoneTherapyUI.tryOtherFilters") }
+        static var virtues: String { String(localized: "stoneTherapyUI.virtues") }
+    }
+}
+extension L10n {
+    enum StylisteUI {
+        static var aiStylist: String { String(localized: "stylisteUI.aiStylist") }
+        static var askQuestionPlaceholder: String { String(localized: "stylisteUI.askQuestionPlaceholder") }
+        static var personalizedAdvice: String { String(localized: "stylisteUI.personalizedAdvice") }
+    }
+}
+extension L10n {
+    enum TryOnUI {
+        static var acceptAndTry: String { String(localized: "tryOnUI.acceptAndTry") }
+        static var aiPoweredTryOn: String { String(localized: "tryOnUI.aiPoweredTryOn") }
+        static var cameraAccessSettingsHint: String { String(localized: "tryOnUI.cameraAccessSettingsHint") }
+        static var chooseAJewel: String { String(localized: "tryOnUI.chooseAJewel") }
+        static var decline: String { String(localized: "tryOnUI.decline") }
+        static var multiViewChooseAngles: String { String(localized: "tryOnUI.multiViewChooseAngles") }
+        static var openSettings: String { String(localized: "tryOnUI.openSettings") }
+        static var virtual: String { String(localized: "tryOnUI.virtual") }
+    }
+}
+extension L10n {
+    enum WardrobeUI {
+        static var addPhoto: String { String(localized: "wardrobeUI.addPhoto") }
+        static var addShoesToTry: String { String(localized: "wardrobeUI.addShoesToTry") }
+        static var addToMyWardrobe: String { String(localized: "wardrobeUI.addToMyWardrobe") }
+        static var analytics: String { String(localized: "wardrobeUI.analytics") }
+        static var arkitLidarInfo: String { String(localized: "wardrobeUI.arkitLidarInfo") }
+        static var availablePartnerShop: String { String(localized: "wardrobeUI.availablePartnerShop") }
+        static var categoryCaps: String { String(localized: "wardrobeUI.categoryCaps") }
+        static var chooseShoe: String { String(localized: "wardrobeUI.chooseShoe") }
+        static var chooseShoeFirst: String { String(localized: "wardrobeUI.chooseShoeFirst") }
+        static var completesThisLook: String { String(localized: "wardrobeUI.completesThisLook") }
+        static var enablesDirectPurchase: String { String(localized: "wardrobeUI.enablesDirectPurchase") }
+        static var fromFrontOrSide: String { String(localized: "wardrobeUI.fromFrontOrSide") }
+        static var fromYourLibrary: String { String(localized: "wardrobeUI.fromYourLibrary") }
+        static var geminiFlashShoes: String { String(localized: "wardrobeUI.geminiFlashShoes") }
+        static var geminiImageInfo: String { String(localized: "wardrobeUI.geminiImageInfo") }
+        static var launchAr: String { String(localized: "wardrobeUI.launchAr") }
+        static var myWardrobeCaps: String { String(localized: "wardrobeUI.myWardrobeCaps") }
+        static var newPieceCaps: String { String(localized: "wardrobeUI.newPieceCaps") }
+        static var noPieces: String { String(localized: "wardrobeUI.noPieces") }
+        static var photographYourFeet: String { String(localized: "wardrobeUI.photographYourFeet") }
+        static var realtimeArTryOn: String { String(localized: "wardrobeUI.realtimeArTryOn") }
+        static var resultCaps: String { String(localized: "wardrobeUI.resultCaps") }
+        static var shootingAngle: String { String(localized: "wardrobeUI.shootingAngle") }
+        static var shopCaps: String { String(localized: "wardrobeUI.shopCaps") }
+        static var tryOnCaps: String { String(localized: "wardrobeUI.tryOnCaps") }
+        static var tryOnInProgress: String { String(localized: "wardrobeUI.tryOnInProgress") }
+        static var virtual: String { String(localized: "wardrobeUI.virtual") }
+        static var yourPhotoCaps: String { String(localized: "wardrobeUI.yourPhotoCaps") }
+    }
+}
+extension L10n {
+    enum WeatherUI {
+        static var continueAction: String { String(localized: "weatherUI.continueAction") }
+        static var enterMyCity: String { String(localized: "weatherUI.enterMyCity") }
+        static var locationPrivacyNotice: String { String(localized: "weatherUI.locationPrivacyNotice") }
+        static var myWardrobe: String { String(localized: "weatherUI.myWardrobe") }
+        static var refreshLook: String { String(localized: "weatherUI.refreshLook") }
+    }
+}
+extension L10n {
+    enum WeddingUI {
+        static var addByEmail: String { String(localized: "weddingUI.addByEmail") }
+        static var bridalLook: String { String(localized: "weddingUI.bridalLook") }
+        static var bridesmaidsLabel: String { String(localized: "weddingUI.bridesmaidsLabel") }
+        static var bridesmaidsTryHint: String { String(localized: "weddingUI.bridesmaidsTryHint") }
+        static var changeButton: String { String(localized: "weddingUI.changeButton") }
+        static var chooseJewel: String { String(localized: "weddingUI.chooseJewel") }
+        static var completionLabel: String { String(localized: "weddingUI.completionLabel") }
+        static var confirm: String { String(localized: "weddingUI.confirm") }
+        static var emailPlaceholder: String { String(localized: "weddingUI.emailPlaceholder") }
+        static var lookComplete: String { String(localized: "weddingUI.lookComplete") }
+        static var placementsLabel: String { String(localized: "weddingUI.placementsLabel") }
+        static var removeThisJewel: String { String(localized: "weddingUI.removeThisJewel") }
+        static var sendInvitations: String { String(localized: "weddingUI.sendInvitations") }
+        static var setWeddingDate: String { String(localized: "weddingUI.setWeddingDate") }
+        static var shareLookMessage: String { String(localized: "weddingUI.shareLookMessage") }
+        static var shareWithBridesmaids: String { String(localized: "weddingUI.shareWithBridesmaids") }
+        static var shareYourLook: String { String(localized: "weddingUI.shareYourLook") }
+        static var weddingDate: String { String(localized: "weddingUI.weddingDate") }
+        static var yourPerfectDay: String { String(localized: "weddingUI.yourPerfectDay") }
+        static var yourSelection: String { String(localized: "weddingUI.yourSelection") }
+    }
+}
+
+// MARK: - Residual-literal accessors
+
+extension L10n.AuthUI {
+    static var appleSignInCancelled: String { String(localized: "authUI.appleSignInCancelled") }
+    static var appleSignInFailed: String { String(localized: "authUI.appleSignInFailed") }
+}
+extension L10n.CatalogUI {
+    static var emptyCatalog: String { String(localized: "catalogUI.emptyCatalog") }
+    static var itemsComingSoon: String { String(localized: "catalogUI.itemsComingSoon") }
+    static var noResults: String { String(localized: "catalogUI.noResults") }
+    static var tryOtherSearchTerms: String { String(localized: "catalogUI.tryOtherSearchTerms") }
+}
+extension L10n {
+    enum CommonUI {
+        static var generating: String { String(localized: "commonUI.generating") }
+    }
+}
+extension L10n.CommunityUI {
+    static var captionSection: String { String(localized: "communityUI.captionSection") }
+    static var challengeLeft: String { String(localized: "communityUI.challengeLeft") }
+    static var jewelryWorn: String { String(localized: "communityUI.jewelryWorn") }
+    static var joinShort: String { String(localized: "communityUI.joinShort") }
+    static var joinedCheck: String { String(localized: "communityUI.joinedCheck") }
+    static var participate: String { String(localized: "communityUI.participate") }
+    static var publish: String { String(localized: "communityUI.publish") }
+    static var publishFailed: String { String(localized: "communityUI.publishFailed") }
+    static var publishing: String { String(localized: "communityUI.publishing") }
+    static var seeMyTryOns: String { String(localized: "communityUI.seeMyTryOns") }
+    static var signInToPublish: String { String(localized: "communityUI.signInToPublish") }
+    static var yourTryOn: String { String(localized: "communityUI.yourTryOn") }
+}
+extension L10n.CreditsUI {
+    static var productUnavailable: String { String(localized: "creditsUI.productUnavailable") }
+    static var purchaseIncomplete: String { String(localized: "creditsUI.purchaseIncomplete") }
+}
+extension L10n.GiftUI {
+    static var createFailed: String { String(localized: "giftUI.createFailed") }
+    static var createMagicLink: String { String(localized: "giftUI.createMagicLink") }
+    static var creating: String { String(localized: "giftUI.creating") }
+    static var giftLoadFailed: String { String(localized: "giftUI.giftLoadFailed") }
+    static var giftNotFoundOrExpired: String { String(localized: "giftUI.giftNotFoundOrExpired") }
+    static var linkCopied: String { String(localized: "giftUI.linkCopied") }
+}
+extension L10n.OutfitBuilderUI {
+    static var addMainGarmentFirst: String { String(localized: "outfitBuilderUI.addMainGarmentFirst") }
+    static var generateLook: String { String(localized: "outfitBuilderUI.generateLook") }
+    static var myPhoto: String { String(localized: "outfitBuilderUI.myPhoto") }
+    static var photoShort: String { String(localized: "outfitBuilderUI.photoShort") }
+}
+extension L10n.PartnerUI {
+    static var aboutCaps: String { String(localized: "partnerUI.aboutCaps") }
+    static var submitApplication: String { String(localized: "partnerUI.submitApplication") }
+    static var submitFailed: String { String(localized: "partnerUI.submitFailed") }
+    static var submitting: String { String(localized: "partnerUI.submitting") }
+}
+extension L10n.PaywallUI {
+    static var inProgress: String { String(localized: "paywallUI.inProgress") }
+}
+extension L10n.ProfileUI {
+    static var codeInvalidOrExpired: String { String(localized: "profileUI.codeInvalidOrExpired") }
+    static var codeSendFailed: String { String(localized: "profileUI.codeSendFailed") }
+    static var deleteFailedNothingDeleted: String { String(localized: "profileUI.deleteFailedNothingDeleted") }
+    static var invalidEmail: String { String(localized: "profileUI.invalidEmail") }
+    static var receiveCode: String { String(localized: "profileUI.receiveCode") }
+    static var sending: String { String(localized: "profileUI.sending") }
+    static var signingIn: String { String(localized: "profileUI.signingIn") }
+}
+extension L10n.QuickTryOnUI {
+    static var chooseMyAngles: String { String(localized: "quickTryOnUI.chooseMyAngles") }
+    static var generationFailedRetry: String { String(localized: "quickTryOnUI.generationFailedRetry") }
+    static var savedShort: String { String(localized: "quickTryOnUI.savedShort") }
+}
+extension L10n.SocialExportUI {
+    static var allowPhotoLibraryAccess: String { String(localized: "socialExportUI.allowPhotoLibraryAccess") }
+    static var saveShort: String { String(localized: "socialExportUI.saveShort") }
+    static var savedCheck: String { String(localized: "socialExportUI.savedCheck") }
+}
+extension L10n.StylisteUI {
+    static var contactFailed: String { String(localized: "stylisteUI.contactFailed") }
+}
+extension L10n.WardrobeUI {
+    static var additionsSixMonths: String { String(localized: "wardrobeUI.additionsSixMonths") }
+    static var breakdownByGroup: String { String(localized: "wardrobeUI.breakdownByGroup") }
+    static var dominantColors: String { String(localized: "wardrobeUI.dominantColors") }
+    static var topBrands: String { String(localized: "wardrobeUI.topBrands") }
+    static var tryNow: String { String(localized: "wardrobeUI.tryNow") }
+    static var tryTheseShoes: String { String(localized: "wardrobeUI.tryTheseShoes") }
+}
+extension L10n.WeatherUI {
+    static var disableDailyReminder: String { String(localized: "weatherUI.disableDailyReminder") }
+    static var enable8amReminder: String { String(localized: "weatherUI.enable8amReminder") }
+    static var filterByBudget: String { String(localized: "weatherUI.filterByBudget") }
+}
+
+extension L10n.MultiPoseUI {
+    static var addedToWardrobe: String { String(localized: "multiPoseUI.addedToWardrobe") }
+    static func viewsAddedToWardrobe(_ count: Int) -> String {
+        String(format: String(localized: "multiPoseUI.viewsAddedToWardrobe"), count)
+    }
+}
+extension L10n.WeatherUI {
+    static var lookAlreadySaved: String { String(localized: "weatherUI.lookAlreadySaved") }
+}
+extension L10n.ArTryOnUI {
+    static var lookAtCamera: String { String(localized: "arTryOnUI.lookAtCamera") }
+    static var showHandsToCamera: String { String(localized: "arTryOnUI.showHandsToCamera") }
+}

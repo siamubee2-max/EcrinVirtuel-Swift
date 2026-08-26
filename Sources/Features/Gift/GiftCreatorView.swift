@@ -4,13 +4,13 @@ import SwiftUI
 struct GiftCreatorView: View {
     @StateObject private var viewModel = GiftViewModel()
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppState.self) private var appState
 
-    // Simulated current user; replace with AppState injection
-    private let currentUser = User(
-        email: "moi@example.com",
-        displayName: "Vous",
-        createdAt: .now
-    )
+    /// Expéditeur réel — le destinataire voyait « De la part de Vous »
+    /// (moi@example.com) avec l'utilisateur simulé précédent.
+    private var currentUser: User {
+        appState.currentUser ?? User(email: "", displayName: nil, createdAt: .now)
+    }
 
     var body: some View {
         ZStack {
@@ -52,6 +52,7 @@ struct GiftCreatorView: View {
                 GiftShareSheet(url: url, gift: viewModel.createdGift)
             }
         }
+        .task { await viewModel.loadJewelryCatalog() }
     }
 }
 
@@ -63,11 +64,11 @@ private struct GiftCreatorHeader: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("CADEAU")
+                Text(L10n.GiftUI.giftCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Magique")
+                Text(L10n.GiftUI.magical)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
             }
@@ -146,7 +147,7 @@ private struct GiftStep1ChooseJewelry: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: EcrinSpacing.lg) {
-                Text("Quel bijou offrir ?")
+                Text(L10n.GiftUI.whichJewelToGift)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -240,14 +241,14 @@ private struct GiftStep2Customize: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: EcrinSpacing.lg) {
-                Text("Personnalisez")
+                Text(L10n.GiftUI.personalize)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 // Occasion chips
                 VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                    Text("OCCASION")
+                    Text(L10n.OccasionVaultUI.occasionLabel)
                         .font(EcrinFont.label)
                         .kerning(2)
                         .foregroundStyle(EcrinColor.textMuted)
@@ -273,14 +274,14 @@ private struct GiftStep2Customize: View {
 
                 // Message field
                 VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                    Text("VOTRE MESSAGE")
+                    Text(L10n.GiftUI.yourMessageCaps)
                         .font(EcrinFont.label)
                         .kerning(2)
                         .foregroundStyle(EcrinColor.textMuted)
 
                     GlassCard(cornerRadius: 16) {
                         TextField(
-                            "Écrivez quelques mots avec amour…",
+                            L10n.GiftUI.writeWordsWithLove,
                             text: $viewModel.message,
                             axis: .vertical
                         )
@@ -305,7 +306,7 @@ private struct GiftStep2Customize: View {
 
                 HStack(spacing: EcrinSpacing.md) {
                     GhostButton(title: L10n.Common.previous) { viewModel.previous() }
-                    GoldButton(title: "Continuer") { viewModel.next() }
+                    GoldButton(title: L10n.WeatherUI.continueAction) { viewModel.next() }
                         .disabled(!viewModel.canProceedToSend)
                         .opacity(viewModel.canProceedToSend ? 1 : 0.35)
                 }
@@ -445,7 +446,7 @@ struct GiftCardPreview: View {
                     .padding(.horizontal, EcrinSpacing.md)
 
                 // Footer
-                Text("Offert avec amour via L'Écrin Virtuel")
+                Text(L10n.GiftUI.givenWithLove)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
                     .kerning(1)
@@ -463,7 +464,7 @@ private struct GiftStep3Send: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: EcrinSpacing.lg) {
-                Text("Prêt à offrir")
+                Text(L10n.GiftUI.readyToGift)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -486,10 +487,10 @@ private struct GiftStep3Send: View {
                             .font(.system(size: 24))
                             .foregroundStyle(EcrinColor.gold)
                         VStack(alignment: .leading, spacing: 3) {
-                            Text("Lien valable 30 jours")
+                            Text(L10n.GiftUI.linkValid30Days)
                                 .font(EcrinFont.body)
                                 .foregroundStyle(EcrinColor.textPrimary)
-                            Text("Votre destinataire pourra essayer le bijou en réalité augmentée")
+                            Text(L10n.GiftUI.recipientCanTryAR)
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.textSecondary)
                         }
@@ -497,9 +498,16 @@ private struct GiftStep3Send: View {
                     .padding(EcrinSpacing.md)
                 }
 
+                if let error = viewModel.errorMessage {
+                    Text(error)
+                        .font(EcrinFont.caption)
+                        .foregroundStyle(.red.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                }
+
                 // Create link CTA
                 GoldButton(
-                    title: viewModel.isCreatingLink ? "Création…" : "Créer le lien magique ✨"
+                    title: viewModel.isCreatingLink ? L10n.GiftUI.creating : L10n.GiftUI.createMagicLink
                 ) {
                     Task { await viewModel.createGiftLink(fromUser: currentUser) }
                 }
@@ -551,10 +559,10 @@ private struct GiftShareSheet: View {
                 .padding(.top, EcrinSpacing.sm)
 
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("Lien créé !")
+                    Text(L10n.GiftUI.linkCreated)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("Partagez ce lien magique avec la personne que vous souhaitez gâter")
+                    Text(L10n.GiftUI.shareMagicLink)
                         .font(EcrinFont.body)
                         .foregroundStyle(EcrinColor.textSecondary)
                         .multilineTextAlignment(.center)
@@ -585,7 +593,7 @@ private struct GiftShareSheet: View {
                     }
 
                     // Copy link
-                    GhostButton(title: copied ? "Lien copié ✓" : "Copier le lien") {
+                    GhostButton(title: copied ? L10n.GiftUI.linkCopied : L10n.Share.copyLink) {
                         UIPasteboard.general.string = url.absoluteString
                         withAnimation { copied = true }
                         Task {

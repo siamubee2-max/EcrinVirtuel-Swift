@@ -21,13 +21,13 @@ struct BudgetPickerSheet: View {
                 .padding(.top, 12)
                 .padding(.bottom, 20)
 
-            Text("Budget maximum")
+            Text(L10n.LookOfDay.budgetTitle)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.textPrimary)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, EcrinSpacing.lg)
 
-            Text("Filtrez le catalogue par prix maximum par article.")
+            Text(L10n.LookOfDay.budgetDesc)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -44,7 +44,7 @@ struct BudgetPickerSheet: View {
                         onSelect(tier)
                         dismiss()
                     } label: {
-                        Text(tier == nil ? "Tout" : "\(Int(tier!))€")
+                        Text(tier == nil ? L10n.DemoGallery.categoriesAll : "\(Int(tier!))€")
                             .font(EcrinFont.sans(14, weight: isSelected ? .semibold : .regular))
                             .foregroundStyle(isSelected ? EcrinColor.background : EcrinColor.textPrimary)
                             .padding(.horizontal, 16)

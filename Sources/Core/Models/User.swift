@@ -30,18 +30,22 @@ struct User: Identifiable, Codable {
     }
 }
 
-enum SubscriptionStatus {
-    case free
-    case starter
-    case premium
-    case elite
+enum SubscriptionStatus: String {
+    case free    = "free"
+    case starter = "starter"
+    case premium = "premium"
+    case elite   = "elite"
 
+    /// Crédits mensuels par tier — source unique, alignée sur ce que le
+    /// paywall vend (15/40/100). L'Edge Function credit-generations reste
+    /// l'autorité : ces valeurs ne servent qu'à l'affichage en attendant
+    /// le sync serveur.
     var trialLimit: Int {
         switch self {
         case .free:    return 3
-        case .starter: return 20
-        case .premium: return 60
-        case .elite:   return .max
+        case .starter: return 15
+        case .premium: return 40
+        case .elite:   return 100
         }
     }
 

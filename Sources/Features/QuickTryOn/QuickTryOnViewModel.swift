@@ -241,20 +241,17 @@ final class QuickTryOnViewModel {
 
     // MARK: - Photo loading
 
-    /// Taille max : 6 Mo (limite de l'Edge Function tryon-generate).
-    private static let maxPhotoBytes = 6 * 1024 * 1024
-
     func loadPhoto(from item: PhotosPickerItem?) async {
         guard let item else { return }
         guard let data = try? await item.loadTransferable(type: Data.self) else { return }
 
-        // Validation taille avant de passer à l'Edge Function
-        guard data.count <= Self.maxPhotoBytes else {
-            errorMessage = L10n.TryOn.photoTooLarge  // clé à ajouter en L10n
-            return
-        }
-
-        guard let image = UIImage(data: data) else { return }
+        // Pas de rejet sur la taille brute : ImageGenerationService downscale
+        // à 2048 px et compresse sous la limite Edge avant chaque envoi — une
+        // photo 48 MP était refusée ici alors qu'elle passe après réduction.
+        // Décodage à taille bornée (~2048 px) : une photo 48 Mpx décodée entière
+        // pèse ~120 Mo de RAM ; 2048 px suffit pour la génération.
+        guard let image = DownsampledImageLoader.downsample(data: data, maxPixelSize: 2048)
+                ?? UIImage(data: data) else { return }
         userPhoto = image
         result = nil
     }
@@ -262,6 +259,7 @@ final class QuickTryOnViewModel {
     // MARK: - Generation
 
     func generate(showPaywall: () -> Void) async {
+        guard !isGenerating else { return }
         guard let photo = userPhoto, !selectedItems.isEmpty else { return }
         guard let mode = selectedMode else { return }
 
@@ -279,22 +277,27 @@ final class QuickTryOnViewModel {
                     item: primaryItem,
                     mode: mode
                 )
-                result = generated
                 lastBodyContext = context
 
+                // N'assigner `result` qu'une seule fois : la vue observe onChange(result)
+                // pour ouvrir le cover et ajouter à SessionCreationsStore — publier le
+                // résultat intermédiaire du flow multi-articles l'affichait comme final
+                // et créait un doublon.
+                var finalImages = generated
                 if selectedItems.count > 1 {
                     let fullPrompt = buildEnrichedMultiItemPrompt(
                         mode: mode,
                         items: selectedItems,
                         bodyContext: context
                     )
-                    let finalResult = try await imageService.tryOnQuick(
+                    finalImages = try await imageService.tryOnQuick(
                         photo: generated,
                         prompt: fullPrompt
                     )
-                    result = finalResult
                 }
+                result = finalImages
                 CreditsManager.shared.syncDetached()
+                GamingService.shared.record(.tryOnGenerated)
                 // Enregistrer la session Try-On en arrière-plan (sans bloquer l'UI)
                 Task {
                     try? await SupabaseService.shared.saveTryOnSession(
@@ -317,7 +320,7 @@ final class QuickTryOnViewModel {
                 }
             } catch {
                 CreditsManager.shared.refund(count: creditCost)
-                errorMessage = "La génération a échoué. Veuillez réessayer."
+                errorMessage = L10n.QuickTryOnUI.generationFailedRetry
             }
         }
     }
@@ -340,7 +343,7 @@ final class QuickTryOnViewModel {
         let bodyInfo = "Body: \(bodyContext.bodyShape.rawValue), \(bodyContext.estimatedHeight.rawValue)."
         let lightInfo = "Lighting: \(bodyContext.lightingType.rawValue) \(bodyContext.lightingDirection.description)."
 
-        return "\(itemDescriptions). \(mode.promptSuffix). \(skinInfo) \(bodyInfo) \(lightInfo) Photorealistic, luxury fashion photography, 8K. Keep face and hair unchanged."
+        return "EDIT the reference photo — same person, background, lighting and colours — only add the item. \(itemDescriptions). \(mode.promptSuffix). \(skinInfo) \(bodyInfo) \(lightInfo) Photorealistic, seamlessly composited. Do NOT beautify, relight, recolour or replace the background. Keep face and hair unchanged."
     }
 
     // MARK: - Prompt construction
@@ -354,7 +357,8 @@ final class QuickTryOnViewModel {
         }.joined(separator: " combined with ")
 
         let qualityTags = """
-        Photorealistic, luxury fashion photography, 8K quality, professional lighting. \
+        EDIT the reference photo: keep the same background, lighting and colours — only add the item. \
+        Photorealistic, seamlessly composited. Do NOT beautify, relight, recolour or replace the background. \
         Keep the person's face, skin tone, hair, and body proportions exactly the same.
         """
 

@@ -93,11 +93,11 @@ struct CreditsPackView: View {
                     .foregroundStyle(EcrinColor.gold)
             }
 
-            Text("Recharger mes essais")
+            Text(L10n.CreditsUI.topUpMyTries)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.textPrimary)
 
-            Text("Achetez des essais supplémentaires\nsans changer d'abonnement.")
+            Text(L10n.CreditsUI.buyExtraTriesSubtitle)
                 .font(EcrinFont.caption)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(EcrinColor.textSecondary)
@@ -115,7 +115,7 @@ struct CreditsPackView: View {
                             .tint(EcrinColor.gold)
                             .scaleEffect(0.8)
                     } else {
-                        Text("Solde actuel : ")
+                        Text(L10n.CreditsUI.currentBalance)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                         +
@@ -138,7 +138,7 @@ struct CreditsPackView: View {
     private var reassuranceCard: some View {
         GlassCard(cornerRadius: 16) {
             VStack(spacing: EcrinSpacing.sm) {
-                ReassuranceRow(icon: "checkmark.shield", text: "Les essais achetés ne expirent pas")
+                ReassuranceRow(icon: "checkmark.shield", text: "Les essais achetés n'expirent pas")
                 ReassuranceRow(icon: "arrow.triangle.2.circlepath", text: "S'ajoutent à votre solde existant")
                 ReassuranceRow(icon: "bolt.badge.checkmark", text: "Crédités instantanément après l'achat")
             }
@@ -169,9 +169,18 @@ struct CreditsPackView: View {
             .disabled(vm.isPurchasing || vm.selectedPack == nil)
             .padding(.horizontal, EcrinSpacing.lg)
 
-            Text("Achat unique · Non renouvelable · Géré par Apple")
+            Text(L10n.CreditsUI.oneTimePurchaseNote)
                 .font(.system(size: 10))
                 .foregroundStyle(EcrinColor.textDecorative)
+
+            HStack(spacing: 4) {
+                Link("CGU", destination: URL(string: "https://inferencevision.store/ecrin/terms")!)
+                Text("·").foregroundStyle(EcrinColor.textMuted)
+                Link("Confidentialité", destination: URL(string: "https://inferencevision.store/ecrin/privacy")!)
+            }
+            .font(.system(size: 10, weight: .medium))
+            .foregroundStyle(EcrinColor.gold.opacity(0.7))
+            .padding(.top, 2)
         }
     }
 }
@@ -317,7 +326,7 @@ struct PurchaseSuccessOverlay: View {
                 .frame(width: 120, height: 120)
 
                 VStack(spacing: 8) {
-                    Text("Recharge effectuée !")
+                    Text(L10n.CreditsUI.topUpDone)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
                     Text("+\(count) essai\(count > 1 ? "s" : "") ajouté\(count > 1 ? "s" : "") à votre compte")
@@ -325,7 +334,7 @@ struct PurchaseSuccessOverlay: View {
                         .foregroundStyle(EcrinColor.textSecondary)
                 }
 
-                GoldButton(title: "Commencer à essayer") {
+                GoldButton(title: L10n.CreditsUI.startTrying) {
                     onDismiss()
                 }
                 .padding(.horizontal, EcrinSpacing.xxl)

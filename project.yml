@@ -42,6 +42,7 @@ targets:
           - UIInterfaceOrientationPortrait
         NSPhotoLibraryUsageDescription: "L'Écrin Virtuel utilise vos photos pour l'essayage virtuel de bijoux."
         NSCameraUsageDescription: "L'Écrin Virtuel utilise la caméra pour l'essayage virtuel de bijoux en temps réel."
+        NSLocationWhenInUseUsageDescription: "L'Écrin Virtuel utilise votre position pour vous proposer un look adapté à la météo de votre ville."
         CFBundleDisplayName: "L'Écrin"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
@@ -49,7 +50,7 @@ targets:
         SUPABASE_URL: "$(SUPABASE_URL)"
         SUPABASE_ANON_KEY: "$(SUPABASE_ANON_KEY)"
         REVENUECAT_IOS_KEY: "$(REVENUECAT_IOS_KEY)"
-        NSPrivacyPolicyURL: "https://ecrin.app/privacy"
+        NSPrivacyPolicyURL: "https://inferencevision.store/ecrin/privacy.html"
         CFBundleURLTypes:
           - CFBundleTypeRole: Editor
             CFBundleURLName: com.ecrin.jewelry
@@ -63,8 +64,56 @@ targets:
     configFiles:
       Debug: Secrets.xcconfig
       Release: Secrets.xcconfig
+    entitlements:
+      path: Sources/App/EcrinVirtuel.entitlements
+      properties:
+        com.apple.developer.associated-domains:
+          - applinks:ecrin.app
+        com.apple.developer.devicecheck.appattest-environment: production
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry
         INFOPLIST_FILE: Sources/App/Info.plist
         CODE_SIGN_STYLE: Automatic
+
+  EcrinVirtuelTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+        excludes:
+          - "UITests/**"
+    dependencies:
+      - target: EcrinVirtuel
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry.tests
+        GENERATE_INFOPLIST_FILE: YES
+
+  EcrinVirtuelUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests/UITests
+    dependencies:
+      - target: EcrinVirtuel
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry.uitests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  EcrinVirtuel:
+    build:
+      targets:
+        EcrinVirtuel: all
+        EcrinVirtuelTests: [test]
+        EcrinVirtuelUITests: [test]
+    run:
+      storeKitConfiguration: EcrinVirtuel.storekit
+    test:
+      targets:
+        - EcrinVirtuelTests
+        - EcrinVirtuelUITests
+      gatherCoverageData: true
+      storeKitConfiguration: EcrinVirtuel.storekit

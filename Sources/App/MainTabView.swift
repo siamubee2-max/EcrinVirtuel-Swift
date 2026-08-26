@@ -1,16 +1,20 @@
 import SwiftUI
 
 struct MainTabView: View {
+    @Environment(AppState.self) private var appState
+    @ObservedObject private var gaming = GamingService.shared
     @State private var selectedTab = 0
     @State private var showQuickTryOn = false
 
     var body: some View {
+        @Bindable var appState = appState
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
 
                 // Tab 0 — Essayage bijoux IA
                 TryOnView()
-                    .tabItem { Label("Essayage", systemImage: "sparkles") }
+                    .accessibilityIdentifier("screen.essayage")
+                    .tabItem { Label(L10n.TryOn.title, systemImage: "sparkles") }
                     .tag(0)
 
                 // Tab 1 — Garde-robe (mes vêtements) + Catalogue H/F
@@ -21,21 +25,23 @@ struct MainTabView: View {
                                 NavigationLink(destination: CatalogBrowserView()) {
                                     HStack(spacing: 4) {
                                         Image(systemName: "rectangle.grid.2x2")
-                                        Text("Catalogue")
+                                        Text(L10n.LookOfDay.catalogButton)
                                             .font(EcrinFont.caption)
                                     }
                                     .foregroundStyle(EcrinColor.gold)
                                 }
-                                .accessibilityLabel("Catalogue")
+                                .accessibilityLabel(L10n.LookOfDay.catalogButton)
                             }
                         }
                 }
-                .tabItem { Label("Garde-robe", systemImage: "tshirt.fill") }
+                .accessibilityIdentifier("screen.garderobe")
+                .tabItem { Label(L10n.AppUI.wardrobe, systemImage: "tshirt.fill") }
                 .tag(1)
 
                 // Tab 2 — Boutique partenaires
                 PartnerStoreView()
-                    .tabItem { Label("Boutique", systemImage: "bag") }
+                    .accessibilityIdentifier("screen.boutique")
+                    .tabItem { Label(L10n.Home.boutique, systemImage: "bag") }
                     .tag(2)
 
                 // Tab 3 — Communauté + Gaming
@@ -47,16 +53,18 @@ struct MainTabView: View {
                                     Image(systemName: "trophy.fill")
                                         .foregroundStyle(EcrinColor.gold)
                                 }
-                                .accessibilityLabel("Tableau de bord")
+                                .accessibilityLabel(L10n.AppUI.dashboard)
                             }
                         }
                 }
-                .tabItem { Label("Communauté", systemImage: "person.2") }
+                .accessibilityIdentifier("screen.communaute")
+                .tabItem { Label(L10n.AppUI.community, systemImage: "person.2") }
                 .tag(3)
 
                 // Tab 4 — Profil
                 ProfileView()
-                    .tabItem { Label("Profil", systemImage: "person.circle") }
+                    .accessibilityIdentifier("screen.profil")
+                    .tabItem { Label(L10n.AppUI.profile, systemImage: "person.circle") }
                     .tag(4)
             }
             .tint(EcrinColor.gold)
@@ -76,16 +84,39 @@ struct MainTabView: View {
                         .foregroundStyle(EcrinColor.background)
                 }
             }
-            .accessibilityLabel("Essayage rapide")
+            .accessibilityLabel(L10n.AppUI.quickTryOn)
             .accessibilityHint("Ouvre l'essayage virtuel")
+            .accessibilityIdentifier("fab.quicktryon")
             .offset(y: -28)
             .sheet(isPresented: $showQuickTryOn) {
                 QuickTryOnView()
                     .environment(ClothingCatalogService.shared)
             }
+
+            // Toasts XP — l'overlay n'était monté nulle part : les récompenses
+            // s'accumulaient dans pendingRewards sans jamais s'afficher.
+            XPToastQueueOverlay(gaming: gaming)
+
+            // Célébration de passage de niveau
+            if gaming.showLevelUp, let newLevel = gaming.levelUpTo {
+                LevelUpCelebrationView(newLevel: newLevel) {
+                    gaming.showLevelUp = false
+                    gaming.levelUpTo = nil
+                }
+                .zIndex(10)
+                .transition(.opacity)
+            }
+        }
+        // Cadeau reçu via ecrin://gift/<uuid>
+        .fullScreenCover(item: $appState.pendingGift) { pending in
+            GiftRevealView(giftID: pending.id)
+                .environment(appState)
+                .environment(ClothingCatalogService.shared)
         }
         .task {
-            await ClothingCatalogService.shared.fetchAll(force: true)
+            // force: false — the app boot sequence already calls fetchAll(force: true).
+            // Forcing here triggers a duplicate 3-gender network fetch on every tab switch.
+            await ClothingCatalogService.shared.fetchAll(force: false)
         }
     }
 }

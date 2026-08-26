@@ -28,10 +28,16 @@ struct ARTryOnView: UIViewRepresentable {
 
         // Trigger capture
         if isCapturing {
-            context.coordinator.captureSnapshot { image in
-                onCapture(image)
-                DispatchQueue.main.async { isCapturing = false }
-            }
+            context.coordinator.captureSnapshot(
+                completion: { image in
+                    onCapture(image)
+                    DispatchQueue.main.async { isCapturing = false }
+                },
+                onCaptureFailure: {
+                    // snapshot returned nil — reset flag to break the infinite re-render loop
+                    isCapturing = false
+                }
+            )
         }
     }
 
@@ -42,6 +48,10 @@ struct ARTryOnView: UIViewRepresentable {
 
 // MARK: - AR Coordinator
 
+// MainActor: the coordinator drives ARView and RealityKit entities (both
+// main-actor domains); ARSessionDelegate callbacks arrive off-main and stay
+// nonisolated — they touch no actor state.
+@MainActor
 final class ARCoordinator: NSObject, ARSessionDelegate {
     weak var arView: ARView?
     var jewelry: JewelryItem?
@@ -213,26 +223,38 @@ final class ARCoordinator: NSObject, ARSessionDelegate {
 
     // MARK: - Capture
 
-    func captureSnapshot(completion: @escaping @Sendable (UIImage) -> Void) {
-        guard let arView else { return }
+    /// onCaptureFailure is called (on main thread) when the snapshot returns nil,
+    /// so the caller can reset `isCapturing` and break the re-render loop.
+    func captureSnapshot(
+        completion: @escaping @Sendable (UIImage) -> Void,
+        onCaptureFailure: @escaping @Sendable () -> Void = {}
+    ) {
+        guard let arView else {
+            DispatchQueue.main.async { onCaptureFailure() }
+            return
+        }
         arView.snapshot(saveToHDR: false) { image in
             if let image {
                 completion(image)
+            } else {
+                // snapshot returned nil — completion must NOT be called (no valid image),
+                // but we MUST notify the caller so it can reset isCapturing and stop the loop.
+                DispatchQueue.main.async { onCaptureFailure() }
             }
         }
     }
 
     // MARK: - ARSessionDelegate
 
-    func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
+    nonisolated func session(_ session: ARSession, didAdd anchors: [ARAnchor]) {
         // Anchors added — entities are already placed via AnchorEntity
     }
 
-    func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
+    nonisolated func session(_ session: ARSession, didUpdate anchors: [ARAnchor]) {
         // Real-time update handled automatically by RealityKit's anchor tracking
     }
 
-    func session(_ session: ARSession, didFailWithError error: Error) {
+    nonisolated func session(_ session: ARSession, didFailWithError error: Error) {
         Logger(subsystem: "com.ecrin.jewelry", category: "ar-tryon").error("Session failed: \(error.localizedDescription, privacy: .public)")
     }
 

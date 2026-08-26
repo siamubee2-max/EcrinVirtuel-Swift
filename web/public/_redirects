@@ -1,0 +1,2 @@
+# Netlify — équivalent des rewrites vercel.json (ignoré par les autres hébergeurs)
+/ecrin/gift/*  /ecrin/gift/index.html  200

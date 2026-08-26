@@ -18,7 +18,9 @@ final class PosePromptBuilder {
         bodyContext: BodyContext
     ) -> String {
         let poseBlock = buildPoseBlock(pose: pose, bodyContext: bodyContext)
-        return [basePrompt, poseBlock]
+        // Pose EN TÊTE : noyée en fin de prompt, la directive de pose était
+        // ignorée par le modèle (3 rendus identiques de face).
+        return [poseBlock, basePrompt]
             .filter { !$0.isEmpty }
             .joined(separator: "\n\n")
     }
@@ -51,8 +53,15 @@ final class PosePromptBuilder {
     private static func buildPoseBlock(pose: PoseVariant, bodyContext: BodyContext) -> String {
         var lines: [String] = []
 
-        lines.append("POSE DIRECTIVE: \(pose.promptSuffix).")
-        lines.append("FRAMING: Vertical \(GenerationAspectRatio.tryOn) portrait. FULL-BODY shot — the entire person from the top of the head down to the feet must be fully visible and centered, with comfortable empty margin above the head and below the feet. Never crop or cut off the head, hands, or feet at the frame edges.")
+        lines.append("POSE DIRECTIVE (HIGHEST PRIORITY — follow this exactly): \(pose.promptSuffix).")
+        // Full-body uniquement si la pose le demande — forcer « head to toe »
+        // sur un gros plan bijou faisait dézoomer le modèle en pied.
+        let wantsFullBody = pose.promptSuffix.lowercased().contains("full body")
+        if wantsFullBody {
+            lines.append("FRAMING: Vertical \(GenerationAspectRatio.tryOn) portrait. FULL-BODY shot — the entire person from the top of the head down to the feet must be fully visible and centered, with comfortable empty margin above the head and below the feet. Never crop or cut off the head, hands, or feet at the frame edges.")
+        } else {
+            lines.append("FRAMING: Vertical \(GenerationAspectRatio.tryOn) portrait. Frame the shot exactly as the POSE DIRECTIVE describes — a close-up stays a close-up.")
+        }
 
         // Instruction identité — critique pour la cohérence multi-vue
         lines.append("Maintain exact identity from reference: skin tone \(bodyContext.skinHex), same face, same hair, same body proportions.")

@@ -49,7 +49,7 @@ struct ShoesTryOnView: View {
 
                     // Sélecteur chaussures
                     VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-                        sectionLabel("CHOISIR UNE CHAUSSURE", icon: "shoe.fill")
+                        sectionLabel(L10n.WardrobeUI.chooseShoe, icon: "shoe.fill")
                             .padding(.horizontal, EcrinSpacing.lg)
 
                         if let preset = preselectedItem {
@@ -66,7 +66,7 @@ struct ShoesTryOnView: View {
 
                     // Angle selector
                     VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                        sectionLabel("ANGLE DE PRISE DE VUE", icon: "arrow.triangle.2.circlepath.camera")
+                        sectionLabel(L10n.WardrobeUI.shootingAngle, icon: "arrow.triangle.2.circlepath.camera")
                             .padding(.horizontal, EcrinSpacing.lg)
 
                         AngleSelectorRow(selected: $vm.selectedAngle)
@@ -76,7 +76,7 @@ struct ShoesTryOnView: View {
                     // Result
                     if let result = vm.result {
                         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-                            sectionLabel("RÉSULTAT", icon: "sparkles")
+                            sectionLabel(L10n.WardrobeUI.resultCaps, icon: "sparkles")
                                 .padding(.horizontal, EcrinSpacing.lg)
 
                             ResultCarousel(images: result)
@@ -140,10 +140,10 @@ struct ShoesTryOnView: View {
                         .foregroundStyle(EcrinColor.gold)
 
                     VStack(spacing: 6) {
-                        Text("Essayage AR en temps réel")
+                        Text(L10n.WardrobeUI.realtimeArTryOn)
                             .font(EcrinFont.cardTitle)
                             .foregroundStyle(EcrinColor.textPrimary)
-                        Text("ARKit + LiDAR détecte tes pieds et positionne les chaussures à ±2mm de précision. Bouge — les chaussures suivent.")
+                        Text(L10n.WardrobeUI.arkitLidarInfo)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                             .multilineTextAlignment(.center)
@@ -169,14 +169,14 @@ struct ShoesTryOnView: View {
             } else {
                 // Sélecteur chaussure compact
                 VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                    Text("CHOISIR UNE CHAUSSURE D'ABORD")
+                    Text(L10n.WardrobeUI.chooseShoeFirst)
                         .font(EcrinFont.label).kerning(2)
                         .foregroundStyle(EcrinColor.textMuted)
                         .padding(.horizontal, EcrinSpacing.lg)
                     shoesScroll
                 }
                 if selectedShoe != nil {
-                    GoldButton(title: "Lancer l'AR") { showARView = true }
+                    GoldButton(title: L10n.WardrobeUI.launchAr) { showARView = true }
                         .padding(.horizontal, EcrinSpacing.lg)
                 }
             }
@@ -214,10 +214,10 @@ struct ShoesTryOnView: View {
                         .font(.system(size: 20, weight: .thin))
                         .foregroundStyle(EcrinColor.gold)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Gemini 2.5 Flash — Spécialisé chaussures")
+                        Text(L10n.WardrobeUI.geminiFlashShoes)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textPrimary)
-                        Text("Modèle Gemini Image haute précision. Positionnement réaliste des chaussures sur photo statique. 1 crédit consommé.")
+                        Text(L10n.WardrobeUI.geminiImageInfo)
                             .font(.system(size: 11))
                             .foregroundStyle(EcrinColor.textMuted)
                             .lineSpacing(3)
@@ -229,7 +229,7 @@ struct ShoesTryOnView: View {
 
             // Photo zone pieds
             VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                sectionLabel("VOTRE PHOTO", icon: "camera.fill")
+                sectionLabel(L10n.WardrobeUI.yourPhotoCaps, icon: "camera.fill")
                     .padding(.horizontal, EcrinSpacing.lg)
                 footPhotoZone
                 footTips.padding(.horizontal, EcrinSpacing.lg)
@@ -237,7 +237,7 @@ struct ShoesTryOnView: View {
 
             // Sélecteur chaussures
             VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-                sectionLabel("CHOISIR UNE CHAUSSURE", icon: "shoe.fill")
+                sectionLabel(L10n.WardrobeUI.chooseShoe, icon: "shoe.fill")
                     .padding(.horizontal, EcrinSpacing.lg)
                 if shoesItems.isEmpty {
                     emptyShoesCTA.padding(.horizontal, EcrinSpacing.lg)
@@ -257,10 +257,10 @@ struct ShoesTryOnView: View {
     private var header: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("ESSAYAGE")
+                Text(L10n.WardrobeUI.tryOnCaps)
                     .font(EcrinFont.label).kerning(3)
                     .foregroundStyle(EcrinColor.gold)
-                Text("Chaussures")
+                Text(L10n.ClothingCategories.shoes)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
             }
@@ -300,7 +300,7 @@ struct ShoesTryOnView: View {
                                 ProgressView()
                                     .tint(EcrinColor.gold)
                                     .scaleEffect(1.5)
-                                Text("Essayage en cours…")
+                                Text(L10n.WardrobeUI.tryOnInProgress)
                                     .font(EcrinFont.caption)
                                     .foregroundStyle(EcrinColor.textSecondary)
                             }
@@ -319,10 +319,10 @@ struct ShoesTryOnView: View {
                         }
 
                         VStack(spacing: EcrinSpacing.sm) {
-                            Text("Photographiez vos pieds")
+                            Text(L10n.WardrobeUI.photographYourFeet)
                                 .font(EcrinFont.body)
                                 .foregroundStyle(EcrinColor.textPrimary)
-                            Text("Depuis le devant ou de côté")
+                            Text(L10n.WardrobeUI.fromFrontOrSide)
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -409,7 +409,7 @@ struct ShoesTryOnView: View {
                 Image(systemName: "shoe.fill")
                     .font(.system(size: 20, weight: .thin))
                     .foregroundStyle(FashionGroup.shoes.color.opacity(0.6))
-                Text("Ajoutez des chaussures à votre garde-robe pour les essayer")
+                Text(L10n.WardrobeUI.addShoesToTry)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textSecondary)
                     .multilineTextAlignment(.leading)
@@ -421,7 +421,7 @@ struct ShoesTryOnView: View {
     // MARK: - CTA Button
 
     private var ctaButton: some View {
-        GoldButton(title: vm.isGenerating ? "Génération…" : "Essayer ces chaussures") {
+        GoldButton(title: vm.isGenerating ? L10n.CommonUI.generating : L10n.WardrobeUI.tryTheseShoes) {
             guard let shoe = selectedShoe else { return }
             Task {
                 await vm.generate(item: shoe, showPaywall: { showPaywall = true })

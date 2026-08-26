@@ -54,7 +54,7 @@ struct SkinToneAdvisorView: View {
             Task { await loadAndAnalyze(item) }
         }
         .alert("Analyse impossible", isPresented: $showError) {
-            Button("D'accord") {}
+            Button(L10n.SkinToneUI.okay) {}
         } message: {
             Text(errorMessage)
         }
@@ -68,7 +68,7 @@ struct SkinToneAdvisorView: View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("ADVISOR")
+                    Text(L10n.SkinToneUI.advisor)
                         .font(EcrinFont.label)
                         .kerning(3)
                         .foregroundStyle(EcrinColor.gold)
@@ -76,7 +76,7 @@ struct SkinToneAdvisorView: View {
                         .offset(x: headerVisible ? 0 : -12)
                         .animation(EcrinAnimation.easeSlide, value: headerVisible)
 
-                    Text("Carnation & Métaux")
+                    Text(L10n.SkinToneUI.skinAndMetals)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
                         .opacity(headerVisible ? 1 : 0)
@@ -113,12 +113,12 @@ struct SkinToneAdvisorView: View {
                     .frame(height: 160)
 
                     VStack(spacing: EcrinSpacing.sm) {
-                        Text("Découvrez votre métal parfait")
+                        Text(L10n.SkinToneUI.discoverPerfectMetal)
                             .font(EcrinFont.serif(26, weight: .light))
                             .foregroundStyle(EcrinColor.textPrimary)
                             .multilineTextAlignment(.center)
 
-                        Text("Notre IA analyse les nuances de votre teint pour révéler les métaux précieux qui subliment votre beauté unique.")
+                        Text(L10n.SkinToneUI.aiAnalysisIntro)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                             .multilineTextAlignment(.center)
@@ -135,7 +135,7 @@ struct SkinToneAdvisorView: View {
                                 ProgressView()
                                     .tint(EcrinColor.background)
                                     .scaleEffect(0.8)
-                                Text("Analyse en cours…")
+                                Text(L10n.JewelryDetectionUI.analyzing)
                                     .font(EcrinFont.cta)
                                     .kerning(1.5)
                                     .foregroundStyle(EcrinColor.background)
@@ -143,7 +143,7 @@ struct SkinToneAdvisorView: View {
                                 Image(systemName: "camera.fill")
                                     .font(.system(size: 13))
                                     .foregroundStyle(EcrinColor.background)
-                                Text("Analyser ma photo")
+                                Text(L10n.SkinToneUI.analyzeMyPhoto)
                                     .font(EcrinFont.cta)
                                     .kerning(2)
                                     .foregroundStyle(EcrinColor.background)
@@ -203,7 +203,7 @@ struct SkinToneAdvisorView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 11))
-                    Text("Nouvelle photo")
+                    Text(L10n.SkinToneUI.newPhoto)
                         .font(EcrinFont.caption)
                         .kerning(1)
                 }
@@ -282,7 +282,7 @@ struct SkinToneAdvisorView: View {
                         Image(systemName: "xmark.circle")
                             .font(.system(size: 12))
                             .foregroundStyle(Color.red.opacity(0.6))
-                        Text("Ces métaux peuvent atténuer votre éclat naturel")
+                        Text(L10n.SkinToneUI.metalsToAvoid)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textSecondary)
                     }
@@ -318,11 +318,11 @@ struct SkinToneAdvisorView: View {
 
     private var ctaSection: some View {
         VStack(spacing: EcrinSpacing.md) {
-            GoldButton(title: "Découvrir mes bijoux parfaits") {
+            GoldButton(title: L10n.SkinToneUI.discoverPerfectJewels) {
                 // Navigate to boutique filtered by top metal
             }
 
-            Text("Filtré selon votre profil chromique personnel")
+            Text(L10n.SkinToneUI.filteredByProfile)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
         }

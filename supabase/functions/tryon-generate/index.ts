@@ -1,27 +1,35 @@
 // Supabase Edge Function — génération d'image avec cascade 3 niveaux
 //
 // Fournisseurs dans l'ordre de tentative :
-//   1. Kie.ai  (Flux Kontext / GPT-4o Image / Seedream) — primaire, moins cher
-//   2. Google Gemini 2.0 Flash                           — sauvetage si Kie.ai KO
-//   3. OpenAI GPT Image 1                                — dernier recours
+//   1. fal.ai  (Nano Banana 2 / Nano Banana Pro / Flux Kontext) — primaire
+//   2. Google Gemini 3.1 Flash Image (Nano Banana 2 direct)     — sauvetage
+//   3. OpenAI GPT Image 1                                        — dernier recours
 //
 // La clé API n'est JAMAIS exposée côté client iOS.
 //
-// Tiers (iOS model → Kie.ai) :
-//   preview  → seedream/4.5-edit         ~$0.008 éco
-//   standard → flux-kontext              ~$0.020 ⭐ identity preservation
-//   premium  → gpt4o-image               ~$0.080 best quality
+// Nommage fal (piégeux, vérifié fal.ai/models) :
+//   fal-ai/nano-banana-2/edit             = Nano Banana 2  (identité, 9:16 natif)
+//   fal-ai/gemini-3-pro-image-preview/edit = Nano Banana Pro (Gemini 3 Pro Image)
+//   fal-ai/flux-pro/kontext               = FLUX Kontext (secours)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const KIE_API_KEY               = Deno.env.get("KIE_API_KEY")!
-const KIE_BASE_URL              = "https://api.kie.ai"
+const FAL_API_KEY               = Deno.env.get("FAL_API_KEY")!
+const FAL_QUEUE_URL             = "https://queue.fal.run"
 const SUPABASE_URL              = Deno.env.get("SUPABASE_URL")!
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 const SUPABASE_ANON_KEY         = Deno.env.get("SUPABASE_ANON_KEY")!
 const GOOGLE_API_KEY            = Deno.env.get("GOOGLE_API_KEY")   // optionnel — sauvetage
 const OPENAI_API_KEY            = Deno.env.get("OPENAI_API_KEY")   // optionnel — dernier recours
+
+// ── M4 App Attest (porté depuis la branche audit-007) ────────────────────────
+// APP_ATTEST_MODE: "off" | "log" | "enforce"  (default "off" — aucun overhead)
+// INTERNAL_FN_KEY: secret partagé transmis à verify-attestation (optionnel)
+const APP_ATTEST_MODE  = Deno.env.get("APP_ATTEST_MODE") ?? "off"
+const INTERNAL_FN_KEY  = Deno.env.get("INTERNAL_FN_KEY") ?? ""
+const VERIFY_ATTEST_URL = Deno.env.get("VERIFY_ATTEST_URL") ??
+  `${SUPABASE_URL}/functions/v1/verify-attestation`
 
 // CORS : restreint au domaine de l'app web et au Studio Supabase.
 // Les clients iOS natifs n'appliquent pas CORS — ce header protège les appels browser.
@@ -33,42 +41,40 @@ const CORS = {
 const STORAGE_BUCKET         = "tryon-temp"
 const MAX_PROMPT_CHARS       = 4_000
 const MAX_IMAGE_BASE64_CHARS = 6 * 1024 * 1024   // ~4.5 MB binaire
-const POLL_INTERVAL_MS       = 2_500
-const POLL_MAX_ATTEMPTS      = 20                  // 20 × 2.5s = 50s max
+const POLL_INTERVAL_MS       = 3_000
+const POLL_MAX_ATTEMPTS      = 30                  // 30 × 3s = 90s max
 
 // Comptes fondateur — pas de décompte quota (aligné iOS UnlimitedAccess.swift)
 const UNLIMITED_EMAILS = new Set([
   "siamubee2@gmail.com",
   "monia.valenza@gmail.com",
+  "chrweber@skynet.be",
 ])
 
 function isUnlimitedEmail(email: string | undefined): boolean {
   return !!email && UNLIMITED_EMAILS.has(email.toLowerCase())
 }
 
-// ─── Mapping tiers iOS → configuration Kie.ai ────────────────────────────────
+// ─── Mapping tiers iOS → modèles fal.ai ──────────────────────────────────────
 
-interface KieModel {
-  api:     "flux_kontext" | "gpt4o_image" | "market_task"
-  model:   string
+interface FalModel {
+  id:      string    // endpoint fal (ex: fal-ai/nano-banana-2/edit)
+  input:   "image_urls" | "image_url"
   costUSD: number
 }
 
-// Essayage virtuel → format vertical 9:16 (multi-vues, essayage rapide).
-// Primaire : GPT Image 2 i2i (aspect_ratio 9:16 validé hors app, generated/9x16/).
-// Premium tenues multi-pièces : Nano Banana Pro. Puis NB2 / Flux / GPT4o en secours.
-const KIE_MODELS: Record<string, KieModel> = {
-  preview:  { api: "market_task",  model: "gpt-image-2-image-to-image", costUSD: 0.030 },
-  standard: { api: "market_task",  model: "gpt-image-2-image-to-image", costUSD: 0.030 },
-  premium:  { api: "market_task",  model: "nano-banana-pro",            costUSD: 0.060 },
+const NANO_BANANA_2: FalModel = { id: "fal-ai/nano-banana-2/edit",              input: "image_urls", costUSD: 0.030 }
+const NANO_BANANA_PRO: FalModel = { id: "fal-ai/gemini-3-pro-image-preview/edit", input: "image_urls", costUSD: 0.100 }
+const FLUX_KONTEXT: FalModel = { id: "fal-ai/flux-pro/kontext",                 input: "image_url",  costUSD: 0.040 }
+
+const FAL_MODELS: Record<string, FalModel> = {
+  preview:  NANO_BANANA_2,
+  standard: NANO_BANANA_2,
+  premium:  NANO_BANANA_PRO,
 }
 
 // Cascade de secours (essayée dans l'ordre après le modèle demandé)
-const KIE_FALLBACK_MODELS: KieModel[] = [
-  { api: "market_task",  model: "nano-banana-2", costUSD: 0.030 },
-  { api: "flux_kontext", model: "flux-kontext",  costUSD: 0.020 },
-  { api: "gpt4o_image",  model: "gpt4o-image",   costUSD: 0.080 },
-]
+const FAL_FALLBACK_MODELS: FalModel[] = [FLUX_KONTEXT]
 
 // ─── Main handler ──────────────────────────────────────────────────────────────
 
@@ -94,13 +100,101 @@ serve(async (req) => {
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
   try {
+    let rawBodyText: string | undefined
+    let parsedBody: Record<string, unknown> | undefined
+
+    if (APP_ATTEST_MODE !== "off") {
+      // Read body as text so we can hash it AND parse it.
+      rawBodyText = await req.text()
+      try { parsedBody = JSON.parse(rawBodyText) } catch { /* invalid JSON caught below */ }
+
+      // Compute clientDataHash = SHA-256(raw request body bytes).
+      const bodyBytes       = new TextEncoder().encode(rawBodyText)
+      const hashBuffer      = await crypto.subtle.digest("SHA-256", bodyBytes)
+      const clientDataHashB64 = btoa(String.fromCharCode(...new Uint8Array(hashBuffer)))
+
+      const keyId      = req.headers.get("x-attest-keyid")
+      const attestObj  = req.headers.get("x-attest-object")    // base64 CBOR, first call
+      const assertionH = req.headers.get("x-attest-assertion") // base64 CBOR, subsequent
+
+      if (keyId && (attestObj || assertionH)) {
+        // Attempt attestation verification — wrapped in total try/catch so
+        // any bug here can NEVER crash the main generation flow.
+        try {
+          const verifyBody = JSON.stringify({
+            keyId,
+            ...(attestObj  ? { attestation: attestObj   } : {}),
+            ...(assertionH ? { assertion:   assertionH  } : {}),
+            clientDataHashB64,
+          })
+
+          const verifyHeaders: Record<string, string> = {
+            "Content-Type":  "application/json",
+            // Forward service role key so verify-attestation can write to device_attest.
+            "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          }
+          if (INTERNAL_FN_KEY) verifyHeaders["x-internal-key"] = INTERNAL_FN_KEY
+
+          const verifyRes = await fetch(VERIFY_ATTEST_URL, {
+            method:  "POST",
+            headers: verifyHeaders,
+            body:    verifyBody,
+            // Short timeout — never let attestation stall generation beyond 3 s.
+            signal:  AbortSignal.timeout(3_000),
+          })
+
+          const verifyJson = await verifyRes.json().catch(() => ({ ok: false, reason: "json_parse" }))
+          const attestOk   = verifyJson?.ok === true
+
+          if (attestOk) {
+            // Fire-and-forget log (same pattern as moderation logging).
+            adminClient.from("monitoring_events").insert({
+              event_type:    "attestation_ok",
+              user_id:       userId,
+              error_domain:  "app_attest",
+              error_message: `keyId=${keyId} mode=${APP_ATTEST_MODE}`,
+              platform:      "edge",
+            }).catch(() => {})
+          } else {
+            const reason = verifyJson?.reason ?? `http_${verifyRes.status}`
+            adminClient.from("monitoring_events").insert({
+              event_type:    "attestation_fail",
+              user_id:       userId,
+              error_domain:  "app_attest",
+              error_message: `keyId=${keyId} reason=${reason} mode=${APP_ATTEST_MODE}`.slice(0, 500),
+              platform:      "edge",
+            }).catch(() => {})
+
+            if (APP_ATTEST_MODE === "enforce") {
+              return jsonError("attestation_required", 401)
+            }
+            // In "log" mode: fall through, allow generation.
+          }
+        } catch (attestErr) {
+          // Network error, timeout, or any other failure — never block generation.
+          console.warn("[tryon-generate] App Attest check error (non-blocking):", attestErr)
+          if (APP_ATTEST_MODE === "enforce") {
+            // In enforce mode even a network error blocks (fail-closed).
+            return jsonError("attestation_required", 401)
+          }
+        }
+      } else if (APP_ATTEST_MODE === "enforce") {
+        // enforce requires attest headers; missing → reject.
+        return jsonError("attestation_required", 401)
+      }
+    }
+    // ── end App Attest hook ─────────────────────────────────────────────────
+
+    // Si le hook App Attest est actif, le corps a déjà été lu et parsé.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bodyJson: any = parsedBody ?? await req.json()
     const {
       imageBase64,
       prompt,
       model = "standard",
-      quality = "medium",
       aspectRatio: aspectRatioRaw,
-    } = await req.json()
+      referenceImageBase64,
+    } = bodyJson
 
     // Validation AVANT tout traitement
     if (!imageBase64 || !prompt)  return jsonError("imageBase64 and prompt required", 400)
@@ -128,10 +222,11 @@ serve(async (req) => {
       }
     }
 
-    // ── Upload Storage pour Kie.ai (besoin d'une URL publique) ───────────────
-    const kieConfig  = KIE_MODELS[model] ?? KIE_MODELS.standard
+    // ── Upload Storage pour fal.ai (besoin d'une URL publique) ───────────────
+    const falConfig  = FAL_MODELS[model] ?? FAL_MODELS.standard
     const imageBytes = base64ToBytes(imageBase64)
-    const tempPath   = `${userId}/${Date.now()}.jpg`
+    const stamp      = Date.now()
+    const tempPath   = `${userId}/${stamp}.jpg`
 
     const { error: uploadError } = await adminClient.storage
       .from(STORAGE_BUCKET)
@@ -142,48 +237,70 @@ serve(async (req) => {
       : adminClient.storage.from(STORAGE_BUCKET).getPublicUrl(tempPath).data.publicUrl
 
     if (uploadError) {
-      console.warn("Storage upload failed — Kie.ai unavailable, using direct APIs:", uploadError)
+      console.warn("Storage upload failed — fal.ai unavailable, using direct APIs:", uploadError)
     }
+
+    // Photo produit du bijou/vêtement sélectionné — SANS elle le modèle invente
+    // un bijou différent à chaque génération. Transmise comme 2e image de
+    // référence aux modèles multi-images (Nano Banana 2 / Pro, Gemini).
+    let refUrl: string | null = null
+    let refPath: string | null = null
+    const hasValidRef = typeof referenceImageBase64 === "string"
+      && referenceImageBase64.length > 0
+      && referenceImageBase64.length <= MAX_IMAGE_BASE64_CHARS
+    if (hasValidRef && !uploadError) {
+      refPath = `${userId}/${stamp}-ref.jpg`
+      const { error: refUploadError } = await adminClient.storage
+        .from(STORAGE_BUCKET)
+        .upload(refPath, base64ToBytes(referenceImageBase64), { contentType: "image/jpeg", upsert: true })
+      if (refUploadError) {
+        console.warn("Reference upload failed — generating without product reference:", refUploadError)
+        refPath = null
+      } else {
+        refUrl = adminClient.storage.from(STORAGE_BUCKET).getPublicUrl(refPath).data.publicUrl
+      }
+    }
+
+    const promptWithRef = refUrl
+      ? `${generationPrompt}\n\nPRODUCT REFERENCE: the jewelry/item to add is EXACTLY the product shown in the SECOND reference image. Reproduce its exact design, shape, materials, stones and colors faithfully — do not invent a different design. CRITICAL SCALE — the product photo is a MACRO close-up, so you MUST shrink the jewel dramatically to real-life size on the person. Anatomical limits: a dangling earring must NOT extend below the wearer's jawline (shorter than the ear-to-jaw distance); a hoop's diameter must be smaller than the wearer's ear height x 1.5; a pendant must be smaller than the wearer's eye. The jewel must look small, dainty and delicate on the person, occupying only a tiny fraction of the image. When in doubt, render it SMALLER.`
+      : generationPrompt
 
     // ── Cascade de fournisseurs ───────────────────────────────────────────────
     let resultBase64: string | null = null
     let provider = ""
     const errors: string[] = []
 
-    // ── Fournisseur 1 : Kie.ai avec cascade Nano Banana → Flux → GPT4o ───────
+    // ── Fournisseur 1 : fal.ai (NB2 → NB Pro → Flux Kontext) ─────────────────
     if (publicUrl) {
-      // Construit la cascade : modèle demandé puis fallbacks dans l'ordre
-      const cascade: KieModel[] = [kieConfig]
-      // Ajoute nano-banana-pro si on n'est pas déjà dessus (escalade premium)
-      if (kieConfig.model !== KIE_MODELS.premium.model) {
-        cascade.push(KIE_MODELS.premium)
-      }
-      // Ajoute les fallbacks Flux Kontext puis GPT4o-Image
-      cascade.push(...KIE_FALLBACK_MODELS)
+      const cascade: FalModel[] = [falConfig]
+      // Escalade vers l'autre Nano Banana si le modèle demandé n'est pas lui
+      const alternate = falConfig.id === NANO_BANANA_PRO.id ? NANO_BANANA_2 : NANO_BANANA_PRO
+      cascade.push(alternate, ...FAL_FALLBACK_MODELS)
 
       for (const cfg of cascade) {
         try {
-          resultBase64 = await generateWithKie(cfg, publicUrl, generationPrompt, quality, aspectRatio)
-          provider = cfg.model
+          resultBase64 = await generateWithFal(cfg, publicUrl, refUrl, promptWithRef, aspectRatio)
+          provider = cfg.id
           break // succès → on sort de la cascade
         } catch (err) {
-          errors.push(`Kie.ai ${cfg.model}: ${String(err)}`)
-          console.warn(`Kie.ai ${cfg.model} failed:`, err)
+          errors.push(`fal ${cfg.id}: ${String(err)}`)
+          console.warn(`fal ${cfg.id} failed:`, err)
         }
       }
 
       // Nettoyage Storage — loggé en cas d'échec pour détecter les fuites
-      adminClient.storage.from(STORAGE_BUCKET).remove([tempPath]).catch((cleanupErr) => {
-        console.error(`[tryon-generate] Storage cleanup failed (orphaned file: ${tempPath}):`, cleanupErr)
+      const toClean = refPath ? [tempPath, refPath] : [tempPath]
+      adminClient.storage.from(STORAGE_BUCKET).remove(toClean).catch((cleanupErr) => {
+        console.error(`[tryon-generate] Storage cleanup failed (orphaned: ${toClean.join(",")}):`, cleanupErr)
       })
     }
 
     // ── Fournisseur 2 : Google Gemini ─────────────────────────────────────────
     if (!resultBase64 && GOOGLE_API_KEY) {
       try {
-        resultBase64 = await generateWithGemini(imageBase64, generationPrompt, aspectRatio)
-        provider = "gemini-2.0-flash"
-        console.warn(`Fell back to Gemini. Kie.ai errors: ${errors.join(" | ")}`)
+        resultBase64 = await generateWithGemini(imageBase64, promptWithRef, aspectRatio, hasValidRef ? referenceImageBase64 : null)
+        provider = "gemini-3.1-flash-image"
+        console.warn(`Fell back to Gemini. fal errors: ${errors.join(" | ")}`)
       } catch (e3) {
         errors.push(`Gemini: ${String(e3)}`)
         console.warn("Gemini fallback failed:", e3)
@@ -223,27 +340,7 @@ serve(async (req) => {
   }
 })
 
-// ─── Kie.ai : génération + polling ───────────────────────────────────────────
-
-async function generateWithKie(
-  cfg: KieModel,
-  imageUrl: string,
-  prompt: string,
-  _quality: string,
-  aspectRatio: string
-): Promise<string> {
-  let taskId: string
-
-  if (cfg.api === "flux_kontext") {
-    taskId = await startFluxKontext(imageUrl, prompt, aspectRatio)
-  } else if (cfg.api === "gpt4o_image") {
-    taskId = await startGPT4oImage(imageUrl, prompt)
-  } else {
-    taskId = await startMarketTask(cfg.model, imageUrl, prompt, aspectRatio)
-  }
-
-  return await pollForResult(taskId)
-}
+// ─── fal.ai : file d'attente + polling ───────────────────────────────────────
 
 // Format 9:16 (story vertical mobile) — match le ratio des cellules d'affichage
 // dans l'app et fournit une image full-body native (head-to-toe).
@@ -258,157 +355,101 @@ function normalizeAspectRatio(raw: unknown): string {
 }
 
 function withTryOnFramingPrompt(prompt: string, aspectRatio: string): string {
-  return `${prompt}\n\nOUTPUT FRAMING: Vertical ${aspectRatio} portrait (mobile story). Full-body head-to-toe when outfit try-on applies. Do not output a square 1:1 crop.`
+  // NE JAMAIS forcer le corps entier : sur un essayage bijou en gros plan,
+  // "full-body head-to-toe" faisait dézoomer le modèle (silhouette en robe
+  // au lieu du portrait 3/4 demandé). Le cadrage suit la photo d'entrée et
+  // les instructions de pose du prompt client.
+  return `${prompt}\n\nOUTPUT FRAMING: Vertical ${aspectRatio} portrait (mobile story). Keep the same framing and camera distance as the input photo: a close-up stays a close-up, a full-body shot stays full-body. Never zoom out wider than the input photo. Follow the pose instructions above exactly. Do not output a square 1:1 crop.`
 }
 
-async function startFluxKontext(imageUrl: string, prompt: string, aspectRatio: string): Promise<string> {
-  // Flux Kontext (kie.ai) accepte `aspectRatio` en camelCase.
-  // On envoie aussi `size` au cas où une variante de l'API utilise ce nom.
-  // Valeurs supportées: "1:1", "16:9", "9:16", "4:3", "3:4", "21:9", "9:21".
-  const res = await kiePost("/api/v1/flux/kontext/generate", {
-    prompt,
-    imageUrl,
-    aspectRatio,
-    size:        aspectRatio,
-    nVariants:   1,
-  })
-  const taskId = res.data?.taskId ?? res.data?.task_id
-  if (!taskId) throw new Error("Flux Kontext: no taskId in response")
-  return taskId as string
-}
-
-async function startGPT4oImage(imageUrl: string, prompt: string): Promise<string> {
-  // GPT4o-Image (kie.ai) supporte 1:1, 3:2, 2:3 — utilise 2:3 (portrait)
-  // car 9:16 n'est pas dans la liste officielle de gpt4o-image.
-  const res = await kiePost("/api/v1/gpt4o-image/generate", {
-    prompt,
-    imageUrl,
-    aspectRatio: "2:3",
-    size:        "2:3",
-    nVariants:   1,
-  })
-  const taskId = res.data?.taskId ?? res.data?.task_id
-  if (!taskId) throw new Error("GPT4o Image: no taskId in response")
-  return taskId as string
-}
-
-async function startMarketTask(
-  model: string,
+async function generateWithFal(
+  cfg: FalModel,
   imageUrl: string,
+  refUrl: string | null,
   prompt: string,
   aspectRatio: string
 ): Promise<string> {
-  // Schéma Market API — le nom du tableau d'images DIFFÈRE selon le modèle :
-  //   • Nano Banana 2 / Pro         → input.image_input  (vérifié docs.kie.ai)
-  //   • GPT Image 2 image-to-image  → input.input_urls   (vérifié docs.kie.ai)
-  // On envoie LES DEUX clés ; chaque modèle ignore celle qu'il ne connaît pas.
-  // Sans ça, le modèle primaire (gpt-image-2) ignore la photo source → résultat faux.
-  //   input.aspect_ratio  = enum incluant "9:16" — jamais "auto" (défaut API → carré)
-  //   input.resolution    = "1K" | "2K" | "4K"
-  //   input.output_format = "png" | "jpg"
-  const res = await kiePost("/api/v1/jobs/createTask", {
-    model,
-    input: {
-      prompt,
-      image_input:   [imageUrl],   // Nano Banana 2 / Pro
-      input_urls:    [imageUrl],   // GPT Image 2 image-to-image
-      aspect_ratio:  aspectRatio,
-      resolution:    "2K",
-      output_format: "jpg",
-      nVariants:     1,
+  // Schéma d'entrée par famille (vérifié fal.ai/models/*/api) :
+  //   nano-banana-2/edit & gemini-3-pro-image-preview/edit → image_urls: [..]
+  //   flux-pro/kontext                                     → image_url: ".."
+  // Multi-images : [photo personne, photo produit] — le prompt désigne la 2e
+  // image comme référence produit. flux-kontext ne prend qu'une seule image.
+  const input: Record<string, unknown> = {
+    prompt,
+    aspect_ratio:  aspectRatio,
+    output_format: "jpeg",
+    num_images:    1,
+  }
+  if (cfg.input === "image_urls") input.image_urls = refUrl ? [imageUrl, refUrl] : [imageUrl]
+  else                            input.image_url  = imageUrl
+
+  // Soumission en file (queue.fal.run) — les URLs de suivi sont renvoyées
+  const submitRes = await fetch(`${FAL_QUEUE_URL}/${cfg.id}`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Key ${FAL_API_KEY}`,
+      "Content-Type":  "application/json",
     },
+    body: JSON.stringify(input),
   })
-  const taskId = res.data?.taskId ?? res.data?.task_id
-  if (!taskId) throw new Error(`Market task (${model}): no taskId`)
-  return taskId as string
-}
+  if (!submitRes.ok) {
+    const err = await submitRes.text().catch(() => "")
+    throw new Error(`fal submit HTTP ${submitRes.status}: ${err.slice(0, 300)}`)
+  }
+  const submitted = await submitRes.json()
+  const statusUrl:   string | undefined = submitted.status_url
+  const responseUrl: string | undefined = submitted.response_url
+  if (!statusUrl || !responseUrl) throw new Error("fal: no status/response URL in submit response")
 
-async function pollForResult(taskId: string): Promise<string> {
-  const DONE = new Set(["success", "completed", "finish", "succeeded", "finished"])
-  const FAIL = new Set(["failed", "error", "timeout", "cancelled", "canceled"])
-
+  // Polling du statut
   for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
     await sleep(POLL_INTERVAL_MS)
 
-    const res    = await kieGet(`/api/v1/jobs/recordInfo?taskId=${encodeURIComponent(taskId)}`)
-    const data   = res.data ?? {}
-    const status = (data.status ?? data.state ?? "").toString().toLowerCase()
+    const statusRes = await fetch(statusUrl, {
+      headers: { "Authorization": `Key ${FAL_API_KEY}` },
+    })
+    const status = (await statusRes.json()).status as string | undefined
 
-    if (FAIL.has(status)) {
-      throw new Error(`Kie.ai job ${taskId} failed with status: ${status}`)
-    }
-
-    if (DONE.has(status)) {
+    if (status === "COMPLETED") {
+      const res = await fetch(responseUrl, {
+        headers: { "Authorization": `Key ${FAL_API_KEY}` },
+      })
+      if (!res.ok) throw new Error(`fal result HTTP ${res.status}`)
+      const json = await res.json()
       const outputUrl: string | undefined =
-        data.outputUrls?.[0]  as string ??
-        data.output_urls?.[0] as string ??
-        data.imageUrl         as string ??
-        data.image_url        as string ??
-        data.url              as string ??
-        (data.result as Record<string, unknown>)?.url as string ??
-        ((data.resultJson ? JSON.parse(data.resultJson as string) : {}) as Record<string, unknown[]>)?.resultUrls?.[0] as string
-
-      if (!outputUrl) throw new Error("Job done but no output URL found in response")
+        json.images?.[0]?.url ?? json.image?.url ?? json.output?.[0]?.url
+      if (!outputUrl) throw new Error("fal: job done but no image URL in response")
 
       const imgRes = await fetch(outputUrl)
-      if (!imgRes.ok) throw new Error(`Failed to download result: ${imgRes.status}`)
+      if (!imgRes.ok) throw new Error(`fal: image download failed ${imgRes.status}`)
       return bytesToBase64(new Uint8Array(await imgRes.arrayBuffer()))
     }
+
+    if (status === "FAILED" || status === "ERROR" || status === "CANCELLED") {
+      throw new Error(`fal job failed with status: ${status}`)
+    }
+    // IN_QUEUE / IN_PROGRESS → on continue
   }
 
-  throw new Error(`Kie.ai job ${taskId} timed out after ${POLL_MAX_ATTEMPTS * POLL_INTERVAL_MS / 1000}s`)
+  throw new Error(`fal job timed out after ${POLL_MAX_ATTEMPTS * POLL_INTERVAL_MS / 1000}s`)
 }
 
-// ─── Kie.ai HTTP helpers ──────────────────────────────────────────────────────
-
-async function kiePost(path: string, body: unknown): Promise<KieResponse> {
-  const res = await fetch(`${KIE_BASE_URL}${path}`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${KIE_API_KEY}`,
-      "Content-Type":  "application/json",
-    },
-    body: JSON.stringify(body),
-  })
-  const json = await res.json() as KieResponse
-  checkKieError(json, res.status, path)
-  return json
-}
-
-async function kieGet(path: string): Promise<KieResponse> {
-  const res = await fetch(`${KIE_BASE_URL}${path}`, {
-    headers: { "Authorization": `Bearer ${KIE_API_KEY}` },
-  })
-  return await res.json() as KieResponse
-}
-
-interface KieResponse {
-  code?: number
-  msg?:  string
-  data?: Record<string, unknown>
-}
-
-function checkKieError(json: KieResponse, httpStatus: number, path: string): void {
-  if (httpStatus === 401 || json.code === 401) throw new Error("Kie.ai: invalid API key")
-  if (httpStatus === 402 || json.code === 402) throw new Error("Kie.ai: insufficient credits")
-  if (httpStatus === 429 || json.code === 429) throw new Error("Kie.ai: rate limit")
-  if (json.code && json.code !== 200) {
-    throw new Error(`Kie.ai ${path} error ${json.code}: ${json.msg ?? "unknown"}`)
-  }
-}
-
-// ─── Google Gemini 2.0 Flash : sauvetage ─────────────────────────────────────
+// ─── Google Gemini 3.1 Flash Image : sauvetage ───────────────────────────────
 
 async function generateWithGemini(
   imageBase64: string,
   prompt: string,
-  aspectRatio: string
+  aspectRatio: string,
+  referenceImageBase64: string | null = null
 ): Promise<string> {
   if (!GOOGLE_API_KEY) throw new Error("GOOGLE_API_KEY not configured")
 
   // Modèle image dédié + imageConfig.aspectRatio (sinon sortie souvent 1:1).
+  // gemini-3.1-flash-image-preview (Nano Banana 2) = lignée courante ;
+  // gemini-2.0-flash-preview-image-generation et 2.5-flash-image sont dépréciés
+  // (arrêt 2.5-flash-image le 2 oct 2026).
   const res = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent",
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent",
     {
       method: "POST",
       headers: {
@@ -419,7 +460,10 @@ async function generateWithGemini(
         contents: [{
           parts: [
             { text: prompt },
-            { inlineData: { mimeType: "image/jpeg", data: imageBase64 } }
+            { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
+            ...(referenceImageBase64
+              ? [{ inlineData: { mimeType: "image/jpeg", data: referenceImageBase64 } }]
+              : []),
           ]
         }],
         generationConfig: {

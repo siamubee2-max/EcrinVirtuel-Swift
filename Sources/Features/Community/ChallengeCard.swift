@@ -48,7 +48,7 @@ struct ChallengeBanner: View {
             VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
                 HStack(spacing: 6) {
                     // Active chip
-                    Label("Défi actif", systemImage: "flame.fill")
+                    Label(L10n.CommunityUI.activeChallenge, systemImage: "flame.fill")
                         .font(EcrinFont.label)
                         .kerning(1)
                         .foregroundStyle(EcrinColor.background)
@@ -58,7 +58,7 @@ struct ChallengeBanner: View {
                         .clipShape(Capsule())
 
                     if challenge.isParticipating {
-                        Label("Inscrite", systemImage: "checkmark.seal.fill")
+                        Label(L10n.CommunityUI.joined, systemImage: "checkmark.seal.fill")
                             .font(EcrinFont.label)
                             .kerning(1)
                             .foregroundStyle(EcrinColor.gold)
@@ -78,7 +78,7 @@ struct ChallengeBanner: View {
                     Image(systemName: challenge.prizeIcon)
                         .font(.system(size: 11))
                         .foregroundStyle(EcrinColor.goldLight)
-                    Text("Récompense : ")
+                    Text(L10n.CommunityUI.rewardPrefix)
                         .font(EcrinFont.label)
                         .foregroundStyle(EcrinColor.textMuted)
                     + Text(challenge.prize)
@@ -89,7 +89,7 @@ struct ChallengeBanner: View {
                 HStack(spacing: EcrinSpacing.md) {
                     // Countdown
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Se termine dans")
+                        Text(L10n.CommunityUI.endsIn)
                             .font(EcrinFont.label)
                             .foregroundStyle(EcrinColor.textMuted)
                         Text(countdown)
@@ -104,14 +104,14 @@ struct ChallengeBanner: View {
                         Text("\(challenge.participantCount)")
                             .font(EcrinFont.sans(18, weight: .semibold))
                             .foregroundStyle(EcrinColor.ivory)
-                        Text("participantes")
+                        Text(L10n.CommunityUI.participantsCount)
                             .font(EcrinFont.label)
                             .foregroundStyle(EcrinColor.textMuted)
                     }
                 }
 
                 GoldButton(
-                    title: challenge.isParticipating ? "Voir mes essayages" : "Participer",
+                    title: challenge.isParticipating ? L10n.CommunityUI.seeMyTryOns : L10n.CommunityUI.participate,
                     action: onParticipate
                 )
                 .padding(.top, 2)
@@ -188,7 +188,7 @@ struct ChallengeCard: View {
 
                 // Bouton dynamique selon état d'inscription
                 Button(action: onParticipate) {
-                    Text(challenge.isParticipating ? "Inscrite ✓" : "Rejoindre")
+                    Text(challenge.isParticipating ? L10n.CommunityUI.joinedCheck : L10n.CommunityUI.joinShort)
                         .font(EcrinFont.label)
                         .kerning(1)
                         .foregroundStyle(challenge.isParticipating ? EcrinColor.background : EcrinColor.gold)

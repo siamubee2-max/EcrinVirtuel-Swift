@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Un cadeau vous attend — L'Écrin Virtuel</title>
+  <meta name="description" content="Quelqu'un vous a envoyé un bijou à essayer virtuellement avec L'Écrin Virtuel.">
+  <!-- Une fois l'app publiée, activer la Smart App Banner en remplaçant APP_ID :
+       <meta name="apple-itunes-app" content="app-id=APP_ID"> -->
+  <style>
+    :root { --gold: #C9A227; --bg: #0B0B0D; --ivory: #F5EFE6; --muted: #8A857C; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg); color: var(--ivory); min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-align: center; padding: 24px;
+    }
+    .card { max-width: 420px; }
+    .glyph { font-size: 64px; margin-bottom: 24px; }
+    h1 { font-weight: 300; font-size: 28px; letter-spacing: 1px; margin-bottom: 12px; }
+    p  { color: var(--muted); line-height: 1.6; margin-bottom: 28px; }
+    .btn {
+      display: block; text-decoration: none; border-radius: 999px;
+      padding: 16px 32px; margin: 0 auto 14px; max-width: 320px;
+      font-size: 15px; letter-spacing: 0.5px;
+    }
+    .btn-gold  { background: var(--gold); color: #1A1408; font-weight: 600; }
+    .btn-ghost { border: 1px solid rgba(201,162,39,0.4); color: var(--gold); }
+    .brand { margin-top: 40px; color: var(--muted); font-size: 11px; letter-spacing: 3px; }
+    .brand b { color: var(--gold); font-weight: 500; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="glyph">🎁</div>
+    <h1>Un cadeau vous attend</h1>
+    <p>Quelqu'un vous a envoyé un bijou à découvrir et à essayer virtuellement.
+       Ouvrez-le dans l'app L'Écrin Virtuel.</p>
+    <a id="open-app" class="btn btn-gold" href="#">Ouvrir dans l'app</a>
+    <a class="btn btn-ghost" href="https://apps.apple.com/fr/app/lecrin-virtuel">Télécharger sur l'App Store</a>
+    <div class="brand">✦ <b>L'ÉCRIN VIRTUEL</b></div>
+  </div>
+  <script>
+    // /ecrin/gift/<uuid> → ecrin://gift/<uuid> (fallback quand l'universal link
+    // n'a pas ouvert l'app directement — app absente ou lien collé à la main).
+    (function () {
+      var m = location.pathname.match(/\/gift\/([0-9a-fA-F-]{36})/);
+      var btn = document.getElementById('open-app');
+      if (m) {
+        var deepLink = 'ecrin://gift/' + m[1];
+        btn.href = deepLink;
+        // Tentative d'ouverture automatique : sans effet si l'app est absente.
+        setTimeout(function () { location.href = deepLink; }, 400);
+      } else {
+        btn.style.display = 'none';
+      }
+    })();
+  </script>
+</body>
+</html>

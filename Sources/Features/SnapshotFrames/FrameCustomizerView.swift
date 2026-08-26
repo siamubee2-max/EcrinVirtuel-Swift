@@ -111,7 +111,7 @@ struct FrameCustomizerView: View {
             Spacer()
 
             VStack(spacing: 2) {
-                Text("PERSONNALISER")
+                Text(L10n.SnapshotFramesUI.customizeCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
@@ -217,7 +217,7 @@ struct FrameCustomizerView: View {
         customSection(title: "TEXTE POLAROID", icon: "character.cursor.ibeam") {
             ZStack(alignment: .leading) {
                 if polaroidText.isEmpty {
-                    Text("Ex: Mon look du jour…")
+                    Text(L10n.SnapshotFramesUI.titlePlaceholder)
                         .font(EcrinFont.body)
                         .foregroundStyle(EcrinColor.textMuted)
                         .padding(.horizontal, EcrinSpacing.md)

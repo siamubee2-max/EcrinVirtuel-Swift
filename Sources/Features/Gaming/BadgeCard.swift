@@ -229,7 +229,7 @@ struct BadgeDetailView: View {
                         .padding(.top, EcrinSpacing.xs)
                     } else {
                         VStack(spacing: EcrinSpacing.xs) {
-                            Text("Comment l'obtenir")
+                            Text(L10n.GamingUI.howToGetIt)
                                 .font(EcrinFont.label)
                                 .kerning(2)
                                 .textCase(.uppercase)

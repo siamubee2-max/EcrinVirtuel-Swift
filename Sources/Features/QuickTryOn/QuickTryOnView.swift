@@ -148,7 +148,8 @@ struct QuickTryOnView: View {
                         showResult = false
                         vm.result = nil
                         vm.currentStep = 1
-                    }
+                    },
+                    beforeImage: vm.userPhoto
                 )
             }
         }
@@ -158,6 +159,7 @@ struct QuickTryOnView: View {
                 showResult = true
             }
         }
+        .accessibilityIdentifier("quicktryon.root")
     }
 
     // MARK: - Header
@@ -180,7 +182,7 @@ struct QuickTryOnView: View {
             Spacer()
 
             VStack(spacing: 2) {
-                Text("ESSAYAGE RAPIDE")
+                Text(L10n.QuickTryOnUI.quickTryOnTitle)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
@@ -389,7 +391,7 @@ struct QuickTryOnView: View {
                     Image(systemName: "hanger")
                         .font(.system(size: 36, weight: .thin))
                         .foregroundStyle(EcrinColor.textMuted)
-                    Text("Aucune pièce compatible\navec ce mode d'essayage")
+                    Text(L10n.QuickTryOnUI.noCompatiblePiece)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .multilineTextAlignment(.center)
@@ -444,7 +446,7 @@ struct QuickTryOnView: View {
                                 .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Retirer cet article")
+                        .accessibilityLabel(L10n.QuickTryOnUI.removeThisItem)
                     }
                     .padding(.horizontal, EcrinSpacing.sm)
                     .padding(.vertical, 6)
@@ -470,7 +472,7 @@ struct QuickTryOnView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "questionmark.circle")
                                 .font(.system(size: 13))
-                            Text("Conseils photo")
+                            Text(L10n.QuickTryOnUI.photoTips)
                                 .font(EcrinFont.caption)
                         }
                         .foregroundStyle(EcrinColor.gold.opacity(0.8))
@@ -522,7 +524,7 @@ struct QuickTryOnView: View {
                                     Image(systemName: "person.crop.rectangle.badge.plus")
                                         .font(.system(size: 40, weight: .thin))
                                         .foregroundStyle(EcrinColor.textMuted)
-                                    Text("Ajouter votre photo")
+                                    Text(L10n.MultiPoseUI.addYourPhoto)
                                         .font(EcrinFont.caption)
                                         .foregroundStyle(EcrinColor.textMuted)
                                     Text(vm.selectedMode?.photoTip ?? "")
@@ -593,14 +595,14 @@ struct QuickTryOnView: View {
             .ignoresSafeArea()
         }
         .alert("Accès caméra refusé", isPresented: $cameraDenied) {
-            Button("Ouvrir Réglages") {
+            Button(L10n.TryOnUI.openSettings) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
             }
             Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
-            Text("Autorisez l'accès à la caméra dans Réglages pour prendre une photo dans l'app.")
+            Text(L10n.TryOnUI.cameraAccessSettingsHint)
         }
     }
 
@@ -642,7 +644,7 @@ struct QuickTryOnView: View {
     private var itemsSummaryCard: some View {
         GlassCard(cornerRadius: 14) {
             VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                Text("ARTICLES CHOISIS")
+                Text(L10n.QuickTryOnUI.selectedItems)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -730,16 +732,9 @@ struct QuickTryOnView: View {
 
                 // CTA principal
                 if vm.isGenerating {
-                    VStack(spacing: EcrinSpacing.md) {
-                        ProgressView()
-                            .tint(EcrinColor.gold)
-                            .scaleEffect(1.4)
-                        Text("Génération en cours…")
-                            .font(EcrinFont.caption)
-                            .foregroundStyle(EcrinColor.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, EcrinSpacing.lg)
+                    GenerationProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, EcrinSpacing.lg)
                 } else {
                     VStack(spacing: EcrinSpacing.sm) {
                         // Toggle multi-vues
@@ -747,7 +742,7 @@ struct QuickTryOnView: View {
                             .padding(.bottom, EcrinSpacing.xs)
 
                         GoldButton(
-                            title: multiPoseEnabled ? "Choisir mes angles →" : "Essayer maintenant"
+                            title: multiPoseEnabled ? L10n.QuickTryOnUI.chooseMyAngles : L10n.WardrobeUI.tryNow
                         ) {
                             if multiPoseEnabled {
                                 showMultiPoseFlow = true
@@ -767,7 +762,7 @@ struct QuickTryOnView: View {
     // MARK: - Bottom Nav
 
     private func generateWithAuth() async {
-        if await GenerationAuthGate.hasSession() {
+        if await GenerationAuthGate.ensureSession() {
             await vm.generate(showPaywall: { showPaywall = true })
             // Synchronise le contexte corporel vers AppState pour le scoring bijoux
             if let ctx = vm.lastBodyContext {

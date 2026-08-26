@@ -83,16 +83,16 @@ struct PartnerApplicationView: View {
 
     private var formHeader: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Label("DEVENIR PARTENAIRE", systemImage: "hands.and.sparkles")
+            Label(L10n.PartnerUI.becomePartner, systemImage: "hands.and.sparkles")
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.gold)
 
-            Text("Rejoignez L'Écrin Virtuel")
+            Text(L10n.PartnerUI.joinEcrin)
                 .font(EcrinFont.heroTitle)
                 .foregroundStyle(EcrinColor.textPrimary)
 
-            Text("Faites découvrir vos créations à des milliers de passionnés de bijoux. Complétez ce formulaire — notre équipe vous répondra sous 72 h.")
+            Text(L10n.PartnerUI.applyIntro)
                 .font(EcrinFont.body)
                 .foregroundStyle(EcrinColor.textSecondary)
                 .lineSpacing(4)
@@ -115,7 +115,7 @@ struct PartnerApplicationView: View {
 
                 // Catégorie
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Catégorie *")
+                    Text(L10n.PartnerUI.categoryField)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .kerning(0.5)
@@ -184,7 +184,7 @@ struct PartnerApplicationView: View {
     private var pitchSection: some View {
         formSection(title: "VOTRE PITCH", icon: "text.alignleft") {
             VStack(alignment: .leading, spacing: 6) {
-                Text("Décrivez votre univers créatif *")
+                Text(L10n.PartnerUI.describeCreativeUniverse)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
                     .kerning(0.5)
@@ -204,7 +204,7 @@ struct PartnerApplicationView: View {
                             .strokeBorder(EcrinColor.glassStroke, lineWidth: 0.5)
                     )
 
-                Text("Savoir-faire, matières, inspiration, valeurs… 3-5 phrases suffisent.")
+                Text(L10n.PartnerUI.describeHint)
                     .font(.system(size: 11))
                     .foregroundStyle(EcrinColor.textMuted)
             }
@@ -237,7 +237,7 @@ struct PartnerApplicationView: View {
                         Image(systemName: "paperplane.fill")
                             .font(.system(size: 14, weight: .semibold))
                     }
-                    Text(isSubmitting ? "Envoi en cours…" : "Soumettre ma candidature")
+                    Text(isSubmitting ? L10n.PartnerUI.submitting : L10n.PartnerUI.submitApplication)
                         .font(EcrinFont.cta)
                         .kerning(1.5)
                 }
@@ -268,7 +268,7 @@ struct PartnerApplicationView: View {
             }
 
             VStack(spacing: EcrinSpacing.md) {
-                Text("Candidature envoyée !")
+                Text(L10n.PartnerUI.applicationSent)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
 
@@ -351,40 +351,33 @@ struct PartnerApplicationView: View {
         Task {
             defer { isSubmitting = false }
             do {
-                struct ApplicationRow: Encodable {
-                    let brand_name:    String
-                    let category:      String
-                    let country:       String
-                    let contact_email: String
-                    let website_url:   String?
-                    let instagram:     String?
-                    let description:   String
-                    let user_id:       String?
+                // Maps to prod table `partnership_requests` (partner_applications absent).
+                // Prod columns: id, brand_name, email, website, description, status, created_at.
+                struct PartnershipRequestRow: Encodable {
+                    let id:          String
+                    let brand_name:  String
+                    let email:       String
+                    let website:     String?
+                    let description: String
+                    let created_at:  String
                 }
 
-                let userId = try? await SupabaseService.shared.client.auth.session.user.id.uuidString
-
-                let row = ApplicationRow(
-                    brand_name:    brandName.trimmingCharacters(in: .whitespaces),
-                    category:      category.rawValue,
-                    country:       country.trimmingCharacters(in: .whitespaces),
-                    contact_email: contactEmail.trimmingCharacters(in: .whitespaces).lowercased(),
-                    website_url:   websiteURL.trimmingCharacters(in: .whitespaces).isEmpty ? nil : websiteURL.trimmingCharacters(in: .whitespaces),
-                    instagram:     instagram.trimmingCharacters(in: .whitespaces).isEmpty ? nil : instagram.trimmingCharacters(in: .whitespaces),
-                    description:   description.trimmingCharacters(in: .whitespaces),
-                    user_id:       userId
+                let row = PartnershipRequestRow(
+                    id:          UUID().uuidString,
+                    brand_name:  brandName.trimmingCharacters(in: .whitespaces),
+                    email:       contactEmail.trimmingCharacters(in: .whitespaces).lowercased(),
+                    website:     websiteURL.trimmingCharacters(in: .whitespaces).isEmpty ? nil : websiteURL.trimmingCharacters(in: .whitespaces),
+                    description: description.trimmingCharacters(in: .whitespaces),
+                    created_at:  ISO8601DateFormatter().string(from: .now)
                 )
 
-                try await SupabaseService.shared.client
-                    .from(SupabaseService.partnerApplications)
-                    .insert(row)
-                    .execute()
+                try await SupabaseService.shared.insertRow(row, into: SupabaseService.partnershipRequests)
 
                 withAnimation(EcrinAnimation.springSnap) {
                     submitted = true
                 }
             } catch {
-                errorMessage = "Envoi échoué. Vérifiez votre connexion et réessayez."
+                errorMessage = L10n.PartnerUI.submitFailed
             }
         }
     }

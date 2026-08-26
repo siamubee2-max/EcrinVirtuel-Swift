@@ -34,6 +34,9 @@ struct CommunityView: View {
                 .animation(EcrinAnimation.easeSlide, value: vm.selectedTab)
             }
         }
+        .sheet(isPresented: $vm.showCompose) {
+            ComposePostView(vm: vm)
+        }
     }
 
     // MARK: - Header
@@ -41,10 +44,10 @@ struct CommunityView: View {
     private var communityHeader: some View {
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Communauté")
+                Text(L10n.AppUI.community)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
-                Text("Inspirez et soyez inspirée")
+                Text(L10n.CommunityUI.inspireBeInspired)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textSecondary)
             }
@@ -109,26 +112,75 @@ struct CommunityView: View {
 
 private struct FeedTab: View {
     @ObservedObject var vm: CommunityViewModel
+    @State private var postForComments: CommunityPost?
+
+    private var inspirationBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 12))
+                .foregroundStyle(EcrinColor.gold)
+            Text("Inspiration L'Écrin — exemples de rendus")
+                .font(EcrinFont.caption)
+                .foregroundStyle(EcrinColor.textSecondary)
+            Spacer()
+        }
+        .padding(.horizontal, EcrinSpacing.md)
+        .padding(.vertical, EcrinSpacing.sm)
+        .background(EcrinColor.gold.opacity(0.08), in: Capsule())
+        .overlay(Capsule().strokeBorder(EcrinColor.gold.opacity(0.2), lineWidth: 0.5))
+    }
 
     var body: some View {
+        ZStack(alignment: .top) {
+            feedScroll
+
+            // Toast (publication, signalement) — le ZStack du tab Défis a le
+            // sien ; sans celui-ci les toasts émis depuis le feed étaient invisibles.
+            if let msg = vm.toastMessage {
+                ToastBanner(message: msg)
+                    .padding(.top, EcrinSpacing.sm)
+                    .padding(.horizontal, EcrinSpacing.md)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+        }
+        .animation(EcrinAnimation.springSnap, value: vm.toastMessage)
+    }
+
+    private var feedScroll: some View {
         ScrollView {
             LazyVStack(spacing: EcrinSpacing.md) {
-                // Stories row
-                StoriesRow(entries: vm.leaderboard)
+                // Bandeau « Inspiration » — ce feed présente des exemples de rendus
+                // L'Écrin (pas des publications d'utilisateurs réels). Transparence.
+                inspirationBanner
+                    .padding(.horizontal, EcrinSpacing.md)
                     .padding(.top, EcrinSpacing.sm)
 
-                // Posts
-                ForEach(vm.posts) { post in
-                    PostCard(post: post, onLike: { vm.toggleLike(post: post) })
-                        .padding(.horizontal, EcrinSpacing.md)
+                // Stories row
+                StoriesRow(entries: vm.leaderboard, onCompose: { vm.showCompose = true })
+
+                // Posts — visiblePosts exclut auteurs bloqués & posts signalés (App Store 1.2)
+                ForEach(vm.visiblePosts) { post in
+                    PostCard(
+                        post: post,
+                        onLike: { vm.toggleLike(post: post) },
+                        commentCount: vm.displayedCommentCount(for: post),
+                        onComment: { postForComments = post },
+                        onReport: { reason in vm.report(post: post, reason: reason) },
+                        onBlock: { vm.blockAuthor(of: post) }
+                    )
+                    .padding(.horizontal, EcrinSpacing.md)
                 }
 
                 Spacer().frame(height: EcrinSpacing.xl)
             }
         }
         .scrollIndicators(.hidden)
+        .accessibilityIdentifier("community.feed")
         .refreshable {
             await vm.refreshFeed()
+        }
+        .sheet(item: $postForComments) { post in
+            CommentsSheet(post: post, vm: vm)
         }
     }
 }
@@ -137,30 +189,35 @@ private struct FeedTab: View {
 
 private struct StoriesRow: View {
     let entries: [LeaderboardEntry]
+    let onCompose: () -> Void
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: EcrinSpacing.md) {
                 Spacer().frame(width: EcrinSpacing.md)
 
-                // Add story button
-                VStack(spacing: 5) {
-                    ZStack {
-                        Circle()
-                            .fill(EcrinColor.glassFill)
-                            .frame(width: 60, height: 60)
-                            .overlay {
-                                Circle()
-                                    .strokeBorder(EcrinColor.glassStroke, lineWidth: 1)
-                            }
-                        Image(systemName: "plus")
-                            .font(.system(size: 20, weight: .light))
-                            .foregroundStyle(EcrinColor.gold)
+                // Add story button → composeur de publication
+                Button(action: onCompose) {
+                    VStack(spacing: 5) {
+                        ZStack {
+                            Circle()
+                                .fill(EcrinColor.glassFill)
+                                .frame(width: 60, height: 60)
+                                .overlay {
+                                    Circle()
+                                        .strokeBorder(EcrinColor.glassStroke, lineWidth: 1)
+                                }
+                            Image(systemName: "plus")
+                                .font(.system(size: 20, weight: .light))
+                                .foregroundStyle(EcrinColor.gold)
+                        }
+                        Text(L10n.Common.share)
+                            .font(EcrinFont.label)
+                            .foregroundStyle(EcrinColor.textSecondary)
                     }
-                    Text(L10n.Common.share)
-                        .font(EcrinFont.label)
-                        .foregroundStyle(EcrinColor.textSecondary)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(L10n.CommunityUI.shareALook)
 
                 // Story items
                 ForEach(entries.prefix(12)) { entry in
@@ -177,7 +234,7 @@ private struct StoriesRow: View {
 
 private struct StoryAvatar: View {
     let entry: LeaderboardEntry
-    let isActive: Bool = Bool.random()
+    // isActive is derived from rank so it's deterministic and doesn't flicker on re-render
 
     private var initials: String {
         let name = entry.user.displayName ?? entry.user.email
@@ -251,7 +308,7 @@ private struct ChallengesTab: View {
 
                     // Section title
                     HStack {
-                        Text("Tous les défis")
+                        Text(L10n.CommunityUI.allChallenges)
                             .font(EcrinFont.sectionHead)
                             .foregroundStyle(EcrinColor.textPrimary)
                         Spacer()
@@ -368,7 +425,7 @@ private struct ParticipateSheet: View {
 
                     // Récompense — bloc visible et engageant
                     VStack(spacing: EcrinSpacing.sm) {
-                        Text("VOTRE RÉCOMPENSE")
+                        Text(L10n.CommunityUI.yourRewardCaps)
                             .font(EcrinFont.label)
                             .kerning(2)
                             .foregroundStyle(EcrinColor.textMuted)
@@ -399,7 +456,7 @@ private struct ParticipateSheet: View {
                             Text("\(challenge.participantCount)")
                                 .font(EcrinFont.sans(20, weight: .semibold))
                                 .foregroundStyle(EcrinColor.textPrimary)
-                            Text("Participantes")
+                            Text(L10n.CommunityUI.participantsTitle)
                                 .font(EcrinFont.label)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -408,7 +465,7 @@ private struct ParticipateSheet: View {
                             Text(countdown)
                                 .font(EcrinFont.sans(20, weight: .semibold))
                                 .foregroundStyle(EcrinColor.gold)
-                            Text("Restant")
+                            Text(L10n.CommunityUI.remaining)
                                 .font(EcrinFont.label)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -417,11 +474,11 @@ private struct ParticipateSheet: View {
 
                     VStack(spacing: EcrinSpacing.md) {
                         if challenge.isParticipating {
-                            GoldButton(title: "Essayer un bijou maintenant", action: onTryOn)
-                            GhostButton(title: "Retirer mon inscription", action: onConfirm)
+                            GoldButton(title: L10n.CommunityUI.tryJewelNow, action: onTryOn)
+                            GhostButton(title: L10n.CommunityUI.leaveChallenge, action: onConfirm)
                         } else {
-                            GoldButton(title: "Rejoindre ce défi", action: onConfirm)
-                            GhostButton(title: "Plus tard", action: { dismiss() })
+                            GoldButton(title: L10n.CommunityUI.joinChallenge, action: onConfirm)
+                            GhostButton(title: L10n.CommunityUI.later, action: { dismiss() })
                         }
                     }
                     .padding(.horizontal, EcrinSpacing.md)

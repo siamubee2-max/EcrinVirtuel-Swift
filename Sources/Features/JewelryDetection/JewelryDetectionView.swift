@@ -41,7 +41,7 @@ struct JewelryDetectionView: View {
             .padding(EcrinSpacing.lg)
         }
         .background(EcrinColor.background)
-        .navigationTitle("Détecter un bijou")
+        .navigationTitle(L10n.JewelryDetectionUI.detectJewel)
         .onChange(of: selectedItem) { _, newItem in
             Task { await loadImage(from: newItem) }
         }
@@ -63,11 +63,11 @@ struct JewelryDetectionView: View {
                 Image(systemName: "camera.viewfinder")
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(EcrinColor.gold)
-                Text("Détection automatique")
+                Text(L10n.JewelryDetectionUI.autoDetection)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
             }
-            Text("Photographiez un bijou — l'IA identifie le type et le prérempli dans votre garde-robe.")
+            Text(L10n.JewelryDetectionUI.detectIntro)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -82,7 +82,7 @@ struct JewelryDetectionView: View {
                 matching: .images,
                 photoLibrary: .shared()
             ) {
-                Label("Galerie", systemImage: "photo.on.rectangle")
+                Label(L10n.JewelryDetectionUI.gallery, systemImage: "photo.on.rectangle")
                     .font(EcrinFont.sans(14, weight: .medium))
                     .foregroundStyle(EcrinColor.textPrimary)
                     .frame(maxWidth: .infinity)
@@ -114,7 +114,7 @@ struct JewelryDetectionView: View {
         Button {
             Task { await runDetection() }
         } label: {
-            Label("Analyser le bijou", systemImage: "sparkles")
+            Label(L10n.JewelryDetectionUI.analyzeJewel, systemImage: "sparkles")
                 .font(EcrinFont.sans(15, weight: .semibold))
                 .foregroundStyle(EcrinColor.background)
                 .frame(maxWidth: .infinity)
@@ -129,7 +129,7 @@ struct JewelryDetectionView: View {
         HStack(spacing: 8) {
             ProgressView()
                 .tint(EcrinColor.gold)
-            Text("Analyse en cours…")
+            Text(L10n.JewelryDetectionUI.analyzing)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
         }
@@ -140,12 +140,12 @@ struct JewelryDetectionView: View {
 
     private var resultsSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("Résultats de l'analyse")
+            Text(L10n.JewelryDetectionUI.analysisResults)
                 .font(EcrinFont.sectionHead)
                 .foregroundStyle(EcrinColor.textPrimary)
 
             if detectionResults.isEmpty {
-                Text("Aucun bijou détecté. Essayez avec une photo plus nette ou mieux cadrée.")
+                Text(L10n.JewelryDetectionUI.noJewelDetected)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
             } else {
@@ -164,7 +164,7 @@ struct JewelryDetectionView: View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundStyle(.green)
-            Text("Bijou ajouté à votre garde-robe !")
+            Text(L10n.JewelryDetectionUI.jewelAdded)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textPrimary)
         }
@@ -251,7 +251,7 @@ private struct DetectionResultRow: View {
                 Button {
                     onAdd()
                 } label: {
-                    Text("Ajouter")
+                    Text(L10n.JewelryDetectionUI.add)
                         .font(EcrinFont.label)
                         .foregroundStyle(EcrinColor.background)
                         .padding(.horizontal, 12)
@@ -306,7 +306,7 @@ private struct AddDetectedJewelrySheet: View {
             Form {
                 Section {
                     HStack {
-                        Text("Type détecté")
+                        Text(L10n.JewelryDetectionUI.detectedType)
                             .foregroundStyle(EcrinColor.textMuted)
                         Spacer()
                         Text(result.category.rawValue)
@@ -315,16 +315,16 @@ private struct AddDetectedJewelrySheet: View {
                     }
                 }
                 Section("Informations") {
-                    TextField("Nom (ex : Bague solitaire)", text: $name)
-                    TextField("Marque (optionnel)", text: $brand)
-                    TextField("Couleur (optionnel)", text: $color)
+                    TextField(L10n.JewelryDetectionUI.namePlaceholder, text: $name)
+                    TextField(L10n.JewelryDetectionUI.brandOptional, text: $brand)
+                    TextField(L10n.JewelryDetectionUI.colorOptional, text: $color)
                 }
             }
-            .navigationTitle("Ajouter à la garde-robe")
+            .navigationTitle(L10n.JewelryDetectionUI.addToWardrobe)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Ajouter") {
+                    Button(L10n.JewelryDetectionUI.add) {
                         saveItem()
                     }
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)

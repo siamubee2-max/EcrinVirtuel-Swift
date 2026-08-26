@@ -12,12 +12,15 @@ struct QuickTryOnResultView: View {
     var creditsRemaining: Int? = nil
     var nudgePicks: [JewelryItem] = []
     var onSelectNudgeJewelry: ((JewelryItem) -> Void)? = nil
+    /// Photo d'origine — active le comparateur Avant/Après quand fournie.
+    var beforeImage: UIImage? = nil
 
     @State private var appeared = false
     @State private var showParticles = true
     @State private var showBrandedShare = false
     @State private var showEmotionalPaywall = false
     @State private var saveFeedback: SaveFeedback = .idle
+    @State private var showCompare = false
 
     private var shouldShowNudge: Bool {
         guard let credits = creditsRemaining else { return false }
@@ -32,12 +35,25 @@ struct QuickTryOnResultView: View {
         ZStack {
             Color.black.ignoresSafeArea()
 
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(9.0 / 16.0, contentMode: .fit)
-                .ignoresSafeArea()
-                .scaleEffect(appeared ? 1 : 1.06)
-                .opacity(appeared ? 1 : 0)
+            Group {
+                if showCompare, let before = beforeImage {
+                    // Comparateur Avant/Après — glisser pour révéler la transformation
+                    BeforeAfterSliderView(beforeLabel: "AVANT", afterLabel: "APRÈS") {
+                        Image(uiImage: before).resizable().scaledToFill()
+                    } afterContent: {
+                        Image(uiImage: image).resizable().scaledToFill()
+                    }
+                    .aspectRatio(9.0 / 16.0, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                } else {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(9.0 / 16.0, contentMode: .fit)
+                }
+            }
+            .ignoresSafeArea()
+            .scaleEffect(appeared ? 1 : 1.06)
+            .opacity(appeared ? 1 : 0)
 
             if showParticles {
                 WeddingParticlesCanvas()
@@ -67,19 +83,28 @@ struct QuickTryOnResultView: View {
                         .foregroundStyle(EcrinColor.gold)
 
                     // Primaire — partage
-                    GoldButton(title: "PARTAGER →") {
+                    GoldButton(title: L10n.QuickTryOnUI.shareCta) {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         showBrandedShare = true
                     }
                     .padding(.horizontal, EcrinSpacing.lg)
 
-                    // Secondaires — sauvegarder + télécharger
+                    // Secondaires — sauvegarder + télécharger + comparateur
                     HStack(spacing: EcrinSpacing.md) {
                         SaveButton(feedback: saveFeedback) {
                             saveToPhotos()
                         }
                         ActionButton(icon: "arrow.down.to.line", label: "Télécharger") {
                             downloadBranded()
+                        }
+                        if beforeImage != nil {
+                            ActionButton(
+                                icon: showCompare ? "sparkles" : "arrow.left.arrow.right",
+                                label: showCompare ? "Résultat" : "Avant/Après"
+                            ) {
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                withAnimation(EcrinAnimation.springSnap) { showCompare.toggle() }
+                            }
                         }
                     }
 
@@ -95,7 +120,7 @@ struct QuickTryOnResultView: View {
                         if let onNextJewelry {
                             Button(action: onNextJewelry) {
                                 HStack(spacing: 4) {
-                                    Text("Bijou suivant")
+                                    Text(L10n.QuickTryOnUI.nextJewel)
                                     Text("→")
                                 }
                                 .font(EcrinFont.caption)
@@ -117,7 +142,7 @@ struct QuickTryOnResultView: View {
                     }
 
                     Button(action: handleClose) {
-                        Text("FERMER")
+                        Text(L10n.QuickTryOnUI.closeCaps)
                             .font(EcrinFont.cta)
                             .kerning(2.5)
                             .foregroundStyle(EcrinColor.textSecondary)
@@ -155,6 +180,17 @@ struct QuickTryOnResultView: View {
             Task {
                 try? await Task.sleep(for: .seconds(1.2))
                 withAnimation(.easeOut(duration: 0.8)) { showParticles = false }
+            }
+            // Rendez-vous quotidien : on propose la notification « Look du jour »
+            // UNE seule fois, au meilleur moment — juste après le premier résultat wow.
+            let askedKey = "ecrin.notif.askedAfterFirstResult"
+            if !UserDefaults.standard.bool(forKey: askedKey),
+               !LookNotificationService.shared.userWantsNotification {
+                UserDefaults.standard.set(true, forKey: askedKey)
+                Task {
+                    try? await Task.sleep(for: .seconds(2.5))  // laisser le wow s'installer
+                    await LookNotificationService.shared.requestAndSchedule()
+                }
             }
         }
         .sheet(isPresented: $showBrandedShare) {
@@ -214,7 +250,7 @@ private struct PostResultNudgeView: View {
     var body: some View {
         VStack(spacing: EcrinSpacing.sm) {
             HStack {
-                Text("Encore un ?")
+                Text(L10n.QuickTryOnUI.oneMore)
                     .font(EcrinFont.cardTitle)
                     .foregroundStyle(EcrinColor.textPrimary)
                 Spacer()
@@ -317,7 +353,7 @@ private struct SaveButton: View {
                             feedback == .saved ? EcrinColor.gold : EcrinColor.textPrimary
                         )
                 }
-                Text(feedback == .saved ? "Sauvegardé" : "Sauvegarder")
+                Text(feedback == .saved ? L10n.QuickTryOnUI.savedShort : L10n.OutfitBuilderUI.save)
                     .font(EcrinFont.caption)
                     .foregroundStyle(
                         feedback == .saved ? EcrinColor.gold : EcrinColor.textSecondary

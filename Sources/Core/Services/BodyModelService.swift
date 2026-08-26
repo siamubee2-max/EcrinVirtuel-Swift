@@ -3,8 +3,8 @@ import SwiftUI
 import Supabase
 
 // MARK: - BodyModelService
-// Charge les mannequins de référence depuis Supabase (`body_parts`).
-// Distingue les mannequins globaux (user_id NULL) des photos persos de l'utilisateur.
+// Charge les mannequins de référence depuis la table `body_parts`.
+// user_id NULL = mannequin global (visible par tous), sinon photo perso de l'utilisateur.
 
 @MainActor
 final class BodyModelService: ObservableObject {
@@ -21,25 +21,24 @@ final class BodyModelService: ObservableObject {
 
     // MARK: - Fetch
 
-    /// Charge tous les mannequins (globaux + ceux de l'utilisateur courant).
+    /// Charge tous les mannequins accessibles : globaux (user_id NULL, policy RLS
+    /// publique) + photos perso de l'utilisateur connecté le cas échéant.
     func fetchAll() async {
         isLoading = true
-        error = nil
         defer { isLoading = false }
-
         do {
-            let all: [BodyModel] = try await client
-                .from(SupabaseService.bodyParts)
+            let models: [BodyModel] = try await client
+                .from("body_parts")
                 .select()
                 .order("type")
                 .order("name")
                 .execute()
                 .value
-
-            globalModels = all.filter { $0.isGlobal }
-            userModels   = all.filter { !$0.isGlobal }
+            globalModels = models.filter(\.isGlobal)
+            userModels   = models.filter { !$0.isGlobal }
+            error = nil
         } catch {
-            self.error = "Impossible de charger les mannequins : \(error.localizedDescription)"
+            self.error = error.localizedDescription
         }
     }
 

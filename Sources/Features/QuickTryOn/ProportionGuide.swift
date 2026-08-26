@@ -114,11 +114,11 @@ struct ProportionGuideView: View {
                 )
                 .padding(.bottom, 4)
 
-            Text("Conseils photo")
+            Text(L10n.QuickTryOnUI.photoTips)
                 .font(.title2.bold())
                 .foregroundStyle(.white)
 
-            Text("Pour un essayage virtuel précis")
+            Text(L10n.QuickTryOnUI.forPreciseTryOn)
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.7))
                 .padding(.bottom, 12)
@@ -147,7 +147,7 @@ struct ProportionGuideView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
-                        Text("Précédent")
+                        Text(L10n.Common.previous)
                     }
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.white.opacity(0.8))
@@ -182,7 +182,7 @@ struct ProportionGuideView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "checkmark")
-                        Text("Compris !")
+                        Text(L10n.QuickTryOnUI.gotIt)
                     }
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.black)

@@ -23,7 +23,7 @@ struct MetalScoreCard: View {
                                 Image(systemName: "crown.fill")
                                     .font(.system(size: 9))
                                     .foregroundStyle(EcrinColor.background)
-                                Text("COUP DE CŒUR")
+                                Text(L10n.SkinToneUI.topPick)
                                     .font(EcrinFont.label)
                                     .kerning(1.5)
                                     .foregroundStyle(EcrinColor.background)

@@ -8,6 +8,7 @@ struct LoginView: View {
     @State private var isLoading = false
     @State private var codeSent = false       // true après envoi du code → affiche le champ code
     @State private var loginError: String?
+    @State private var currentAppleNonce: String?
     @FocusState private var codeFieldFocused: Bool
 
     var body: some View {
@@ -22,11 +23,11 @@ struct LoginView: View {
                     Text("✦")
                         .font(.system(size: 28))
                         .foregroundStyle(EcrinColor.gold)
-                    Text("L'ÉCRIN VIRTUEL")
+                    Text(L10n.OnboardingUI.brandName)
                         .font(EcrinFont.label)
                         .kerning(5)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("Joaillerie virtuelle")
+                    Text(L10n.ProfileUI.virtualJewelry)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .kerning(2)
@@ -38,7 +39,10 @@ struct LoginView: View {
                 VStack(spacing: EcrinSpacing.md) {
                     // Sign in with Apple
                     SignInWithAppleButton(.signIn) { request in
+                        let nonce = AppleSignInNonce.randomNonceString()
+                        currentAppleNonce = nonce
                         request.requestedScopes = [.fullName, .email]
+                        request.nonce = AppleSignInNonce.sha256(nonce)
                     } onCompletion: { result in
                         handleAppleSignIn(result)
                     }
@@ -61,7 +65,7 @@ struct LoginView: View {
                             Image(systemName: "envelope")
                                 .font(.system(size: 14))
                                 .foregroundStyle(EcrinColor.textMuted)
-                            TextField("", text: $email, prompt: Text("votre@email.com").foregroundStyle(EcrinColor.textMuted))
+                            TextField("", text: $email, prompt: Text(L10n.ProfileUI.emailPlaceholder).foregroundStyle(EcrinColor.textMuted))
                                 .foregroundStyle(EcrinColor.textPrimary)
                                 .textContentType(.emailAddress)
                                 .keyboardType(.emailAddress)
@@ -80,7 +84,7 @@ struct LoginView: View {
                                 Image(systemName: "key")
                                     .font(.system(size: 14))
                                     .foregroundStyle(EcrinColor.gold)
-                                TextField("", text: $otpCode, prompt: Text("Code à 6 chiffres").foregroundStyle(EcrinColor.textMuted))
+                                TextField("", text: $otpCode, prompt: Text(L10n.ProfileUI.sixDigitCode).foregroundStyle(EcrinColor.textMuted))
                                     .foregroundStyle(EcrinColor.textPrimary)
                                     .font(.system(size: 20, weight: .semibold, design: .monospaced))
                                     .kerning(4)
@@ -115,7 +119,7 @@ struct LoginView: View {
                     }
 
                     if !codeSent {
-                        GoldButton(title: isLoading ? "Envoi…" : "Recevoir un code") {
+                        GoldButton(title: isLoading ? L10n.ProfileUI.sending : L10n.ProfileUI.receiveCode) {
                             Task { await signInWithEmail() }
                         }
                         .disabled(email.isEmpty || isLoading)
@@ -123,7 +127,7 @@ struct LoginView: View {
 
                         // Permet de saisir un code déjà reçu sans redéclencher d'envoi
                         // (utile si l'envoi est limité, ou pour un code fourni manuellement).
-                        Button("J'ai déjà un code") {
+                        Button(L10n.ProfileUI.alreadyHaveCode) {
                             withAnimation { codeSent = true }
                             codeFieldFocused = true
                         }
@@ -131,13 +135,13 @@ struct LoginView: View {
                         .foregroundStyle(EcrinColor.textMuted)
                         .disabled(email.isEmpty)
                     } else {
-                        GoldButton(title: isLoading ? "Connexion…" : "Se connecter") {
+                        GoldButton(title: isLoading ? L10n.ProfileUI.signingIn : L10n.OnboardingUI.signIn) {
                             Task { await verifyCode() }
                         }
                         .disabled(otpCode.count != 6 || isLoading)
                         .opacity(otpCode.count != 6 ? 0.5 : 1)
 
-                        Button("Renvoyer le code / changer d'email") {
+                        Button(L10n.ProfileUI.resendCodeChangeEmail) {
                             withAnimation {
                                 codeSent = false
                                 otpCode = ""
@@ -152,7 +156,7 @@ struct LoginView: View {
 
                 // Privacy
                 VStack(spacing: 4) {
-                    Text("En continuant, vous acceptez nos")
+                    Text(L10n.ProfileUI.byContinuingYouAccept)
                         .font(.system(size: 10))
                         .foregroundStyle(EcrinColor.textMuted)
                     HStack(spacing: 4) {
@@ -178,7 +182,7 @@ struct LoginView: View {
                     )
                     appState.signIn(user: devUser)
                 } label: {
-                    Text("DEV — Skip login (sim)")
+                    Text(L10n.ProfileUI.devSkipLogin)
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(EcrinColor.textMuted.opacity(0.6))
                         .padding(.horizontal, 12)
@@ -196,25 +200,37 @@ struct LoginView: View {
     }
 
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
+        // Surface non-cancellation Apple errors to the user instead of silently returning.
+        if case .failure(let err) = result {
+            let nsErr = err as NSError
+            // ASAuthorizationError.canceled == 1001 — user intentionally cancelled, no toast needed
+            if nsErr.code != 1001 {
+                loginError = "Connexion Apple échouée. Réessayez."
+            }
+            return
+        }
         guard case .success(let auth) = result,
               let creds = auth.credential as? ASAuthorizationAppleIDCredential,
               let idTokenData = creds.identityToken,
-              let idToken = String(data: idTokenData, encoding: .utf8) else { return }
+              let idToken = String(data: idTokenData, encoding: .utf8),
+              let nonce = currentAppleNonce else {
+            loginError = L10n.AuthUI.appleSignInFailed
+            return
+        }
 
         Task {
             do {
-                let nonce = UUID().uuidString
                 let user = try await SupabaseService.shared.signInWithApple(idToken: idToken, nonce: nonce)
                 appState.signIn(user: user)
             } catch {
-                loginError = "Connexion Apple échouée. Réessayez."
+                loginError = L10n.AuthUI.appleSignInFailed
             }
         }
     }
 
     private func signInWithEmail() async {
         guard email.contains("@"), email.contains(".") else {
-            loginError = "Adresse email invalide."
+            loginError = L10n.ProfileUI.invalidEmail
             return
         }
         isLoading = true
@@ -225,7 +241,7 @@ struct LoginView: View {
             withAnimation { codeSent = true }
             codeFieldFocused = true
         } catch {
-            loginError = "Impossible d'envoyer le code. Vérifiez votre email."
+            loginError = L10n.ProfileUI.codeSendFailed
         }
     }
 
@@ -240,7 +256,7 @@ struct LoginView: View {
             let user = try await SupabaseService.shared.verifyEmailOTP(email: email, code: code)
             appState.signIn(user: user)
         } catch {
-            loginError = "Code invalide ou expiré. Réessayez."
+            loginError = L10n.ProfileUI.codeInvalidOrExpired
             otpCode = ""
         }
     }

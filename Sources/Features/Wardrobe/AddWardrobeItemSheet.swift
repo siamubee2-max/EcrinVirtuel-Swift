@@ -24,11 +24,11 @@ struct AddWardrobeItemSheet: View {
                     // Header
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("NOUVELLE PIÈCE")
+                            Text(L10n.WardrobeUI.newPieceCaps)
                                 .font(EcrinFont.label)
                                 .kerning(3)
                                 .foregroundStyle(EcrinColor.gold)
-                            Text("Garde-robe")
+                            Text(L10n.AppUI.wardrobe)
                                 .font(EcrinFont.sectionHead)
                                 .foregroundStyle(EcrinColor.textPrimary)
                         }
@@ -67,7 +67,7 @@ struct AddWardrobeItemSheet: View {
                     BoutiqueToggleRow(isEnabled: $form.isFromBoutique)
 
                     // CTA
-                    GoldButton(title: "Ajouter à ma garde-robe") {
+                    GoldButton(title: L10n.WardrobeUI.addToMyWardrobe) {
                         let item = form.buildItem()
                         onAdd(item)
                         dismiss()
@@ -80,6 +80,7 @@ struct AddWardrobeItemSheet: View {
             }
         }
         .preferredColorScheme(.dark)
+        .accessibilityIdentifier("wardrobe.addsheet")
     }
 }
 
@@ -120,11 +121,11 @@ private struct PhotoPickerSection: View {
                         Image(systemName: "photo.badge.plus")
                             .font(.system(size: 36, weight: .thin))
                             .foregroundStyle(EcrinColor.textMuted)
-                        Text("Ajouter une photo")
+                        Text(L10n.WardrobeUI.addPhoto)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)
                             .kerning(1)
-                        Text("Depuis votre bibliothèque")
+                        Text(L10n.WardrobeUI.fromYourLibrary)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted.opacity(0.6))
                     }
@@ -143,7 +144,7 @@ private struct CategorySelectorSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("CATÉGORIE")
+            Text(L10n.WardrobeUI.categoryCaps)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -307,10 +308,10 @@ private struct BoutiqueToggleRow: View {
                     .frame(width: 32)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Disponible en boutique partenaire")
+                    Text(L10n.WardrobeUI.availablePartnerShop)
                         .font(EcrinFont.body)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("Permet l'achat direct depuis L'Écrin")
+                    Text(L10n.WardrobeUI.enablesDirectPurchase)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
                 }

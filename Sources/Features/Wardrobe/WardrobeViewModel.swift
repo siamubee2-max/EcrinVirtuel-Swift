@@ -16,9 +16,19 @@ final class WardrobeViewModel {
     var searchText: String = ""
     var showOnlyFavorites: Bool = false
     var isSyncing: Bool = false
+    /// French-language user-facing error message surfaced from failed Supabase calls.
+    /// Consumers can bind an .alert or banner to this property.
+    var errorMessage: String? = nil
 
     // MARK: Persistence key
-    private let storageKey = "ecrin_wardrobe_items_v2"
+    // Les données d'un compte connecté sont stockées sous une clé scoppée par
+    // user id : sans cela, un changement de compte sur le même appareil
+    // montrait la garde-robe du compte précédent.
+    private let baseStorageKey = "ecrin_wardrobe_items_v2"
+    private var userScope: String?
+    private var storageKey: String {
+        userScope.map { "\(baseStorageKey)_\($0)" } ?? baseStorageKey
+    }
     private let supabase = SupabaseService.shared
 
     // MARK: Computed
@@ -60,6 +70,11 @@ final class WardrobeViewModel {
 
     // MARK: - Init
     init() {
+        // MOCK SEAM — under UI tests bypass UserDefaults and cloud sync for determinism
+        if AppLaunchEnvironment.isUITesting {
+            items = FashionItem.samples
+            return
+        }
         load()
         if items.isEmpty {
             items = FashionItem.samples
@@ -73,20 +88,29 @@ final class WardrobeViewModel {
     func add(_ item: FashionItem) {
         items.append(item)
         save()
-        Task { try? await supabase.saveWardrobeItem(item) }
+        Task {
+            do { try await supabase.saveWardrobeItem(item) }
+            catch { errorMessage = "Synchronisation impossible. Réessayez." }
+        }
     }
 
     func update(_ item: FashionItem) {
         guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
         items[idx] = item
         save()
-        Task { try? await supabase.saveWardrobeItem(item) }
+        Task {
+            do { try await supabase.saveWardrobeItem(item) }
+            catch { errorMessage = "Synchronisation impossible. Réessayez." }
+        }
     }
 
     func delete(_ item: FashionItem) {
         items.removeAll { $0.id == item.id }
         save()
-        Task { try? await supabase.deleteWardrobeItem(id: item.id) }
+        Task {
+            do { try await supabase.deleteWardrobeItem(id: item.id) }
+            catch { errorMessage = "Suppression non synchronisée. Réessayez." }
+        }
     }
 
     func toggleFavorite(_ item: FashionItem) {
@@ -95,7 +119,10 @@ final class WardrobeViewModel {
         updated.isFavorite.toggle()
         items[idx] = updated
         save()
-        Task { try? await supabase.updateWardrobeFavorite(id: updated.id, isFavorite: updated.isFavorite) }
+        Task {
+            do { try await supabase.updateWardrobeFavorite(id: updated.id, isFavorite: updated.isFavorite) }
+            catch { errorMessage = "Synchronisation impossible. Réessayez." }
+        }
     }
 
     func selectGroup(_ group: FashionGroup) {
@@ -111,6 +138,38 @@ final class WardrobeViewModel {
         }
     }
 
+    // MARK: - Account scope
+
+    /// Bascule la garde-robe sur le compte donné (`nil` = anonyme) :
+    /// persiste l'état du scope courant, charge celui du nouveau scope,
+    /// puis resynchronise depuis le cloud pour un compte connecté.
+    /// À la première connexion d'un compte sur cet appareil (scope vide),
+    /// les items construits en anonyme sont repris pour ne rien perdre —
+    /// c'est le comportement historique de la clé unique, mais borné à
+    /// cette transition anonyme → compte.
+    func switchUser(to userId: String?) {
+        guard userId != userScope else {
+            if userId != nil { Task { await syncFromCloud() } }
+            return
+        }
+        save() // persiste les items du scope quitté sous son ancienne clé
+        let carryOver = userScope == nil ? items : []
+        userScope = userId
+        items = []
+        load()
+        if items.isEmpty {
+            if userId != nil {
+                items = carryOver
+            } else {
+                items = FashionItem.samples
+            }
+            save()
+        }
+        if userId != nil {
+            Task { await syncFromCloud() }
+        }
+    }
+
     // MARK: - Cloud sync
 
     /// Récupère la garde-robe depuis Supabase et fusionne avec le local.
@@ -118,18 +177,36 @@ final class WardrobeViewModel {
     func syncFromCloud() async {
         isSyncing = true
         defer { isSyncing = false }
-        guard let cloudItems = try? await supabase.fetchWardrobeItems(), !cloudItems.isEmpty else { return }
-        // Merge : conserver les items locaux sans uuid cloud, puis ajouter les cloud
-        let cloudIDs = Set(cloudItems.map(\.id))
-        let localOnly = items.filter { !cloudIDs.contains($0.id) }
-        items = cloudItems + localOnly
-        save()
+        do {
+            let cloudItems = try await supabase.fetchWardrobeItems()
+            guard !cloudItems.isEmpty else { return }
+            // Merge : conserver les items locaux sans uuid cloud, puis ajouter les cloud.
+            // Les lignes cloud ne portent jamais userPhotoData (volontairement non
+            // synchronisé) — recopier la photo locale sur l'item cloud correspondant,
+            // sinon chaque sync efface les photos de l'utilisateur.
+            let localByID = Dictionary(items.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+            let merged = cloudItems.map { cloudItem in
+                var patched = cloudItem
+                if patched.userPhotoData == nil {
+                    patched.userPhotoData = localByID[cloudItem.id]?.userPhotoData
+                }
+                return patched
+            }
+            let cloudIDs = Set(cloudItems.map(\.id))
+            let localOnly = items.filter { !cloudIDs.contains($0.id) }
+            items = merged + localOnly
+            save()
+        } catch {
+            // Sync failure is non-fatal — local data stays intact.
+            errorMessage = "Synchronisation impossible. Réessayez."
+        }
     }
 
     /// Pousse tous les items locaux vers Supabase (utile après connexion).
     func pushAllToCloud() async {
         for item in items {
-            try? await supabase.saveWardrobeItem(item)
+            do { try await supabase.saveWardrobeItem(item) }
+            catch { errorMessage = "Synchronisation impossible. Réessayez." }
         }
     }
 

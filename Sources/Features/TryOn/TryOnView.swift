@@ -5,6 +5,14 @@ struct TryOnView: View {
     @Environment(AppState.self) private var appState
     @Environment(ClothingCatalogService.self) private var catalogService
     @State private var viewModel = TryOnViewModel()
+
+    /// Bijou présélectionné (ex. depuis la boutique partenaire). `nil` = sélection manuelle.
+    private let preselectedJewelry: JewelryItem?
+
+    init(preselectedJewelry: JewelryItem? = nil) {
+        self.preselectedJewelry = preselectedJewelry
+    }
+
     @State private var lookDuJourVM = LookDuJourViewModel()
     @State private var showPhotoPicker = false
     @State private var selectedLookRecommendation: LookRecommendation?
@@ -32,11 +40,11 @@ struct TryOnView: View {
                     // Header
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("ESSAYAGE")
+                            Text(L10n.WardrobeUI.tryOnCaps)
                                 .font(EcrinFont.label)
                                 .kerning(3)
                                 .foregroundStyle(EcrinColor.gold)
-                            Text("Virtuel")
+                            Text(L10n.TryOnUI.virtual)
                                 .font(EcrinFont.sectionHead)
                                 .foregroundStyle(EcrinColor.textPrimary)
                         }
@@ -100,7 +108,7 @@ struct TryOnView: View {
 
                         // Option multi-vues pour tous les bijoux
                         if viewModel.selectedJewelry != nil && viewModel.userPhoto != nil && !isEarrings {
-                            GhostButton(title: "Multi-vues (choisir les angles)") {
+                            GhostButton(title: L10n.TryOnUI.multiViewChooseAngles) {
                                 showMultiPose = true
                             }
                         }
@@ -118,6 +126,13 @@ struct TryOnView: View {
         .task {
             await viewModel.loadCatalog()
             await lookDuJourVM.bootstrap(appState: appState)
+        }
+        .onAppear {
+            // Injecte le bijou choisi dans la boutique partenaire : sans ça la
+            // sélection était perdue et le bouton « Essayer maintenant » restait grisé.
+            if let preselectedJewelry, viewModel.selectedJewelry == nil {
+                viewModel.selectedJewelry = preselectedJewelry
+            }
         }
         // `.sheet(item:)` garantit que la valeur est non-nil au rendu
         // — évite l'écran noir causé par une évaluation `if let` trop tôt.
@@ -185,21 +200,21 @@ struct TryOnView: View {
             }
         }
         .alert("Accès caméra refusé", isPresented: $cameraDenied) {
-            Button("Ouvrir Réglages") {
+            Button(L10n.TryOnUI.openSettings) {
                 if let url = URL(string: UIApplication.openSettingsURLString) {
                     UIApplication.shared.open(url)
                 }
             }
             Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
-            Text("Autorisez l'accès à la caméra dans Réglages pour prendre une photo dans l'app.")
+            Text(L10n.TryOnUI.cameraAccessSettingsHint)
         }
     }
 
     // MARK: - Photo source helpers
 
     private func generateWithAuth() async {
-        if await GenerationAuthGate.hasSession() {
+        if await GenerationAuthGate.ensureSession() {
             await viewModel.generate(showPaywall: { showPaywall = true })
         } else {
             showGenerationAuth = true
@@ -287,10 +302,8 @@ struct PhotoDropZone: View {
 
                     if isLoading {
                         ZStack {
-                            Color.black.opacity(0.5)
-                            ProgressView()
-                                .tint(EcrinColor.gold)
-                                .scaleEffect(1.5)
+                            Color.black.opacity(0.55)
+                            GenerationProgressView()
                         }
                         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                     }
@@ -299,7 +312,7 @@ struct PhotoDropZone: View {
                         Image(systemName: "person.crop.rectangle.badge.plus")
                             .font(.system(size: 40, weight: .thin))
                             .foregroundStyle(EcrinColor.textMuted)
-                        Text("Ajouter votre photo")
+                        Text(L10n.MultiPoseUI.addYourPhoto)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)
                             .kerning(1)
@@ -309,7 +322,7 @@ struct PhotoDropZone: View {
             .frame(height: 320)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Ajouter votre photo")
+        .accessibilityLabel(L10n.MultiPoseUI.addYourPhoto)
         .accessibilityHint("Ouvre la photothèque")
     }
 }
@@ -321,7 +334,7 @@ struct JewelryPickerRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("CHOISIR UN BIJOU")
+            Text(L10n.TryOnUI.chooseAJewel)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)
@@ -351,7 +364,7 @@ struct JewelryThumb: View {
             VStack(spacing: EcrinSpacing.sm) {
                 // Photo réelle si disponible, icône SF Symbol en fallback
                 if let url = item.imageURL {
-                    AsyncImage(url: url) { phase in
+                    DownsampledAsyncImage(url: url) { phase in
                         switch phase {
                         case .success(let img):
                             img.resizable()
@@ -423,7 +436,7 @@ struct ResultCarousel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("RÉSULTAT")
+            Text(L10n.WardrobeUI.resultCaps)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.textMuted)

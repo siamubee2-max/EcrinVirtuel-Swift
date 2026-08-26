@@ -21,6 +21,29 @@ struct CommunityPost: Identifiable, Codable {
     let createdAt: Date
 }
 
+// MARK: - Post Comment
+
+/// Un commentaire rattaché à UN post (donc à l'image d'essayage présentée).
+struct PostComment: Identifiable, Codable {
+    let id: UUID
+    let authorName: String
+    let text: String
+    let createdAt: Date
+
+    /// Commentaires d'exemple, reliés au bijou présenté dans le post.
+    static func samples(for post: CommunityPost) -> [PostComment] {
+        let piece = post.jewelry.name
+        return [
+            PostComment(id: UUID(), authorName: "Camille",
+                        text: "Ce \(piece) te va à merveille ✨",
+                        createdAt: post.createdAt.addingTimeInterval(900)),
+            PostComment(id: UUID(), authorName: "Inès",
+                        text: "L'essayage rend trop bien, je tente aussi 😍",
+                        createdAt: post.createdAt.addingTimeInterval(2400)),
+        ]
+    }
+}
+
 // MARK: - Community Challenge
 
 struct CommunityChallenge: Identifiable, Codable {

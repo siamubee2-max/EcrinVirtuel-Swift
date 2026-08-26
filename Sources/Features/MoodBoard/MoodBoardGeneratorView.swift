@@ -64,7 +64,7 @@ struct MoodBoardGeneratorView: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("MOOD BOARD")
+                Text(L10n.MoodBoardUI.moodBoardTitle)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
@@ -72,7 +72,7 @@ struct MoodBoardGeneratorView: View {
                     .offset(y: headerVisible ? 0 : 8)
                     .animation(EcrinAnimation.easeSlide, value: headerVisible)
 
-                Text("Créez votre univers")
+                Text(L10n.MoodBoardUI.createYourUniverse)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .opacity(headerVisible ? 1 : 0)
@@ -92,7 +92,7 @@ struct MoodBoardGeneratorView: View {
     private var promptSection: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
             Label {
-                Text("Décrivez votre moment")
+                Text(L10n.MoodBoardUI.describeYourMoment)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -115,7 +115,7 @@ struct MoodBoardGeneratorView: View {
                         .padding(EcrinSpacing.md)
                         .overlay(alignment: .topLeading) {
                             if prompt.isEmpty {
-                                Text("Une soirée élégante à Paris en hiver…")
+                                Text(L10n.MoodBoardUI.momentPlaceholder)
                                     .font(EcrinFont.serif(17, weight: .light))
                                     .foregroundStyle(EcrinColor.textMuted)
                                     .allowsHitTesting(false)
@@ -127,7 +127,7 @@ struct MoodBoardGeneratorView: View {
                         .padding(.horizontal, EcrinSpacing.md)
 
                     HStack {
-                        Text("Optionnel — affinez avec les filtres ci-dessous")
+                        Text(L10n.MoodBoardUI.optionalRefineFilters)
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.textMuted)
                         Spacer()
@@ -229,7 +229,7 @@ struct MoodBoardGeneratorView: View {
                     Image(systemName: "wand.and.sparkles")
                         .font(.system(size: 14))
                         .foregroundStyle(EcrinColor.background)
-                    Text("Générer mon look")
+                    Text(L10n.MoodBoardUI.generateMyLook)
                         .font(EcrinFont.cta)
                         .kerning(2.5)
                         .foregroundStyle(EcrinColor.background)
@@ -245,7 +245,7 @@ struct MoodBoardGeneratorView: View {
             .animation(EcrinAnimation.springSnap, value: canGenerate)
 
             if canGenerate {
-                Text("Propulsé par l'IA stylistique de L'Écrin")
+                Text(L10n.MoodBoardUI.poweredByEcrinAI)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
                     .transition(.opacity.combined(with: .scale(scale: 0.9)))
@@ -263,19 +263,11 @@ struct MoodBoardGeneratorView: View {
                 .onTapGesture { } // block pass-through
 
             VStack(spacing: EcrinSpacing.xl) {
-                // Animated gold dots
+                // Animated gold dots (extracted: the inline sin() arithmetic
+                // blew past the type-checker's budget inside the ForEach)
                 HStack(spacing: 10) {
                     ForEach(0..<5) { i in
-                        let delay = Double(i) * 0.15
-                        Circle()
-                            .fill(EcrinColor.gold)
-                            .frame(width: 8, height: 8)
-                            .scaleEffect(1 + 0.5 * sin(dotPhase + CGFloat(i) * .pi * 0.6))
-                            .opacity(0.5 + 0.5 * sin(dotPhase + CGFloat(i) * .pi * 0.6))
-                            .animation(
-                                Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: false).delay(delay),
-                                value: dotPhase
-                            )
+                        GeneratingDot(index: i, phase: dotPhase)
                     }
                 }
                 .onAppear {
@@ -285,12 +277,12 @@ struct MoodBoardGeneratorView: View {
                 }
 
                 VStack(spacing: EcrinSpacing.sm) {
-                    Text("Notre styliste IA compose votre look…")
+                    Text(L10n.MoodBoardUI.aiStylistComposing)
                         .font(EcrinFont.serif(20, weight: .light))
                         .foregroundStyle(EcrinColor.textPrimary)
                         .multilineTextAlignment(.center)
 
-                    Text("Sélection des pièces · Rédaction poétique · Création de palette")
+                    Text(L10n.MoodBoardUI.composingSteps)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
                         .multilineTextAlignment(.center)
@@ -320,6 +312,27 @@ struct MoodBoardGeneratorView: View {
         } catch {
             withAnimation(EcrinAnimation.easeSlide) { isGenerating = false }
         }
+    }
+}
+
+// MARK: - Generating Dot
+
+private struct GeneratingDot: View {
+    let index: Int
+    let phase: CGFloat
+
+    var body: some View {
+        let wave: CGFloat = sin(phase + CGFloat(index) * CGFloat.pi * 0.6)
+        let delay: Double = Double(index) * 0.15
+        Circle()
+            .fill(EcrinColor.gold)
+            .frame(width: 8, height: 8)
+            .scaleEffect(1 + 0.5 * wave)
+            .opacity(Double(0.5 + 0.5 * wave))
+            .animation(
+                Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: false).delay(delay),
+                value: phase
+            )
     }
 }
 

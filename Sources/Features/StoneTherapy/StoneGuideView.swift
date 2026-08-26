@@ -52,11 +52,11 @@ struct StoneGuideView: View {
         VStack(spacing: EcrinSpacing.sm) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("LITHOTHÉRAPIE")
+                    Text(L10n.StoneTherapyUI.lithotherapy)
                         .font(EcrinFont.label)
                         .kerning(3)
                         .foregroundStyle(EcrinColor.gold)
-                    Text("Guide des Pierres")
+                    Text(L10n.StoneTherapyUI.stoneGuide)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
                 }
@@ -75,7 +75,7 @@ struct StoneGuideView: View {
                     .font(.system(size: 14, weight: .light))
                     .foregroundStyle(EcrinColor.textMuted)
 
-                TextField("Rechercher une pierre, vertu…", text: $searchText)
+                TextField(L10n.StoneTherapyUI.searchStonePlaceholder, text: $searchText)
                     .font(EcrinFont.body)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .tint(EcrinColor.gold)
@@ -111,7 +111,7 @@ struct StoneGuideView: View {
         VStack(spacing: EcrinSpacing.sm) {
             // Chakra filter
             VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                Text("PAR CHAKRA")
+                Text(L10n.StoneTherapyUI.byChakra)
                     .font(EcrinFont.label)
                     .kerning(2.5)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -149,7 +149,7 @@ struct StoneGuideView: View {
 
             // Intention filter
             VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                Text("PAR INTENTION")
+                Text(L10n.StoneTherapyUI.byIntention)
                     .font(EcrinFont.label)
                     .kerning(2.5)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -217,10 +217,10 @@ struct StoneGuideView: View {
             Image(systemName: "sparkle.magnifyingglass")
                 .font(.system(size: 44, weight: .thin))
                 .foregroundStyle(EcrinColor.textMuted)
-            Text("Aucune pierre trouvée")
+            Text(L10n.StoneTherapyUI.noStoneFound)
                 .font(EcrinFont.cardTitle)
                 .foregroundStyle(EcrinColor.textSecondary)
-            Text("Essayez d'autres filtres ou mots-clés")
+            Text(L10n.StoneTherapyUI.tryOtherFilters)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
         }

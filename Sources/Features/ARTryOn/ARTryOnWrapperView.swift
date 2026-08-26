@@ -17,6 +17,10 @@ struct ARTryOnWrapperView: View {
     @State private var capturedImage: UIImage? = nil
     @State private var showCapturePreview: Bool = false
     @State private var isARAvailable: Bool = ARFaceTrackingConfiguration.isSupported || ARBodyTrackingConfiguration.isSupported
+    /// Fix C: real jewelry catalog fetched from Supabase on appear.
+    /// Falls back to JewelryItem.samples when the fetch returns empty or fails,
+    /// so AR remains usable offline and in UI tests.
+    @State private var jewelryCatalog: [JewelryItem] = JewelryItem.samples
 
     init(jewelry: JewelryItem, onDismiss: @escaping () -> Void, onCapture: @escaping (UIImage) -> Void) {
         self.jewelry = jewelry
@@ -51,6 +55,21 @@ struct ARTryOnWrapperView: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 withAnimation(EcrinAnimation.easeSlide) {
                     showInstructions = false
+                }
+            }
+            // Fix C: load real jewelry catalog from Supabase.
+            // Under UI tests keep static samples for determinism.
+            guard !AppLaunchEnvironment.isUITesting else { return }
+            Task {
+                do {
+                    let fetched = try await SupabaseService.shared.fetchJewelryCatalog()
+                    let mapped = fetched.map { $0.asJewelryItem }
+                    if !mapped.isEmpty {
+                        jewelryCatalog = mapped
+                    }
+                    // If fetch returns empty, jewelryCatalog keeps its JewelryItem.samples default.
+                } catch {
+                    // Network/Supabase error — AR still works with samples fallback.
                 }
             }
         }
@@ -145,8 +164,8 @@ struct ARTryOnWrapperView: View {
                 .font(.system(size: 16))
                 .foregroundStyle(EcrinColor.gold)
             Text(selectedJewelry.category == .earring || selectedJewelry.category == .necklace
-                 ? "Regardez la caméra"
-                 : "Montrez vos mains à la caméra")
+                 ? L10n.ArTryOnUI.lookAtCamera
+                 : L10n.ArTryOnUI.showHandsToCamera)
                 .font(EcrinFont.sans(13, weight: .medium))
                 .foregroundStyle(EcrinColor.textPrimary)
         }
@@ -230,13 +249,14 @@ struct ARTryOnWrapperView: View {
                     .fill(EcrinColor.textMuted)
                     .frame(width: 36, height: 4)
 
-                Text("Changer de bijou")
+                Text(L10n.ArTryOnUI.changeJewel)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: EcrinSpacing.md) {
-                        ForEach(JewelryItem.samples) { item in
+                        // Fix C: use real Supabase catalog; falls back to samples if fetch failed.
+                        ForEach(jewelryCatalog) { item in
                             JewelryPickerItem(
                                 item: item,
                                 isSelected: item.id == selectedJewelry.id
@@ -268,7 +288,7 @@ struct ARTryOnWrapperView: View {
             Color.black.opacity(0.8).ignoresSafeArea()
 
             VStack(spacing: EcrinSpacing.lg) {
-                Text("Look capturé")
+                Text(L10n.ArTryOnUI.lookCaptured)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
 
@@ -279,7 +299,7 @@ struct ARTryOnWrapperView: View {
                     .padding(.horizontal, EcrinSpacing.xl)
 
                 HStack(spacing: EcrinSpacing.lg) {
-                    GhostButton(title: "Reprendre") {
+                    GhostButton(title: L10n.ArTryOnUI.retake) {
                         withAnimation(EcrinAnimation.springSnap) { showCapturePreview = false }
                     }
                     GoldButton(title: L10n.Common.save) {
@@ -303,17 +323,17 @@ struct ARTryOnWrapperView: View {
                 .foregroundStyle(EcrinColor.textMuted)
 
             VStack(spacing: EcrinSpacing.sm) {
-                Text("AR non disponible")
+                Text(L10n.ArTryOnUI.arUnavailable)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
-                Text("L'essayage AR nécessite un iPhone compatible. Utilise l'essayage photo classique pour continuer.")
+                Text(L10n.ArTryOnUI.arRequiresCompatibleIphone)
                     .font(EcrinFont.body)
                     .foregroundStyle(EcrinColor.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, EcrinSpacing.xl)
             }
 
-            GoldButton(title: "Essayage Photo") { onDismiss() }
+            GoldButton(title: L10n.ArTryOnUI.photoTryOn) { onDismiss() }
 
             GhostButton(title: L10n.Common.close) { onDismiss() }
 

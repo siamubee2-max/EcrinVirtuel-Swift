@@ -43,7 +43,9 @@ struct EmotionalPaywallView: View {
                     planCards
 
                     // ── Primary CTA ─────────────────────────────────────
-                    GoldButton(title: "COMMENCER — 7 JOURS OFFERTS") {
+                    // Pas de mention d'essai gratuit : aucune intro offer n'existe
+                    // dans le flow d'achat (risque App Review 2.3.1 sinon).
+                    GoldButton(title: L10n.PaywallUI.continueMyTryOns) {
                         showFullPaywall = true
                     }
                     .padding(.horizontal, EcrinSpacing.xl)
@@ -91,18 +93,18 @@ struct EmotionalPaywallView: View {
     @ViewBuilder
     private var emotionalHeader: some View {
         VStack(spacing: EcrinSpacing.sm) {
-            Text("VOS CRÉATIONS")
+            Text(L10n.PaywallUI.yourCreations)
                 .font(EcrinFont.label)
                 .kerning(2)
                 .foregroundStyle(EcrinColor.gold)
 
             VStack(spacing: 0) {
-                Text("Vous avez trouvé votre style.")
+                Text(L10n.PaywallUI.youFoundYourStyle)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Continuez l'histoire.")
+                Text(L10n.PaywallUI.continueTheStory)
                     .font(EcrinFont.sectionHead)
                     .foregroundStyle(EcrinColor.gold)
                     .multilineTextAlignment(.center)
@@ -148,7 +150,7 @@ struct EmotionalPaywallView: View {
                             Text("∞")
                                 .font(EcrinFont.serif(24, weight: .light))
                                 .foregroundStyle(EcrinColor.gold)
-                            Text("illimité")
+                            Text(L10n.PaywallUI.unlimited)
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.textMuted)
                         }
@@ -180,7 +182,7 @@ struct EmotionalPaywallView: View {
             }
             .frame(width: 28 + 16 * 2)
 
-            Text("+12 400 utilisatrices ont découvert leurs bijoux parfaits")
+            Text(L10n.PaywallUI.socialProof)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
                 .fixedSize(horizontal: false, vertical: true)
@@ -198,9 +200,9 @@ struct EmotionalPaywallView: View {
     }
 
     // MARK: - Plan cards
-    // Prices match PaywallView exactly:
-    //   Starter: 7,99€ / 30 essayages/mois
-    //   Premium: 14,99€ / 70 essayages/mois (best value)
+    // Quotas depuis SubscriptionStatus (source unique) ; prix = fallbacks de
+    // PaywallView (les prix localisés StoreKit sont affichés sur le paywall
+    // complet où l'achat a réellement lieu).
 
     @ViewBuilder
     private var planCards: some View {
@@ -208,16 +210,16 @@ struct EmotionalPaywallView: View {
             // Starter — glass background
             PlanRow(
                 name: "Starter",
-                description: "30 essayages/mois",
-                price: "7,99€",
+                description: "\(SubscriptionStatus.starter.monthlyGenerations) crédits/mois",
+                price: "6,99€",
                 isPopular: false
             )
 
             // Premium — gold border + badge
             PlanRow(
                 name: "Premium",
-                description: "70 essayages/mois",
-                price: "14,99€",
+                description: "\(SubscriptionStatus.premium.monthlyGenerations) crédits/mois",
+                price: "12,99€",
                 isPopular: true
             )
         }
@@ -229,7 +231,7 @@ struct EmotionalPaywallView: View {
     @ViewBuilder
     private var footer: some View {
         Button(action: { showFullPaywall = true }) {
-            Text("Voir tous les forfaits · Restaurer mes achats")
+            Text(L10n.PaywallUI.seeAllPlansRestore)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
                 .multilineTextAlignment(.center)
@@ -257,7 +259,7 @@ private struct PlanRow: View {
                         .foregroundStyle(EcrinColor.textPrimary)
 
                     if isPopular {
-                        Text("POPULAIRE")
+                        Text(L10n.PaywallUI.popular)
                             .font(EcrinFont.label)
                             .kerning(1)
                             .foregroundStyle(EcrinColor.background)

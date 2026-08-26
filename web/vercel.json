@@ -1,0 +1,14 @@
+{
+  "rewrites": [
+    { "source": "/ecrin/gift/:id", "destination": "/ecrin/gift/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/.well-known/apple-app-site-association",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" },
+        { "key": "Cache-Control", "value": "max-age=3600" }
+      ]
+    }
+  ]
+}

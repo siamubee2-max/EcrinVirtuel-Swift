@@ -10,6 +10,8 @@ struct FullExportView: View {
 
     @StateObject private var vm: FullExportViewModel
     @Environment(\.dismiss) private var dismiss
+    /// Used to unlock premium frames for paying subscribers (Fix A).
+    @Environment(AppState.self) private var appState
 
     @State private var showBackgroundPicker = false
     @State private var showFramePicker = false
@@ -17,6 +19,7 @@ struct FullExportView: View {
     init(tryOnImage: UIImage, jewelryName: String = "L'ÉCRIN VIRTUEL") {
         self.tryOnImage = tryOnImage
         self.jewelryName = jewelryName
+        // isPremiumUser is refined in .onAppear once AppState is available.
         _vm = StateObject(wrappedValue: FullExportViewModel(tryOnImage: tryOnImage))
     }
 
@@ -32,7 +35,7 @@ struct FullExportView: View {
 
                 // Section title
                 HStack {
-                    Text("CRÉER MON SNAPSHOT")
+                    Text(L10n.SnapshotFramesUI.createMySnapshot)
                         .font(.custom("Cormorant", size: 20))
                         .fontWeight(.light)
                         .kerning(4)
@@ -73,7 +76,7 @@ struct FullExportView: View {
         .alert("Enregistré", isPresented: $vm.savedSuccess) {
             Button(L10n.Common.ok, role: .cancel) {}
         } message: {
-            Text("Votre snapshot a été enregistré dans la Photothèque.")
+            Text(L10n.SnapshotFramesUI.savedToPhotoLibrary)
         }
         .alert("Erreur", isPresented: $vm.showError) {
             Button(L10n.Common.ok, role: .cancel) {}
@@ -85,6 +88,14 @@ struct FullExportView: View {
         }
         .onChange(of: vm.frameVM.selectedFrame) { _, _ in
             vm.scheduleCompose()
+        }
+        .onAppear {
+            // Fix A: unlock premium frames for paying subscribers.
+            // Uses AppState.subscription (set by RevenueCat at launch) as the source
+            // of truth; CreditsManager.isUnlimited is also accepted as a fallback
+            // (handles grandfathered high-credit accounts).
+            vm.frameVM.isPremiumUser = appState.subscription.isSubscribed
+                || CreditsManager.shared.isUnlimited
         }
     }
 
@@ -106,7 +117,7 @@ struct FullExportView: View {
             Spacer()
 
             VStack(spacing: 2) {
-                Text("SNAPSHOT")
+                Text(L10n.SnapshotFramesUI.snapshotCaps)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
@@ -264,7 +275,7 @@ struct FullExportView: View {
         VStack(spacing: EcrinSpacing.md) {
             // Format selector
             HStack(spacing: EcrinSpacing.sm) {
-                Text("FORMAT")
+                Text(L10n.SocialExportUI.formatLabel)
                     .font(EcrinFont.label)
                     .kerning(2)
                     .foregroundStyle(EcrinColor.textMuted)
@@ -371,8 +382,14 @@ final class FullExportViewModel: ObservableObject {
     // SocialFormat convenience
     var outputSize: CGSize { selectedFormat.renderSize }
 
-    init(tryOnImage: UIImage) {
+    init(tryOnImage: UIImage, isPremiumUser: Bool = false) {
         self.tryOnImage = tryOnImage
+        // Propagate subscription status so FrameViewModel can unlock premium frames.
+        frameVM.isPremiumUser = isPremiumUser
+    }
+
+    deinit {
+        composeTask?.cancel()
     }
 
     func scheduleCompose() {
@@ -407,7 +424,7 @@ final class FullExportViewModel: ObservableObject {
 
         let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
         guard status == .authorized || status == .limited else {
-            errorMessage = "Veuillez autoriser l'accès à la Photothèque dans les Réglages."
+            errorMessage = L10n.SocialExportUI.allowPhotoLibraryAccess
             showError = true
             return
         }

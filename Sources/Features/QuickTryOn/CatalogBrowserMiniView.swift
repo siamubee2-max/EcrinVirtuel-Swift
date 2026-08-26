@@ -16,12 +16,16 @@ struct CatalogBrowserMiniView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            genderChips
-                .padding(.horizontal, EcrinSpacing.md)
-                .padding(.bottom, EcrinSpacing.sm)
+            // Les filtres n'ont pas de sens quand le catalogue vêtements
+            // ne s'applique pas au mode courant (ex. « Bijoux seuls »).
+            if !vm.isCatalogIncompatibleWithMode {
+                genderChips
+                    .padding(.horizontal, EcrinSpacing.md)
+                    .padding(.bottom, EcrinSpacing.sm)
 
-            categoryGroupChips
-                .padding(.bottom, EcrinSpacing.sm)
+                categoryGroupChips
+                    .padding(.bottom, EcrinSpacing.sm)
+            }
 
             contentArea
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -130,7 +134,7 @@ struct CatalogBrowserMiniView: View {
         VStack(spacing: EcrinSpacing.md) {
             ProgressView()
                 .tint(EcrinColor.gold)
-            Text("Chargement du catalogue…")
+            Text(L10n.CatalogUI.loadingCatalog)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textSecondary)
         }
@@ -143,10 +147,10 @@ struct CatalogBrowserMiniView: View {
             Image(systemName: "diamond")
                 .font(.system(size: 36, weight: .thin))
                 .foregroundStyle(EcrinColor.textMuted)
-            Text("Mode « Bijoux seuls »")
+            Text(L10n.QuickTryOnUI.jewelryOnlyMode)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textPrimary)
-            Text("Le catalogue vêtements ne s'applique pas à ce mode.\nUtilisez Ma garde-robe ou la Boutique.")
+            Text(L10n.QuickTryOnUI.clothingCatalogNotApplicable)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
                 .multilineTextAlignment(.center)
@@ -231,7 +235,7 @@ struct CatalogMiniCard: View {
                                     .fill(item.cardBackgroundColor)
 
                                 if let url = item.imageURL {
-                                    AsyncImage(url: url) { phase in
+                                    DownsampledAsyncImage(url: url) { phase in
                                         switch phase {
                                         case .success(let image):
                                             image

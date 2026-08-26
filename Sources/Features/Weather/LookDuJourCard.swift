@@ -21,6 +21,7 @@ struct LookDuJourCard: View {
                 headerRow
                 content
                     .animation(.easeInOut(duration: 0.35), value: viewModel.displayStateKey)
+                weatherAttribution
             }
             .padding(EcrinSpacing.lg)
             .background { weatherGradient }
@@ -29,17 +30,17 @@ struct LookDuJourCard: View {
             await viewModel.refresh(appState: appState, force: true)
         }
         .alert("Localisation pour votre look", isPresented: $viewModel.showLocationPreAlert) {
-            Button("Continuer") {
+            Button(L10n.WeatherUI.continueAction) {
                 Task { await viewModel.confirmLocationPermission(appState: appState) }
             }
-            Button("Saisir ma ville") {
+            Button(L10n.WeatherUI.enterMyCity) {
                 viewModel.showLocationPreAlert = false
                 viewModel.showCitySearch = true
             }
             Button(L10n.Common.cancel, role: .cancel) {}
         } message: {
             Text(
-                "L'Écrin Virtuel utilise votre position pour vous proposer un look adapté à la météo de votre ville. Vos coordonnées ne sont jamais stockées sur nos serveurs."
+                L10n.WeatherUI.locationPrivacyNotice
             )
         }
         .sheet(isPresented: $viewModel.showGenderPicker) {
@@ -69,17 +70,28 @@ struct LookDuJourCard: View {
         }
     }
 
+    // MARK: - Attribution météo (source de données obligatoire)
+
+    private var weatherAttribution: some View {
+        Link(destination: URL(string: "https://open-meteo.com")!) {
+            Text("Données météo · Open-Meteo.com")
+                .font(.system(size: 10))
+                .foregroundStyle(EcrinColor.textMuted.opacity(0.8))
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
+
     // MARK: - Header
 
     private var headerRow: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("LOOK DU JOUR")
+                Text(L10n.LookOfDay.title)
                     .font(EcrinFont.label)
                     .kerning(3)
                     .foregroundStyle(EcrinColor.gold)
                 if viewModel.showConversionMessage {
-                    Text("Votre styliste personnelle connaît votre météo. Essayez une tenue avant même de sortir.")
+                    Text(L10n.LookOfDay.tagline)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textMuted)
                         .fixedSize(horizontal: false, vertical: true)
@@ -112,7 +124,7 @@ struct LookDuJourCard: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(viewModel.maxBudget != nil
-                    ? "Filtre budget : \(Int(viewModel.maxBudget!))€" : "Filtrer par budget")
+                    ? "Filtre budget : \(Int(viewModel.maxBudget!))€" : L10n.WeatherUI.filterByBudget)
 
                 // Toggle notification quotidienne
                 Button {
@@ -126,7 +138,7 @@ struct LookDuJourCard: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(viewModel.dailyNotificationEnabled
-                    ? "Désactiver le rappel quotidien" : "Activer le rappel 8h")
+                    ? L10n.WeatherUI.disableDailyReminder : L10n.WeatherUI.enable8amReminder)
 
                 Button {
                     Task { await viewModel.refresh(appState: appState, force: true) }
@@ -136,7 +148,7 @@ struct LookDuJourCard: View {
                         .foregroundStyle(EcrinColor.gold)
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("Actualiser le look")
+                .accessibilityLabel(L10n.WeatherUI.refreshLook)
             }
         }
     }
@@ -155,7 +167,7 @@ struct LookDuJourCard: View {
         case .needsGender:
             needsGenderContent
         case .catalogEmpty:
-            Text("Le catalogue mode se charge… Revenez dans un instant.")
+            Text(L10n.LookOfDay.catalogLoading)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
         case .offline:
@@ -167,10 +179,10 @@ struct LookDuJourCard: View {
 
     private var idleContent: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("Découvrez une tenue adaptée à la météo de votre ville.")
+            Text(L10n.LookOfDay.discover)
                 .font(EcrinFont.body)
                 .foregroundStyle(EcrinColor.textSecondary)
-            GoldButton(title: "Voir mon look météo") {
+            GoldButton(title: L10n.LookOfDay.seeMyLook) {
                 Task { await viewModel.onCardTapped(appState: appState) }
             }
         }
@@ -192,7 +204,7 @@ struct LookDuJourCard: View {
             HStack(spacing: EcrinSpacing.sm) {
                 ProgressView()
                     .tint(EcrinColor.gold)
-                Text("Analyse météo en cours…")
+                Text(L10n.LookOfDay.analyzing)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textSecondary)
             }
@@ -241,11 +253,11 @@ struct LookDuJourCard: View {
                 .offset(y: cardAppeared ? 0 : 16)
 
             HStack(spacing: EcrinSpacing.sm) {
-                GoldButton(title: "Essayer", flexible: true) {
+                GoldButton(title: L10n.LookOfDay.tryButton, flexible: true) {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     onTryLook(look)
                 }
-                GhostButton(title: "Catalogue", flexible: true) {
+                GhostButton(title: L10n.LookOfDay.catalogButton, flexible: true) {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     onOpenCatalog()
                 }
@@ -261,8 +273,8 @@ struct LookDuJourCard: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(viewModel.currentLookSaved
-                    ? "Look déjà sauvegardé"
-                    : "Sauvegarder ce look")
+                    ? L10n.WeatherUI.lookAlreadySaved
+                    : L10n.AiStylist.saveLook)
             }
             .opacity(cardAppeared ? 1 : 0)
             .offset(y: cardAppeared ? 0 : 20)
@@ -277,10 +289,10 @@ struct LookDuJourCard: View {
 
     private var needsGenderContent: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-            Text("Choisissez votre genre pour personnaliser le Look du Jour.")
+            Text(L10n.LookOfDay.chooseGender)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textSecondary)
-            GoldButton(title: "Homme ou Femme") {
+            GoldButton(title: L10n.LookOfDay.genderCTA) {
                 viewModel.showGenderPicker = true
             }
         }
@@ -288,7 +300,7 @@ struct LookDuJourCard: View {
 
     private var offlineContent: some View {
         VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-            Text("Connexion requise pour la météo.")
+            Text(L10n.LookOfDay.offline)
                 .font(EcrinFont.caption)
                 .foregroundStyle(EcrinColor.textMuted)
             GhostButton(title: L10n.Common.retry) {
@@ -307,7 +319,7 @@ struct LookDuJourCard: View {
                     Task { await viewModel.refresh(appState: appState, force: true) }
                 }
                 if locationService.authStatus == .denied || locationService.authStatus == .restricted {
-                    GhostButton(title: "Ma ville") {
+                    GhostButton(title: L10n.LookOfDay.myCity) {
                         viewModel.showCitySearch = true
                     }
                 }
@@ -329,7 +341,7 @@ struct LookDuJourCard: View {
             HStack(spacing: EcrinSpacing.sm) {
                 Image(systemName: "tshirt.fill")
                     .foregroundStyle(EcrinColor.textMuted)
-                Text("Aucune tenue disponible pour cette météo")
+                Text(L10n.LookOfDay.noOutfit)
                     .font(EcrinFont.caption)
                     .foregroundStyle(EcrinColor.textMuted)
             }
@@ -383,7 +395,7 @@ struct LookDuJourCard: View {
                         Image(systemName: "diamond.fill")
                             .font(.system(size: 10))
                             .foregroundStyle(EcrinColor.gold)
-                        Text("Votre bijou : \(jewelryWardrobeItems.map(\.name).joined(separator: ", "))")
+                        Text(L10n.LookOfDay.yourJewelry(jewelryWardrobeItems.map(\.name).joined(separator: ", ")))
                             .font(EcrinFont.caption)
                             .foregroundStyle(EcrinColor.gold.opacity(0.9))
                             .lineLimit(1)
@@ -482,7 +494,7 @@ private struct LookHeroImage: View {
                 .fill(EcrinColor.surface)
 
             if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         // Vignette hero 120×160 — scaledToFill pour effet "magazine cover"
@@ -539,7 +551,7 @@ private struct LookSecondaryImage: View {
                 .fill(EcrinColor.surface)
 
             if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()
@@ -579,7 +591,7 @@ private struct LookHeroWardrobeImage: View {
             if let data = item.userPhotoData, let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage).resizable().scaledToFill()
             } else if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()
@@ -599,7 +611,7 @@ private struct LookHeroWardrobeImage: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 // Badge "Ma garde-robe"
-                Label("Ma garde-robe", systemImage: "checkmark.seal.fill")
+                Label(L10n.WeatherUI.myWardrobe, systemImage: "checkmark.seal.fill")
                     .font(.system(size: 8, weight: .semibold))
                     .foregroundStyle(EcrinColor.gold)
                     .padding(.horizontal, 6).padding(.vertical, 3)
@@ -637,7 +649,7 @@ private struct LookSecondaryWardrobeImage: View {
             if let data = item.userPhotoData, let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage).resizable().scaledToFill()
             } else if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image): image.resizable().scaledToFill()
                     default:
@@ -671,7 +683,7 @@ private struct LookItemThumb: View {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(EcrinColor.surface)
             if let url = item.displayImageURL {
-                AsyncImage(url: url) { phase in
+                DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()
