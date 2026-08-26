@@ -185,7 +185,7 @@ extension PoseVariant {
         name: "Profil",
         icon: "arrow.left.to.line.compact",
         category: .angle,
-        promptSuffix: "STRICT SIDE PROFILE: rotate the head a full 90 degrees so only one side of the face is visible, nose pointing to the side of the frame, the full ear visible and centered, earring detail sharp and in focus, clean background, macro-style jewelry photography. PROFILE SCALE RULE: even in this close-up the earring stays true-to-life dainty \u2014 total length no more than 1.5x the height of the ear, never reaching below the jawline, never dominating the frame",
+        promptSuffix: "STRICT SIDE PROFILE: rotate the head a full 90 degrees so only one side of the face is visible, nose pointing to the side of the frame, the full ear visible and centered, earring detail sharp and in focus, clean background, macro-style jewelry photography. PROFILE SCALE RULE: even in this close-up the earring stays true-to-life dainty - total length no more than 1.5x the height of the ear, never reaching below the jawline, never dominating the frame",
         itemTypes: [.earrings],
         isMotion: false
     )
