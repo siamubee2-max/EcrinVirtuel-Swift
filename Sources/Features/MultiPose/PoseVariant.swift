@@ -175,7 +175,7 @@ extension PoseVariant {
         name: "3/4",
         icon: "angle",
         category: .angle,
-        promptSuffix: "three-quarter face turn, chin slightly down, one earring prominently visible with the other partially visible, jewelry editorial style",
+        promptSuffix: "three-quarter head turn (45 degrees), keep the close-up head-and-shoulders framing of the input photo, chin slightly down, one earring prominently visible with the other partially visible, jewelry editorial style",
         itemTypes: [.earrings],
         isMotion: false
     )
@@ -185,7 +185,7 @@ extension PoseVariant {
         name: "Profil",
         icon: "arrow.left.to.line.compact",
         category: .angle,
-        promptSuffix: "side profile portrait, full ear visible, earring detail sharp and in focus, clean background, macro-style jewelry photography",
+        promptSuffix: "STRICT SIDE PROFILE: rotate the head a full 90 degrees so only one side of the face is visible, nose pointing to the side of the frame, the full ear visible and centered, earring detail sharp and in focus, clean background, macro-style jewelry photography",
         itemTypes: [.earrings],
         isMotion: false
     )
