@@ -39,8 +39,6 @@
 	<string>L'Écrin Virtuel utilise la caméra pour l'essayage virtuel de bijoux en temps réel.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>L'Écrin Virtuel utilise votre position pour vous proposer un look adapté à la météo de votre ville.</string>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>L'Écrin Virtuel enregistre vos essayages virtuels dans votre photothèque lorsque vous le demandez.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>L'Écrin Virtuel utilise vos photos pour l'essayage virtuel de bijoux.</string>
 	<key>NSPrivacyPolicyURL</key>

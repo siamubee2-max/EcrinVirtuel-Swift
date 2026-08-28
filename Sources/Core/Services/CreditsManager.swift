@@ -98,11 +98,29 @@ final class CreditsManager {
         syncDetached() // ré-évalue l'état anonyme (essais gratuits)
     }
 
-    // MARK: - Subscription update
+    // MARK: - Après achat
 
-    /// Appelé après un achat RevenueCat : met à jour l'affichage local
-    /// en attendant que l'Edge Function credit-generations confirme le nouveau total.
-    func handleSubscriptionUpgrade(to status: SubscriptionStatus) {
-        remaining = status.monthlyGenerations
+    /// Resynchronise jusqu'à ce que le solde serveur dépasse `baseline`.
+    ///
+    /// L'octroi est asynchrone et hors de l'app (webhook `revenuecat-webhook`,
+    /// ou `credit-generations` appelée juste avant) : un unique `sync()` juste
+    /// après le paiement lit souvent l'ancien solde. Renvoie `true` dès que
+    /// l'augmentation est constatée, `false` si elle ne l'est pas dans le
+    /// budget imparti — l'appelant affiche alors « attribution en cours »,
+    /// jamais un nombre inventé ni une erreur.
+    ///
+    /// Remplace l'ancien `handleSubscriptionUpgrade`, qui AFFECTAIT
+    /// `remaining = status.monthlyGenerations` en concurrence avec `sync()` :
+    /// l'utilisateur voyait « 15 » puis « 3 », ou l'inverse, après paiement.
+    @discardableResult
+    func syncUntilIncrease(above baseline: Int, attempts: Int = 5) async -> Bool {
+        for attempt in 0..<max(1, attempts) {
+            if attempt > 0 {
+                try? await Task.sleep(for: .seconds(2))
+            }
+            await sync()
+            if remaining > baseline { return true }
+        }
+        return false
     }
 }

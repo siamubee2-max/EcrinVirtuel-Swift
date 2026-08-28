@@ -2,21 +2,32 @@ import Foundation
 
 // MARK: - Packs de recharge d'essais (consommables IAP)
 
+// Le `count` de chaque pack DOIT rester égal au nombre annoncé par le produit
+// App Store Connect (10 / 30 / 70 / 150) : c'est ce libellé que l'acheteur lit
+// sur la feuille de confirmation Apple. Les anciens « +5 / +20 offerts » —
+// affichés 75 et 170 dans l'app — contredisaient ASC (motif de rejet).
 struct CreditsPack: Identifiable {
     let id: String          // = rcProductIdentifier
     let label: String
     let count: Int
     let price: String       // affiché en UI (mis à jour depuis StoreKit)
-    let priceUSD: Double    // valeur de référence interne
-    let bonus: String?      // ex: "+5 offerts" — label d'affichage uniquement
-    let bonusCount: Int     // crédits bonus réels crédités (0 si pas de bonus)
+    let referencePrice: Double  // en EUR — repli quand StoreKit est muet
     let badge: String?      // ex: "MEILLEURE VALEUR"
     let icon: String        // SF Symbol
 
-    // Coût par crédit affiché
-    var perTrial: String {
-        let raw = priceUSD / Double(count)
-        return String(format: "%.2f€/crédit", raw)
+    // Coût par crédit — REPLI uniquement, quand StoreKit n'a pas répondu.
+    // Le symbole était codé en dur : sur un store non européen l'utilisateur
+    // lisait un prix en dollars et un ratio en euros sur la même ligne.
+    // Le chemin normal passe par `CreditsPackViewModel.perCredit(for:)`, qui
+    // dérive le ratio du prix réel et de sa devise.
+    var perTrialFallback: String {
+        let raw = referencePrice / Double(count)
+        let f = NumberFormatter()
+        f.numberStyle = .currency
+        f.currencyCode = "EUR"          // devise des prix de référence ci-dessous
+        f.maximumFractionDigits = 2
+        let amount = f.string(from: NSNumber(value: raw)) ?? String(format: "%.2f", raw)
+        return "\(amount)/crédit"
     }
 
     static let all: [CreditsPack] = [
@@ -25,9 +36,7 @@ struct CreditsPack: Identifiable {
             label: "Spark",
             count: 10,
             price: "2,99€",
-            priceUSD: 2.99,
-            bonus: nil,
-            bonusCount: 0,
+            referencePrice: 2.99,
             badge: nil,
             icon: "sparkle"
         ),
@@ -36,9 +45,7 @@ struct CreditsPack: Identifiable {
             label: "Glow",
             count: 30,
             price: "7,99€",
-            priceUSD: 7.99,
-            bonus: nil,
-            bonusCount: 0,
+            referencePrice: 7.99,
             badge: "MEILLEURE VALEUR",
             icon: "sparkles"
         ),
@@ -47,9 +54,7 @@ struct CreditsPack: Identifiable {
             label: "Éclat",
             count: 70,
             price: "16,99€",
-            priceUSD: 16.99,
-            bonus: "+5 offerts",
-            bonusCount: 5,
+            referencePrice: 16.99,
             badge: nil,
             icon: "star.fill"
         ),
@@ -58,9 +63,7 @@ struct CreditsPack: Identifiable {
             label: "Diamant",
             count: 150,
             price: "29,99€",
-            priceUSD: 29.99,
-            bonus: "+20 offerts",
-            bonusCount: 20,
+            referencePrice: 29.99,
             badge: nil,
             icon: "crown.fill"
         ),

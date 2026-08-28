@@ -1,5 +1,6 @@
 import SwiftUI
 import AuthenticationServices
+import Supabase
 
 // MARK: - Auth gate avant génération IA
 // Une session anonyme silencieuse honore « 3 essais offerts · Aucune carte
@@ -11,12 +12,41 @@ enum GenerationAuthGate {
         await SupabaseService.shared.hasValidSession()
     }
 
-    /// Session existante, sinon tentative de session anonyme silencieuse.
+    /// Session existante, sinon session anonyme fraîchement créée.
+    ///
+    /// Renvoie la session elle-même : un appelant qui a besoin de l'utilisateur
+    /// ne doit PAS relire `auth.session` juste après, car le SDK peut encore
+    /// renvoyer `nil` le temps de la persister — c'est ce qui renvoyait
+    /// l'onboarding sur l'écran de connexion alors que la session était créée.
+    static func currentOrAnonymousSession() async -> Session? {
+        if let existing = try? await SupabaseService.shared.auth.session { return existing }
+        return await SupabaseService.shared.signInAnonymously()
+    }
+
+    /// Variante booléenne pour les appelants qui n'ont besoin que du feu vert.
     /// Retourne false uniquement si les deux échouent (hors-ligne, etc.) —
     /// dans ce cas l'appelant affiche GenerationSignInSheet.
     static func ensureSession() async -> Bool {
-        if await SupabaseService.shared.hasValidSession() { return true }
-        return await SupabaseService.shared.signInAnonymously()
+        await currentOrAnonymousSession() != nil
+    }
+
+    /// Identité EXIGÉE avant tout achat — aucune session n'est créée ici.
+    ///
+    /// Les connexions anonymes sont désactivées côté projet (`signup` renvoie
+    /// 422 `anonymous_provider_disabled`) : tenter d'en ouvrir une échouait
+    /// silencieusement et l'achat partait sous un `$RCAnonymousID:…` que le
+    /// webhook ignore (`non_uuid_app_user_id`) — encaissé, jamais crédité.
+    /// L'appelant DOIT présenter `GenerationSignInSheet` quand ceci renvoie
+    /// `false`, et ne relancer le paiement qu'ensuite.
+    ///
+    /// Une session anonyme résiduelle (build antérieur) est traitée comme une
+    /// absence de session : les crédits payés y seraient orphelins.
+    static func requirePurchaseIdentity() async -> Bool {
+        guard let user = try? await SupabaseService.shared.auth.session.user,
+              !user.isAnonymous
+        else { return false }
+        await RevenueCatService.logIn(userId: user.id.uuidString)
+        return true
     }
 }
 

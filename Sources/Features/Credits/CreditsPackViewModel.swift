@@ -13,9 +13,15 @@ final class CreditsPackViewModel {
     var selectedPack: CreditsPack? = CreditsPack.all[1]  // Glow par défaut (30 crédits)
     var isPurchasing = false
     var purchaseSuccess = false
+    /// Crédits RÉELLEMENT constatés côté serveur après l'achat (0 = octroi
+    /// encore en attente). Jamais le total annoncé du pack : afficher
+    /// « +75 crédits » pendant que le solde ne bouge pas est un mensonge.
     var purchasedCount = 0
     var errorMessage: String?
     var isLoadingCredits = false
+    /// Aucune session Supabase : la vue présente GenerationSignInSheet puis
+    /// relance l'achat. Aucun paiement n'est lancé sans identité.
+    var needsSignIn = false
 
     // MARK: - Lifecycle
 
@@ -54,9 +60,7 @@ final class CreditsPackViewModel {
                     label: pack.label,
                     count: pack.count,
                     price: sp.localizedPriceString,
-                    priceUSD: pack.priceUSD,
-                    bonus: pack.bonus,
-                    bonusCount: pack.bonusCount,
+                    referencePrice: pack.referencePrice,
                     badge: pack.badge,
                     icon: pack.icon
                 )
@@ -77,34 +81,59 @@ final class CreditsPackViewModel {
         errorMessage = nil
         defer { isPurchasing = false }
 
+        // Identité EXIGÉE : sans session, `credit-generations` répond 401 et le
+        // webhook ignore l'événement (`non_uuid_app_user_id`). Le résultat de la
+        // garde n'est plus ignorable — pas d'achat sans identité.
+        guard await GenerationAuthGate.requirePurchaseIdentity() else {
+            needsSignIn = true
+            return
+        }
+
         do {
+            // Référence FRAÎCHE avant paiement : `remaining` peut être obsolète
+            // (jamais synchronisé), et un baseline trop bas ferait passer le
+            // solde préexistant pour des crédits fraîchement achetés.
+            await CreditsManager.shared.sync()
+            let baseline = CreditsManager.shared.remaining
             let result = try await Purchases.shared.purchase(product: storeProduct)
 
             // RevenueCat 5.x ne throw pas sur l'annulation utilisateur — il la signale ici.
             if result.userCancelled { return }
 
-            // Récupérer l'ID de transaction Apple pour l'idempotence
-            guard let transactionId = result.transaction?.transactionIdentifier else {
-                errorMessage = L10n.CreditsUI.purchaseIncomplete
-                return
+            // À partir d'ici Apple a validé l'achat : l'écran affiche TOUJOURS le succès.
+            // Un octroi qui échoue (RevenueCat pas encore synchronisé, réseau, 402/503)
+            // est journalisé et rattrapé par `revenuecat-webhook` puis par la resync du
+            // solde — jamais présenté comme un achat raté (refus App Review 2.1(b)).
+            let transactionId = result.transaction?.transactionIdentifier
+            if let transactionId {
+                do {
+                    _ = try await SupabaseService.shared.creditGenerations(
+                        productId: pack.id,
+                        transactionId: transactionId
+                    )
+                } catch {
+                    MonitoringService.shared.recordCreditGrantFailure(
+                        error, productId: pack.id, transactionId: transactionId
+                    )
+                }
+            } else {
+                MonitoringService.shared.recordCreditGrantFailure(
+                    nil, productId: pack.id, transactionId: nil
+                )
             }
 
-            // Créditer côté serveur via Edge Function
-            let newTotal = try await SupabaseService.shared.creditGenerations(
-                productId: pack.id,
-                transactionId: transactionId
-            )
-
-            currentCredits = newTotal
-            // Répercuter immédiatement sur le solde global : sans cela, l'utilisateur
-            // à 0 crédit qui vient de payer retombe sur le paywall jusqu'au relaunch.
-            CreditsManager.shared.remaining = newTotal
-            CreditsManager.shared.syncDetached()
-            purchasedCount = pack.count + pack.bonusCount
-
-            // Refresh the single source of truth so the generation paywall
-            // reads the updated balance immediately (Bug C8).
-            await CreditsManager.shared.sync()
+            // Solde serveur = source de vérité unique, y compris pour le NOMBRE
+            // affiché : on annonce l'augmentation constatée, pas celle promise.
+            // Sans octroi constaté, l'overlay bascule sur « attribution en cours »
+            // (purchasedCount == 0) au lieu d'afficher un « +75 » imaginaire.
+            let credited = await CreditsManager.shared.syncUntilIncrease(above: baseline)
+            currentCredits = CreditsManager.shared.remaining
+            purchasedCount = credited ? max(0, currentCredits - baseline) : 0
+            if !credited {
+                MonitoringService.shared.recordCreditGrantFailure(
+                    nil, productId: pack.id, transactionId: transactionId
+                )
+            }
 
             withAnimation(EcrinAnimation.springBounce) {
                 purchaseSuccess = true
@@ -123,5 +152,22 @@ final class CreditsPackViewModel {
 
     func displayPrice(for pack: CreditsPack) -> String {
         storeProducts[pack.id]?.localizedPriceString ?? pack.price
+    }
+
+    /// Coût par crédit, dérivé du prix RÉEL et de SA devise.
+    /// Sans produit StoreKit, on retombe sur le repli en euros du catalogue —
+    /// jamais sur un montant d'une devise mêlé au symbole d'une autre.
+    func perCredit(for pack: CreditsPack) -> String {
+        guard let sp = storeProducts[pack.id], pack.count > 0 else {
+            return pack.perTrialFallback
+        }
+        let unit = (sp.price as NSDecimalNumber).doubleValue / Double(pack.count)
+        let f = NumberFormatter()
+        f.numberStyle = .currency
+        f.locale = sp.priceFormatter?.locale ?? .current
+        if let code = sp.currencyCode { f.currencyCode = code }
+        f.maximumFractionDigits = 2
+        let amount = f.string(from: NSNumber(value: unit)) ?? String(format: "%.2f", unit)
+        return "\(amount)/crédit"
     }
 }

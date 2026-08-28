@@ -221,6 +221,13 @@ final class ImageGenerationService: Sendable {
         category: GenerationCategory? = nil,
         referenceImageData: Data? = nil
     ) async throws -> UIImage {
+        // Apple 5.1.1(i) / 5.1.2(i) — le consentement est demandé ICI, au seul point
+        // de passage de tous les écrans d'essayage : aucune photo ne peut partir sans
+        // accord explicite, et un futur appelant ne peut pas court-circuiter la porte.
+        guard await AIConsentGate.requireConsent() else {
+            throw GenerationError.consentDeclined
+        }
+
         // Obtenir le JWT utilisateur.
         // Pour les utilisateurs non connectés (wizard first-run), on crée une session anonyme.
         // L'Edge Function accepte les users anonymes Supabase (isAnonymous = true côté serveur).
@@ -305,6 +312,7 @@ final class ImageGenerationService: Sendable {
         case apiError
         case invalidResponse
         case authenticationRequired
+        case consentDeclined
         case quotaExceeded
         case serverError(String)
 
@@ -314,6 +322,7 @@ final class ImageGenerationService: Sendable {
             case .apiError:                  return "Erreur lors de la génération. Réessayez."
             case .invalidResponse:           return "Réponse inattendue du serveur."
             case .authenticationRequired:    return "Connectez-vous avec Apple pour générer votre essayage."
+            case .consentDeclined:           return L10n.TryOnUI.consentDeclinedMessage
             case .quotaExceeded:             return "Plus de crédits disponibles. Passez à un abonnement pour continuer."
             case .serverError(let msg):      return "Serveur : \(msg)"
             }

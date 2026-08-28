@@ -66,9 +66,15 @@ targets:
       Release: Secrets.xcconfig
     entitlements:
       path: Sources/App/EcrinVirtuel.entitlements
+      # XcodeGen rewrites the file at `path` from this block, so every entitlement
+      # must be listed here. A key present only in the file is silently dropped on
+      # the next `xcodegen generate` — that is how Sign in with Apple was lost.
       properties:
+        com.apple.developer.applesignin:
+          - Default
         com.apple.developer.associated-domains:
           - applinks:ecrin.app
+          - applinks:inferencevision.store
         com.apple.developer.devicecheck.appattest-environment: production
     settings:
       base:

@@ -43,6 +43,24 @@ const MAX_PROMPT_CHARS       = 4_000
 const MAX_IMAGE_BASE64_CHARS = 6 * 1024 * 1024   // ~4.5 MB binaire
 const POLL_INTERVAL_MS       = 3_000
 const POLL_MAX_ATTEMPTS      = 30                  // 30 × 3s = 90s max
+// Bucket `tryon-temp` privé (migration 010) → URL signée courte pour fal.ai.
+// Couvre la file d'attente fal (POLL_MAX_ATTEMPTS × POLL_INTERVAL_MS = 90 s).
+const SIGNED_URL_TTL_SECONDS = 300
+
+// ── En-têtes plateforme fal.ai (fal.ai/docs/documentation/model-apis/common-parameters)
+//   X-Fal-Store-IO: "0"                    → fal ne stocke pas les payloads JSON
+//                                            (défaut : conservation 30 jours).
+//   X-Fal-Object-Lifecycle-Preference      → expiration des fichiers CDN produits
+//                                            + ACL initiale ("forbid" = 403 pour
+//                                            les tiers ; le propriétaire de la clé
+//                                            garde l'accès).
+const FAL_PRIVACY_HEADERS: Record<string, string> = {
+  "X-Fal-Store-IO": "0",
+  "X-Fal-Object-Lifecycle-Preference": JSON.stringify({
+    expiration_duration_seconds: SIGNED_URL_TTL_SECONDS,
+    initial_acl: { default: "forbid" },
+  }),
+}
 
 // Comptes fondateur — pas de décompte quota (aligné iOS UnlimitedAccess.swift)
 const UNLIMITED_EMAILS = new Set([
@@ -98,6 +116,19 @@ serve(async (req) => {
 
   const userId      = user.id
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+  // Signe un objet du bucket privé `tryon-temp` pour que fal.ai puisse le lire.
+  // `null` si la signature échoue → la cascade bascule sur les APIs directes.
+  const signTempUrl = async (path: string): Promise<string | null> => {
+    const { data, error } = await adminClient.storage
+      .from(STORAGE_BUCKET)
+      .createSignedUrl(path, SIGNED_URL_TTL_SECONDS)
+    if (error || !data?.signedUrl) {
+      console.warn(`Signed URL failed for ${path}:`, error)
+      return null
+    }
+    return data.signedUrl
+  }
 
   try {
     let rawBodyText: string | undefined
@@ -222,7 +253,10 @@ serve(async (req) => {
       }
     }
 
-    // ── Upload Storage pour fal.ai (besoin d'une URL publique) ───────────────
+    // ── Upload Storage pour fal.ai (besoin d'une URL fetchable) ─────────────
+    // Le bucket est PRIVÉ depuis la migration 010 : getPublicUrl y renvoie une
+    // URL qui répond 400/404, donc fal.ai échouait à chaque appel et la cascade
+    // retombait systématiquement sur Gemini. On signe l'URL (TTL court).
     const falConfig  = FAL_MODELS[model] ?? FAL_MODELS.standard
     const imageBytes = base64ToBytes(imageBase64)
     const stamp      = Date.now()
@@ -232,13 +266,11 @@ serve(async (req) => {
       .from(STORAGE_BUCKET)
       .upload(tempPath, imageBytes, { contentType: "image/jpeg", upsert: true })
 
-    const publicUrl = uploadError
-      ? null
-      : adminClient.storage.from(STORAGE_BUCKET).getPublicUrl(tempPath).data.publicUrl
-
     if (uploadError) {
       console.warn("Storage upload failed — fal.ai unavailable, using direct APIs:", uploadError)
     }
+
+    const signedUrl = uploadError ? null : await signTempUrl(tempPath)
 
     // Photo produit du bijou/vêtement sélectionné — SANS elle le modèle invente
     // un bijou différent à chaque génération. Transmise comme 2e image de
@@ -257,7 +289,8 @@ serve(async (req) => {
         console.warn("Reference upload failed — generating without product reference:", refUploadError)
         refPath = null
       } else {
-        refUrl = adminClient.storage.from(STORAGE_BUCKET).getPublicUrl(refPath).data.publicUrl
+        refUrl = await signTempUrl(refPath)
+        if (!refUrl) refPath = null
       }
     }
 
@@ -271,7 +304,7 @@ serve(async (req) => {
     const errors: string[] = []
 
     // ── Fournisseur 1 : fal.ai (NB2 → NB Pro → Flux Kontext) ─────────────────
-    if (publicUrl) {
+    if (signedUrl) {
       const cascade: FalModel[] = [falConfig]
       // Escalade vers l'autre Nano Banana si le modèle demandé n'est pas lui
       const alternate = falConfig.id === NANO_BANANA_PRO.id ? NANO_BANANA_2 : NANO_BANANA_PRO
@@ -279,7 +312,7 @@ serve(async (req) => {
 
       for (const cfg of cascade) {
         try {
-          resultBase64 = await generateWithFal(cfg, publicUrl, refUrl, promptWithRef, aspectRatio)
+          resultBase64 = await generateWithFal(cfg, signedUrl, refUrl, promptWithRef, aspectRatio)
           provider = cfg.id
           break // succès → on sort de la cascade
         } catch (err) {
@@ -389,6 +422,7 @@ async function generateWithFal(
     headers: {
       "Authorization": `Key ${FAL_API_KEY}`,
       "Content-Type":  "application/json",
+      ...FAL_PRIVACY_HEADERS,
     },
     body: JSON.stringify(input),
   })
@@ -420,7 +454,13 @@ async function generateWithFal(
         json.images?.[0]?.url ?? json.image?.url ?? json.output?.[0]?.url
       if (!outputUrl) throw new Error("fal: job done but no image URL in response")
 
-      const imgRes = await fetch(outputUrl)
+      // L'ACL initiale "forbid" ferme le fichier CDN aux tiers ; le propriétaire
+      // de la clé garde l'accès, d'où le repli authentifié si l'appel anonyme
+      // est refusé (403/404).
+      let imgRes = await fetch(outputUrl)
+      if (imgRes.status === 403 || imgRes.status === 404) {
+        imgRes = await fetch(outputUrl, { headers: { "Authorization": `Key ${FAL_API_KEY}` } })
+      }
       if (!imgRes.ok) throw new Error(`fal: image download failed ${imgRes.status}`)
       return bytesToBase64(new Uint8Array(await imgRes.arrayBuffer()))
     }

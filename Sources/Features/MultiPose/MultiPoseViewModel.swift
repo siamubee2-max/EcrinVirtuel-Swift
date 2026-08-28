@@ -148,6 +148,8 @@ final class MultiPoseViewModel {
         // Image produit de référence (1 seul téléchargement, réutilisé pour toutes les poses).
         let referenceData = await service.referenceData(for: items.first?.referenceImageURL)
 
+        var consentDeclined = false
+
         // Génération SÉQUENTIELLE (une pose à la fois) — fiabilité maximale.
         // gpt-image-1 (/images/edits) est lent (~25s) et rate-limité : 3 appels
         // concurrents avec image de référence faisaient échouer 2 vues sur 3.
@@ -174,6 +176,11 @@ final class MultiPoseViewModel {
                     )
                     poseResult = PoseResult(id: pose.id, pose: pose, image: generated, state: .done)
                     break
+                } catch ImageGenerationService.GenerationError.consentDeclined {
+                    // Un refus est une décision, pas une panne : réessayer ne peut que
+                    // re-présenter le modal. On sort de la boucle sans consommer de délai.
+                    consentDeclined = true
+                    break
                 } catch {
                     if attempt == maxAttempts { break }
                     // Backoff long pour laisser passer un rate-limit transitoire : 3s, puis 8s.
@@ -185,14 +192,30 @@ final class MultiPoseViewModel {
             completed += 1
             updateResult(poseResult)
             progress = Double(completed) / Double(posesToGenerate.count)
+
+            // Le refus vaut pour tout le run : les poses suivantes partiraient vers le
+            // même tiers, avec le même refus. On interrompt au lieu de les enchaîner.
+            if consentDeclined { break }
         }
 
         generatingPoseId = nil
         isGenerating = false
 
+        // Les poses jamais tentées resteraient bloquées en `.waiting` et `isDone`
+        // ne passerait jamais à true : on les clôt pour que l'écran se termine.
+        if consentDeclined {
+            for result in results where result.state == .waiting || result.state == .generating {
+                updateResultState(poseId: result.id, state: .failed)
+            }
+        }
+
+        // Un refus de consentement n'est pas un échec technique : il faut le dire,
+        // sinon l'utilisatrice ne comprend pas pourquoi rien n'a été généré.
         let failedCount = results.filter { $0.state == .failed }.count
-        if failedCount > 0 {
-            errorMessage = "\(failedCount) vue\(failedCount > 1 ? "s" : "") n'ont pas pu être générées."
+        if consentDeclined {
+            errorMessage = L10n.TryOnUI.consentDeclinedMessage
+        } else if failedCount > 0 {
+            errorMessage = L10n.MultiPoseUI.viewsFailed(failedCount)
         }
     }
 
@@ -222,6 +245,9 @@ final class MultiPoseViewModel {
             updateResult(result)
         } catch {
             updateResultState(poseId: pose.id, state: .failed)
+            if case ImageGenerationService.GenerationError.consentDeclined = error {
+                errorMessage = L10n.TryOnUI.consentDeclinedMessage
+            }
         }
 
         generatingPoseId = nil

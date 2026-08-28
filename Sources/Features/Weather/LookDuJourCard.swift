@@ -498,8 +498,13 @@ private struct LookHeroImage: View {
                     switch phase {
                     case .success(let image):
                         // Vignette hero 120×160 — scaledToFill pour effet "magazine cover"
-                        // (la zone est trop petite pour scaledToFit + barres noires)
+                        // (la zone est trop petite pour scaledToFit + barres noires).
+                        // frame + clipped obligatoires : sans eux l'image élargit le
+                        // ZStack, le label s'étire à cette largeur invisible, puis le
+                        // frame final recadre au centre et n'en laisse voir que la fin.
                         image.resizable().scaledToFill()
+                            .frame(width: 120, height: 160)
+                            .clipped()
                     default:
                         Image(systemName: item.categoryIcon)
                             .font(.system(size: 32, weight: .thin))
@@ -587,14 +592,20 @@ private struct LookHeroWardrobeImage: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(EcrinColor.surface)
 
-            // Vignette hero 120×160 — scaledToFill pour effet "magazine cover"
+            // Vignette hero 120×160 — scaledToFill pour effet "magazine cover".
+            // frame + clipped obligatoires : sans eux l'image élargit le ZStack et
+            // le label du bas se retrouve rogné par le frame final.
             if let data = item.userPhotoData, let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage).resizable().scaledToFill()
+                    .frame(width: 120, height: 160)
+                    .clipped()
             } else if let url = item.displayImageURL {
                 DownsampledAsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
                         image.resizable().scaledToFill()
+                            .frame(width: 120, height: 160)
+                            .clipped()
                     default:
                         Image(systemName: item.category.icon)
                             .font(.system(size: 32, weight: .thin))

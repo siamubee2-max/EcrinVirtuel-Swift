@@ -6,7 +6,6 @@ struct StoneGuideView: View {
     @State private var selectedChakra: Chakra?
     @State private var selectedIntention: StoneIntentionCategory?
     @State private var selectedStone: Stone?
-    @State private var showDetail = false
     @State private var searchText = ""
 
     private var filteredStones: [Stone] {
@@ -39,10 +38,11 @@ struct StoneGuideView: View {
                 stonesGrid
             }
         }
-        .sheet(isPresented: $showDetail) {
-            if let stone = selectedStone {
-                StoneDetailView(stone: stone)
-            }
+        // sheet(item:) et non sheet(isPresented:) : avec deux états séparés, la
+        // feuille s'ouvrait avant que `selectedStone` soit propagé et le premier
+        // tap affichait une fiche vide.
+        .sheet(item: $selectedStone) { stone in
+            StoneDetailView(stone: stone)
         }
     }
 
@@ -198,14 +198,17 @@ struct StoneGuideView: View {
                     ForEach(filteredStones) { stone in
                         StoneGridCard(stone: stone) {
                             selectedStone = stone
-                            showDetail = true
                         }
                         .transition(.opacity.combined(with: .scale(scale: 0.95)))
                     }
                 }
                 .padding(.horizontal, EcrinSpacing.lg)
-                .padding(.bottom, EcrinSpacing.xxl)
                 .animation(EcrinAnimation.springSnap, value: filteredStones.map(\.id))
+
+                WellnessDisclaimer()
+                    .padding(.horizontal, EcrinSpacing.lg)
+                    .padding(.top, EcrinSpacing.lg)
+                    .padding(.bottom, EcrinSpacing.xxl)
             }
         }
     }

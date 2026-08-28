@@ -7,7 +7,13 @@
 // n'envoie pas de JWT Supabase.
 //
 // Idempotent par event.id via credit_transactions (UNIQUE transaction_id).
-// Barème : starter=15, premium=40, elite/founder=100 (aligné credit-generations).
+// Barème abonnements : starter=15, premium=40, elite/founder=100.
+// Barème packs consommables : voir PACK_CREDITS (aligné credit-generations + ASC).
+//
+// ⚠️ PRÉREQUIS : migration 012 (UNIQUE transaction_id + credit_generations_atomic)
+// et secret RC_WEBHOOK_SECRET POSÉ AVANT tout `functions deploy` — la version
+// déployée aujourd'hui contient un repli en dur qui disparaît avec ce fichier ;
+// déployer sans le secret met la fonction en 503 et COUPE les paiements.
 //
 // Chaque livraison est journalisée (best-effort) dans public.webhook_deliveries
 // (migration 013) pour permettre la vérification par SQL même quand l'API
@@ -24,6 +30,24 @@ const CREDIT_EVENTS = new Set([
   "INITIAL_PURCHASE", "RENEWAL", "PRODUCT_CHANGE", "NON_RENEWING_PURCHASE", "UNCANCELLATION",
 ])
 const DOWNGRADE_EVENTS = new Set(["EXPIRATION"])
+
+// Packs consommables — le webhook est le FILET de sécurité du chemin d'octroi :
+// `credit-generations` est appelée par l'app juste après l'achat, mais elle peut
+// échouer (app tuée, réseau, RevenueCat pas encore propagé). Sans cette table, un
+// NON_RENEWING_PURCHASE de pack tombait sur `ignored unknown_product` et l'achat
+// n'était crédité NULLE PART.
+//
+// Totaux identiques à VALID_PACKS de credit-generations et aux libellés App Store
+// Connect (70 / 150, sans bonus implicite). Les deux chemins partagent la même clé
+// d'idempotence (store transaction_id) et la même RPC atomique : le second passage
+// lève ALREADY_CREDITED. ⚠️ Suppose la migration 012 appliquée (contrainte UNIQUE
+// + credit_generations_atomic) — sans elle, double-crédit possible.
+const PACK_CREDITS: Record<string, number> = {
+  "ecrin_credits_spark":    10,
+  "ecrin_credits_glow":     30,
+  "ecrin_credits_eclat":    70,
+  "ecrin_credits_diamant": 150,
+}
 
 function planForProduct(productId: string): { plan: string, credits: number } | null {
   const p = productId.toLowerCase()
@@ -111,11 +135,6 @@ async function handle(req: Request, meta: DeliveryMeta): Promise<Response> {
     }
 
     const productId: string = event.product_id ?? ""
-    const mapping = planForProduct(productId)
-    if (!mapping) {
-      meta.outcome = `ignored unknown_product ${productId}`
-      return json({ ignored: "unknown_product", product_id: productId })
-    }
 
     // Idempotence : clé = transaction_id du store quand RevenueCat le fournit,
     // pour partager la même clé que credit-generations (appelée par l'app avec
@@ -124,10 +143,40 @@ async function handle(req: Request, meta: DeliveryMeta): Promise<Response> {
     const storeTxId = typeof event.transaction_id === "string" && event.transaction_id
       ? event.transaction_id : null
     const eventId: string = event.id ?? crypto.randomUUID()
+    const txId = storeTxId ?? `rc_${eventId}`
+
+    // ── Pack consommable : octroi atomique, sans toucher au plan_type ──────────
+    const packCredits = PACK_CREDITS[productId]
+    if (packCredits) {
+      const { data: newTotal, error: packError } = await admin.rpc("credit_generations_atomic", {
+        p_user_id:        appUserId,
+        p_product_id:     productId,
+        p_transaction_id: txId,
+        p_credits:        packCredits,
+      })
+      if (packError) {
+        if (packError.message?.includes("ALREADY_CREDITED")) {
+          meta.outcome = "already_processed"
+          return json({ ok: true, action: "already_processed" })
+        }
+        console.error("[revenuecat-webhook] credit_generations_atomic:", packError)
+        meta.outcome = "pack_credit_failed"
+        return json({ error: "service_unavailable" }, 503)
+      }
+      meta.outcome = `credited pack ${packCredits}`
+      return json({ ok: true, new_total: newTotal })
+    }
+
+    const mapping = planForProduct(productId)
+    if (!mapping) {
+      meta.outcome = `ignored unknown_product ${productId}`
+      return json({ ignored: "unknown_product", product_id: productId })
+    }
+
     const { error: txError } = await admin.from("credit_transactions").insert({
       user_id:        appUserId,
       product_id:     productId,
-      transaction_id: storeTxId ?? `rc_${eventId}`,
+      transaction_id: txId,
       credits_added:  mapping.credits,
     })
     if (txError) {

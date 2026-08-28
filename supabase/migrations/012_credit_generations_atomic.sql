@@ -1,5 +1,11 @@
 -- Migration 012 — Idempotence réelle + octroi atomique des crédits (audit 007, 2026-08-09)
--- ⚠️ NON APPLIQUÉE — à relire puis exécuter manuellement. Voir docs/AUDIT-007-CREDITS.md
+-- ⚠️ NON APPLIQUÉE (constat de la revue du 27/08/2026 : `credit_generations_atomic`
+-- absente en base). À exécuter manuellement — voir docs/AUDIT-007-CREDITS.md.
+-- PREMIÈRE de la séquence de déploiement — doit être posée AVANT :
+--   • `functions deploy credit-generations` (la v10 appelle cette RPC ; sans elle → 503)
+--   • `functions deploy revenuecat-webhook`  (le chemin packs appelle cette RPC, et
+--     l'idempotence inter-chemins repose sur la contrainte UNIQUE ci-dessous ;
+--     sans elle, un pack peut être crédité deux fois).
 --
 -- Constats fermés (Edge Function `credit-generations`) :
 --  • C2a — L'idempotence reposait sur un SELECT-puis-INSERT applicatif, sans contrainte

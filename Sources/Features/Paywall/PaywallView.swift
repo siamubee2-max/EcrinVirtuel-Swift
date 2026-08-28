@@ -5,14 +5,12 @@ import RevenueCat
 
 enum PaywallError: LocalizedError {
     case productNotFound(String)
-    case entitlementNotActivated
-    case creditGrantFailed
+    // `entitlementNotActivated` supprimé : un achat encaissé ne doit jamais
+    // produire de message d'erreur — voir `activationPending`.
 
     var errorDescription: String? {
         switch self {
         case .productNotFound(let id): return "Produit introuvable : \(id)"
-        case .entitlementNotActivated: return "L'achat n'a pas pu être activé. Essayez 'Restaurer mes achats'."
-        case .creditGrantFailed: return "Votre achat a bien été validé, mais vos crédits n'ont pas encore été ajoutés. Ils arrivent sous peu — utilisez 'Restaurer mes achats' si le solde ne se met pas à jour."
         }
     }
 }
@@ -91,10 +89,16 @@ final class PaywallViewModel: ObservableObject {
     @Published var isPurchasing = false
     @Published var selectedPeriod: PlanPeriod = .monthly
     @Published var liveProducts: [String: StoreProduct] = [:]
-    /// Plan acheté avec succès — observé par PaywallView pour mettre à jour AppState.
-    @Published var purchasedPlan: PaywallPlan?
+    /// Statut résolu après un achat abouti — observé par PaywallView pour mettre à jour AppState.
+    @Published var purchasedStatus: SubscriptionStatus?
     /// Statut restauré avec succès — observé par PaywallView (même mécanique).
     @Published var restoredStatus: SubscriptionStatus?
+    /// Achat encaissé mais entitlement/crédits pas encore visibles : message
+    /// NEUTRE d'attente, jamais une erreur (motif de refus 2.1(b)).
+    @Published var activationPending = false
+    /// Aucune session Supabase : la vue présente GenerationSignInSheet et
+    /// relance l'achat une fois la connexion obtenue.
+    @Published var needsSignIn = false
 
     // MARK: All Plans (7 plans complets)
 
@@ -216,50 +220,52 @@ final class PaywallViewModel: ObservableObject {
         guard let plan = selectedPlan else { return }
         isPurchasing = true
         purchaseError = nil
+        activationPending = false
         defer { isPurchasing = false }
+
+        // Identité EXIGÉE avant de lancer le paiement. Sans session Supabase,
+        // l'app_user_id RevenueCat reste `$RCAnonymousID:…` et le webhook ignore
+        // l'événement : abonnement encaissé, jamais attribué. Le résultat de cette
+        // garde n'est plus ignorable — on ne descend pas dans le `do` sans identité.
+        guard await GenerationAuthGate.requirePurchaseIdentity() else {
+            needsSignIn = true
+            return
+        }
+
         do {
             let product = try await fetchProduct(plan)
+            // Référence FRAÎCHE avant paiement (voir CreditsPackViewModel).
+            await CreditsManager.shared.sync()
+            let baseline = CreditsManager.shared.remaining
             let result = try await Purchases.shared.purchase(product: product)
             // RevenueCat 5.x ne throw pas sur l'annulation utilisateur — sans ce check,
             // annuler affichait « L'achat n'a pas pu être activé » + un faux mismatch.
             if result.userCancelled { return }
+
+            // ─ À partir d'ici Apple a encaissé : plus AUCUN message d'erreur. ─
             // Résolution par productIdentifier — même convention que le launch et le
             // customerInfoStream, quel que soit le découpage des entitlements RC.
-            if RevenueCatService.resolveStatus(from: result.customerInfo) != .free {
-                // L'identifiant de transaction DOIT venir d'Apple : le serveur le
-                // confronte à RevenueCat — un identifiant fabriqué (UUID local) ne
-                // serait jamais vérifiable, donc achat payé sans crédits accordés.
-                guard let txnId = result.transaction?.transactionIdentifier else {
-                    MonitoringService.shared.recordCreditGrantFailure(
-                        nil, productId: plan.rcIdentifier, transactionId: nil
-                    )
-                    purchaseError = PaywallError.creditGrantFailed.errorDescription
-                    return
-                }
+            let status = await resolvedStatusAllowingPropagation(from: result.customerInfo)
 
-                do {
-                    _ = try await SupabaseService.shared.creditGenerations(
-                        productId: plan.rcIdentifier,
-                        transactionId: txnId
-                    )
-                } catch {
-                    // L'achat Apple a abouti mais l'octroi a échoué : ne PAS fermer en
-                    // silence. L'entitlement reste actif ; seuls les crédits manquent
-                    // (le webhook revenuecat-webhook reste le filet serveur).
-                    MonitoringService.shared.recordCreditGrantFailure(
-                        error, productId: plan.rcIdentifier, transactionId: txnId
-                    )
-                    await CreditsManager.shared.sync()
-                    purchaseError = PaywallError.creditGrantFailed.errorDescription
-                    return
-                }
+            // Les crédits d'abonnement sont accordés par `revenuecat-webhook`
+            // (INITIAL_PURCHASE / RENEWAL, barème starter 15 / premium 40 / elite 100).
+            // L'app n'appelle pas `credit-generations` pour un abonnement : cette
+            // fonction est réservée aux packs consommables.
+            let credited = await CreditsManager.shared.syncUntilIncrease(above: baseline)
 
-                purchasedPlan = plan          // ← notifie la vue
-                await CreditsManager.shared.sync() // ← rafraîchit le compteur
+            if status != .free {
+                purchasedStatus = status      // ← notifie la vue (AppState)
                 dismiss()
             } else {
+                // L'entitlement RevenueCat n'est toujours pas actif : on n'invente
+                // pas de succès (aucun statut appliqué) et on n'affiche pas d'échec.
                 MonitoringService.shared.recordEntitlementMismatch(productId: plan.rcIdentifier)
-                purchaseError = PaywallError.entitlementNotActivated.errorDescription
+                activationPending = true
+            }
+            if !credited && status != .free {
+                MonitoringService.shared.recordCreditGrantFailure(
+                    nil, productId: plan.rcIdentifier, transactionId: result.transaction?.transactionIdentifier
+                )
             }
         } catch {
             let nsError = error as NSError
@@ -276,7 +282,14 @@ final class PaywallViewModel: ObservableObject {
     func restore(dismiss: @escaping () -> Void) async {
         isPurchasing = true
         purchaseError = nil
+        activationPending = false
         defer { isPurchasing = false }
+        // Restaurer sans session rattacherait les achats à un id anonyme —
+        // même exigence que l'achat.
+        guard await GenerationAuthGate.requirePurchaseIdentity() else {
+            needsSignIn = true
+            return
+        }
         do {
             let info = try await Purchases.shared.restorePurchases()
             let status = RevenueCatService.resolveStatus(from: info)
@@ -296,6 +309,27 @@ final class PaywallViewModel: ObservableObject {
     }
 
     // MARK: Private
+
+    /// Statut RevenueCat, en tolérant le délai de propagation de l'entitlement.
+    ///
+    /// Le `CustomerInfo` renvoyé par `purchase` peut précéder l'activation
+    /// côté RevenueCat. On relit donc le cache serveur quelques fois avant de
+    /// conclure — sans cette tolérance, un achat encaissé finissait sur
+    /// « L'achat n'a pas pu être activé » (motif 2.1(b) du 5 mai).
+    private func resolvedStatusAllowingPropagation(
+        from info: CustomerInfo,
+        attempts: Int = 3
+    ) async -> SubscriptionStatus {
+        var status = RevenueCatService.resolveStatus(from: info)
+        var remaining = attempts
+        while status == .free && remaining > 0 {
+            remaining -= 1
+            try? await Task.sleep(for: .seconds(2))
+            guard let fresh = try? await Purchases.shared.customerInfo(fetchPolicy: .fetchCurrent) else { continue }
+            status = RevenueCatService.resolveStatus(from: fresh)
+        }
+        return status
+    }
 
     private func loadLiveProducts() async {
         do {
@@ -448,6 +482,17 @@ struct PaywallView: View {
                                     .padding(.horizontal, EcrinSpacing.sm)
                             }
 
+                            // Achat encaissé, activation encore en attente : ton
+                            // neutre (or), jamais rouge — ce n'est pas un échec.
+                            if viewModel.activationPending {
+                                Text("Achat confirmé. L'activation peut prendre quelques instants — vos crédits apparaîtront automatiquement.")
+                                    .font(EcrinFont.caption)
+                                    .foregroundStyle(EcrinColor.gold)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, EcrinSpacing.sm)
+                                    .accessibilityIdentifier("paywall.activationPending")
+                            }
+
                             GoldButton(title: viewModel.ctaTitle) {
                                 Task { await viewModel.purchase(dismiss: { dismiss() }) }
                             }
@@ -484,11 +529,20 @@ struct PaywallView: View {
             }
         }
         .accessibilityIdentifier("paywall.root")
-        // Mettre à jour AppState dès qu'un achat est confirmé
-        .onChange(of: viewModel.purchasedPlan?.id) { _, _ in
-            guard let plan = viewModel.purchasedPlan else { return }
-            appState.subscription = plan.resolvedSubscriptionStatus
-            CreditsManager.shared.handleSubscriptionUpgrade(to: appState.subscription)
+        // Connexion exigée avant paiement : on présente la feuille puis on
+        // relance l'achat une fois la session ouverte.
+        .sheet(isPresented: $viewModel.needsSignIn) {
+            GenerationSignInSheet {
+                Task { await viewModel.purchase(dismiss: { dismiss() }) }
+            }
+        }
+        // Mettre à jour AppState dès qu'un achat est confirmé.
+        // Le solde n'est PLUS écrit ici : `syncUntilIncrease` (dans le
+        // ViewModel) a déjà posé la valeur serveur. L'ancienne affectation
+        // locale courait contre ce sync et affichait « 15 » puis « 3 ».
+        .onChange(of: viewModel.purchasedStatus) { _, status in
+            guard let status else { return }
+            appState.subscription = status
         }
         // Appliquer une restauration réussie (statut + crédits) puis fermer
         .onChange(of: viewModel.restoredStatus) { _, status in

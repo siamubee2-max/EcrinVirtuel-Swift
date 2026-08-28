@@ -1,4 +1,5 @@
 import Foundation
+import os
 import Supabase
 
 // MARK: - Client singleton
@@ -49,6 +50,8 @@ extension SupabaseService {
 // MARK: - Auth
 extension SupabaseService {
 
+    private static let authLog = Logger(subsystem: "com.ecrin.jewelry", category: "auth")
+
     var auth: AuthClient { client.auth }
 
     /// Vrai si une session Supabase Auth valide existe (requis pour tryon-generate).
@@ -58,13 +61,24 @@ extension SupabaseService {
 
     /// Crée une session anonyme silencieuse (3 essais offerts sans compte).
     /// Le trigger `handle_new_user` crédite 3 essais côté serveur.
-    /// Retourne false si la création échoue (hors-ligne, feature désactivée).
-    func signInAnonymously() async -> Bool {
+    ///
+    /// Renvoie la `Session` créée, et non un simple booléen : relire
+    /// `auth.session` juste après peut encore donner `nil` le temps que le SDK
+    /// la persiste. L'appelant doit utiliser la session retournée.
+    /// `nil` si la création échoue (hors-ligne, provider désactivé).
+    func signInAnonymously() async -> Session? {
         do {
-            _ = try await auth.signInAnonymously()
-            return true
+            let session = try await auth.signInAnonymously()
+            Self.authLog.info("Anonymous sign-in succeeded")
+            return session
         } catch {
-            return false
+            // Swallowing this error silently once cost us a broken onboarding CTA
+            // that looked like a client bug while the provider was simply disabled.
+            // localizedDescription hides the server payload, so log the raw error too.
+            Self.authLog.error(
+                "Anonymous sign-in failed — \(error.localizedDescription, privacy: .public) | raw: \(String(describing: error), privacy: .public)"
+            )
+            return nil
         }
     }
 

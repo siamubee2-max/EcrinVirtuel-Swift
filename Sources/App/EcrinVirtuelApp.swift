@@ -61,6 +61,11 @@ struct EcrinVirtuelApp: App {
                     // (renouvellement, expiration, refund, restore, logIn/logOut) :
                     // sans ce stream, l'état d'abonnement n'était lu qu'au launch
                     // et après un achat.
+                    //
+                    // Garde obligatoire : en mode UI-test `Purchases.configure`
+                    // n'est jamais appelé (voir init), et toucher
+                    // `Purchases.shared` lève un fatalError au lancement.
+                    guard !AppLaunchEnvironment.isUITesting else { return }
                     for await info in Purchases.shared.customerInfoStream {
                         appState.subscription = UnlimitedAccess.effectiveStatus(
                             resolved: RevenueCatService.resolveStatus(from: info),

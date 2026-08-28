@@ -416,8 +416,7 @@ private struct CTAScreen: View {
         isStartingGuest = true
         Task {
             defer { isStartingGuest = false }
-            if await GenerationAuthGate.ensureSession(),
-               let session = try? await SupabaseService.shared.auth.session {
+            if let session = await GenerationAuthGate.currentOrAnonymousSession() {
                 appState.signInAsGuest(user: User(
                     id: session.user.id,
                     email: session.user.email ?? "invitee@anonyme.ecrin.local",
