@@ -25,6 +25,8 @@ const SHOTS = [
   ["04-communaute", "Progressez en style",       "Défis, badges et niveaux d’élégance"],
   ["05-profil",     "Votre écrin personnel",     "Vos essayages, vos crédits, votre style"],
   ["06-quicktryon", "Essayage rapide",           "Un look en un seul geste"],
+  // Remplacement du slot 5 (05-profil viole la guideline 2.3.7 : solde de crédits + CTA d'achat).
+  ["05-lookdujour", "Votre tenue du jour",       "Suggérée chaque matin selon la météo"],
 ];
 
 const W = 1320, H = 2868;
@@ -56,7 +58,11 @@ function html(imgPath, title, sub) {
   </body></html>`;
 }
 
+// Argument optionnel : ne réencadrer qu'une seule capture (ex. `node tools/frame-screenshots.mjs 05-lookdujour`).
+const only = process.argv[2];
+
 for (const [name, title, sub, imgOverride] of SHOTS) {
+  if (only && name !== only) continue;
   const raw = resolve(RAW, `${imgOverride ?? name}.png`);
   if (!existsSync(raw)) { console.error("MISSING raw:", raw); continue; }
   const htmlPath = resolve(TMP, `${name}.html`);
