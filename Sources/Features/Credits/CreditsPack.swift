@@ -30,6 +30,22 @@ struct CreditsPack: Identifiable {
         return "\(amount)/crédit"
     }
 
+    /// Trois packs, rangés sur la MÊME échelle que les abonnements : le prix
+    /// au crédit décroît strictement quand le montant débité augmente.
+    ///
+    ///   2,99 €  Spark    10 cr  -> 0,299 €/cr
+    ///   6,99 €  Essentiel mensuel 25 cr -> 0,280 €/cr
+    ///  10,99 €  Éclat    40 cr  -> 0,275 €/cr
+    ///  14,99 €  Signature mensuel 60 cr -> 0,250 €/cr
+    ///  29,99 €  Diamant 140 cr  -> 0,214 €/cr
+    ///
+    /// Glow (30 crédits, 7,99 €, 0,266 €/cr) a été RETIRÉ : placé juste après
+    /// Essentiel mensuel, il faisait remonter le prix au crédit d'Éclat et
+    /// cassait la monotonie que le client vérifie en dix secondes.
+    ///
+    /// Aucun badge. L'ancien « MEILLEURE VALEUR » était sur Glow alors
+    /// qu'Éclat et Diamant offraient un meilleur prix unitaire — affirmation
+    /// fausse affichée à côté du prix au crédit qui la contredisait.
     static let all: [CreditsPack] = [
         CreditsPack(
             id: "ecrin_credits_spark",
@@ -41,27 +57,18 @@ struct CreditsPack: Identifiable {
             icon: "sparkle"
         ),
         CreditsPack(
-            id: "ecrin_credits_glow",
-            label: "Glow",
-            count: 30,
-            price: "7,99€",
-            referencePrice: 7.99,
-            badge: "MEILLEURE VALEUR",
-            icon: "sparkles"
-        ),
-        CreditsPack(
             id: "ecrin_credits_eclat",
             label: "Éclat",
-            count: 70,
-            price: "16,99€",
-            referencePrice: 16.99,
+            count: 40,
+            price: "10,99€",
+            referencePrice: 10.99,
             badge: nil,
             icon: "star.fill"
         ),
         CreditsPack(
             id: "ecrin_credits_diamant",
             label: "Diamant",
-            count: 150,
+            count: 140,
             price: "29,99€",
             referencePrice: 29.99,
             badge: nil,

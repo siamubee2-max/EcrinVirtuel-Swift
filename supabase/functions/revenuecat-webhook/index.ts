@@ -43,18 +43,30 @@ const DOWNGRADE_EVENTS = new Set(["EXPIRATION"])
 // lève ALREADY_CREDITED. ⚠️ Suppose la migration 012 appliquée (contrainte UNIQUE
 // + credit_generations_atomic) — sans elle, double-crédit possible.
 const PACK_CREDITS: Record<string, number> = {
-  "ecrin_credits_spark":    10,
+  // Grille du 31/08/2026. Le SERVEUR fait foi : ces nombres sont ce que
+  // l'utilisatrice reçoit réellement, l'app ne fait que les afficher.
+  "ecrin_credits_spark":    10,   //  2,99 € -> 0,299 €/crédit
+  "ecrin_credits_eclat":    40,   // 10,99 € -> 0,275 €/crédit  (était 70 à 16,99 €)
+  "ecrin_credits_diamant": 140,   // 29,99 € -> 0,214 €/crédit  (était 150)
+  // Retiré de la vente : à 7,99 € pour 30 crédits (0,266 €/cr) il se plaçait
+  // entre Essentiel et Éclat et cassait la décroissance du prix unitaire.
+  // La correspondance reste pour créditer un achat encore en vol.
   "ecrin_credits_glow":     30,
-  "ecrin_credits_eclat":    70,
-  "ecrin_credits_diamant": 150,
 }
 
 function planForProduct(productId: string): { plan: string, credits: number } | null {
   const p = productId.toLowerCase()
+  // Elite et Fondateur sont retirés de la vente ; la correspondance reste pour
+  // honorer un abonnement encore actif plutôt que de le laisser sans crédits.
   if (p.includes("elite") || p.includes("founder") || p.includes("lifetime"))
     return { plan: "elite", credits: 100 }
-  if (p.includes("premium")) return { plan: "premium", credits: 40 }
-  if (p.includes("starter")) return { plan: "starter", credits: 15 }
+  // Signature — 14,99 €/mois, 0,250 €/crédit. Portée par l'identifiant
+  // `premium` conservé : changer d'identifiant App Store obligerait à recréer
+  // le produit et lui ferait perdre son historique.
+  if (p.includes("premium")) return { plan: "premium", credits: 60 }
+  // Essentiel — 6,99 €/mois, 0,280 €/crédit. Était Starter, 15 crédits à
+  // 4,99 €, soit 0,333 €/crédit : le pire tarif de tout le catalogue.
+  if (p.includes("starter")) return { plan: "starter", credits: 25 }
   return null
 }
 

@@ -110,106 +110,62 @@ final class PaywallViewModel: ObservableObject {
     /// relance l'achat une fois la connexion obtenue.
     @Published var needsSignIn = false
 
-    // MARK: All Plans (7 plans complets)
+    // MARK: Formules proposées
 
-    private let allPlans: [PaywallPlan] = [
-        // ── Mensuels ──────────────────────────────────────────────────
+    /// Deux formules, mensuelles uniquement.
+    ///
+    /// Elles s'insèrent dans UNE seule échelle avec les packs de crédits,
+    /// triée par montant débité, où le prix au crédit décroît strictement :
+    ///
+    ///   2,99 €  Spark (pack)         10 cr  -> 0,299 €/cr
+    ///   6,99 €  Essentiel            25 cr  -> 0,280 €/cr
+    ///  10,99 €  Éclat (pack)         40 cr  -> 0,275 €/cr
+    ///  14,99 €  Signature            60 cr  -> 0,250 €/cr
+    ///  29,99 €  Diamant (pack)      140 cr  -> 0,214 €/cr
+    ///
+    /// Ce qui a été RETIRÉ, et pourquoi :
+    /// - Elite mensuel (100 cr, 29,99 €) était strictement dominé par le pack
+    ///   Diamant : même prix, moins de crédits, et un engagement en plus.
+    /// - Starter mensuel (15 cr, 4,99 €) affichait 0,333 €/cr, le PIRE prix du
+    ///   catalogue : s'abonner coûtait plus cher que ne pas s'abonner.
+    /// - Les formules annuelles attendent : demander 120 € d'avance à quelqu'un
+    ///   qui ne peut lire aucun avis, c'est se refuser soi-même. Elles
+    ///   reviendront en montée en gamme après quelques mois d'usage réel.
+    /// - Fondateur (100 cr/mois à vie, 349,99 €) : point mort à 106 mois nets
+    ///   d'Apple. Retiré tant qu'il n'a aucun acheteur — au premier, il devient
+    ///   une dette perpétuelle irréversible.
+    ///
+    /// Aucun badge « meilleure offre ». Signature bat Essentiel au crédit
+    /// (0,250 contre 0,280) mais pas le pack Diamant (0,214) : toute mention
+    /// de « meilleure » serait fausse quelque part, et c'est exactement le
+    /// défaut qui a fait retirer la version précédente.
+    // Non privé : le test qui verrouille la monotonie de l'échelle doit
+    // pouvoir lire les formules réelles, pas une copie qui dériverait.
+    let allPlans: [PaywallPlan] = [
         PaywallPlan(
-            id: "elite_monthly",
-            name: "Elite",
-            price: "24,99€",
-            period: "/ mois",
-            priceDescription: "100 crédits inclus/mois",
-            savings: "Le meilleur volume",
-            isBestValue: false,
-            rcIdentifier: PaywallProductID.eliteMonthly,
-            planPeriod: .monthly,
-            creditsPerMonth: 100,
-            monthlyCounterpart: nil
-        ),
-        PaywallPlan(
-            id: "premium_monthly",
-            name: "Premium",
-            price: "12,99€",
-            period: "/ mois",
-            priceDescription: "40 crédits inclus/mois",
-            savings: "Le meilleur rapport qualité/prix",
-            isBestValue: true,
-            rcIdentifier: PaywallProductID.premiumMonthly,
-            planPeriod: .monthly,
-            creditsPerMonth: 40,
-            monthlyCounterpart: nil
-        ),
-        PaywallPlan(
-            id: "starter_monthly",
-            name: "Starter",
+            id: "essentiel_monthly",
+            name: "Essentiel",
             price: "6,99€",
             period: "/ mois",
-            priceDescription: "15 crédits inclus/mois",
-            savings: "Parfait pour découvrir",
+            priceDescription: "25 crédits inclus/mois",
+            savings: "Pour essayer régulièrement",
             isBestValue: false,
             rcIdentifier: PaywallProductID.starterMonthly,
             planPeriod: .monthly,
-            creditsPerMonth: 15,
+            creditsPerMonth: 25,
             monthlyCounterpart: nil
         ),
-        // ── Annuels ────────────────────────────────────────────────────
-        // Les replis ne portent NI montant mensualisé NI pourcentage : les
-        // trois formules annonçaient « Économisez 35% » alors que l'économie
-        // réelle va de 8 % (Starter) à 46 % (Elite), et Premium affichait
-        // « 8,33€/mois » sous un prix de 79,99 € (soit 6,67 €). Ces libellés
-        // étaient figés dans le code et ne suivaient pas les prix App Store.
         PaywallPlan(
-            id: "elite_yearly",
-            name: "Elite",
-            price: "194,99€",
-            period: "/ an",
-            priceDescription: "100 crédits/mois",
-            savings: "Facturé une fois par an",
+            id: "signature_monthly",
+            name: "Signature",
+            price: "14,99€",
+            period: "/ mois",
+            priceDescription: "60 crédits inclus/mois",
+            savings: "Deux essayages par jour",
             isBestValue: false,
-            rcIdentifier: PaywallProductID.eliteYearly,
-            planPeriod: .yearly,
-            creditsPerMonth: 100,
-            monthlyCounterpart: PaywallProductID.eliteMonthly
-        ),
-        PaywallPlan(
-            id: "premium_yearly",
-            name: "Premium",
-            price: "99,99€",
-            period: "/ an",
-            priceDescription: "40 crédits/mois",
-            savings: "Facturé une fois par an",
-            isBestValue: true,
-            rcIdentifier: PaywallProductID.premiumYearly,
-            planPeriod: .yearly,
-            creditsPerMonth: 40,
-            monthlyCounterpart: PaywallProductID.premiumMonthly
-        ),
-        PaywallPlan(
-            id: "starter_yearly",
-            name: "Starter",
-            price: "54,99€",
-            period: "/ an",
-            priceDescription: "15 crédits/mois",
-            savings: "Facturé une fois par an",
-            isBestValue: false,
-            rcIdentifier: PaywallProductID.starterYearly,
-            planPeriod: .yearly,
-            creditsPerMonth: 15,
-            monthlyCounterpart: PaywallProductID.starterMonthly
-        ),
-        // ── À vie ─────────────────────────────────────────────────────
-        PaywallPlan(
-            id: "founder_lifetime",
-            name: "Fondateur",
-            price: "349,99€",
-            period: "une fois",
-            priceDescription: "100 crédits/mois · À vie",
-            savings: "Accès permanent · Plus jamais de frais",
-            isBestValue: false,
-            rcIdentifier: PaywallProductID.founderLifetime,
-            planPeriod: .lifetime,
-            creditsPerMonth: 100,
+            rcIdentifier: PaywallProductID.premiumMonthly,
+            planPeriod: .monthly,
+            creditsPerMonth: 60,
             monthlyCounterpart: nil
         ),
     ]
@@ -220,6 +176,15 @@ final class PaywallViewModel: ObservableObject {
         allPlans.filter { $0.planPeriod == selectedPeriod }
     }
 
+    /// Périodes qui portent au moins une formule. Dérivée des formules et non
+    /// de `PlanPeriod.allCases` : un segment « Annuel » qui n'ouvre sur aucune
+    /// carte est un cul-de-sac, et l'annuel n'est pas proposé au lancement.
+    var availablePeriods: [PlanPeriod] {
+        PlanPeriod.allCases.filter { period in
+            allPlans.contains { $0.planPeriod == period }
+        }
+    }
+
     var ctaTitle: String {
         guard let plan = selectedPlan else { return "Choisir un plan" }
         return isPurchasing ? L10n.PaywallUI.inProgress : "Commencer avec \(plan.name)"
@@ -228,7 +193,10 @@ final class PaywallViewModel: ObservableObject {
     // MARK: Init
 
     init() {
-        selectedPlan = allPlans.first { $0.id == "premium_monthly" }
+        // Entrée de gamme présélectionnée : sans aucun avis à lire, la
+        // question « est-ce que ça vaut 7 € » est la seule qu'un inconnu
+        // accepte de trancher.
+        selectedPlan = allPlans.first { $0.id == "essentiel_monthly" } ?? allPlans.first
         // Skip live product loading in UI-test mode — RC is not configured,
         // and Purchases.shared.offerings() would fatalError. Static fallback
         // prices in PaywallPlan are used instead (the paywall UI is fully assertable).
@@ -493,21 +461,19 @@ struct PaywallView: View {
                         }
                         .padding(.top, EcrinSpacing.lg)
 
-                        // Period selector
-                        Picker("Période", selection: $viewModel.selectedPeriod) {
-                            ForEach(PlanPeriod.allCases, id: \.self) { period in
-                                Text(period.rawValue).tag(period)
+                        // Sélecteur de période — masqué tant qu'une seule
+                        // période porte des formules.
+                        if viewModel.availablePeriods.count > 1 {
+                            Picker("Période", selection: $viewModel.selectedPeriod) {
+                                ForEach(viewModel.availablePeriods, id: \.self) { period in
+                                    Text(period.rawValue).tag(period)
+                                }
                             }
-                        }
-                        .pickerStyle(.segmented)
-                        .padding(.horizontal, EcrinSpacing.lg)
-                        .onChange(of: viewModel.selectedPeriod) { _, newPeriod in
-                            // Sélectionner automatiquement le plan Best Value de la nouvelle période
-                            let plans = viewModel.currentPlans
-                            if let best = plans.first(where: { $0.isBestValue }) {
-                                viewModel.selectedPlan = best
-                            } else {
-                                viewModel.selectedPlan = plans.first
+                            .pickerStyle(.segmented)
+                            .padding(.horizontal, EcrinSpacing.lg)
+                            .onChange(of: viewModel.selectedPeriod) { _, _ in
+                                let plans = viewModel.currentPlans
+                                viewModel.selectedPlan = plans.first(where: { $0.isBestValue }) ?? plans.first
                             }
                         }
 

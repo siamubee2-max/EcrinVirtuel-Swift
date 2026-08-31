@@ -76,10 +76,15 @@ const CORS = {
 // (« 70 crédits », « 150 crédits ») : c'est ce que l'acheteur lit sur la feuille
 // de confirmation Apple. Aucun bonus implicite ici.
 const VALID_PACKS: Record<string, number> = {
-  "ecrin_credits_spark":    10,
+  // Grille du 31/08/2026. Le SERVEUR fait foi : ces nombres sont ce que
+  // l'utilisatrice reçoit réellement, l'app ne fait que les afficher.
+  "ecrin_credits_spark":    10,   //  2,99 € -> 0,299 €/crédit
+  "ecrin_credits_eclat":    40,   // 10,99 € -> 0,275 €/crédit  (était 70 à 16,99 €)
+  "ecrin_credits_diamant": 140,   // 29,99 € -> 0,214 €/crédit  (était 150)
+  // Retiré de la vente : à 7,99 € pour 30 crédits (0,266 €/cr) il se plaçait
+  // entre Essentiel et Éclat et cassait la décroissance du prix unitaire.
+  // La correspondance reste pour créditer un achat encore en vol.
   "ecrin_credits_glow":     30,
-  "ecrin_credits_eclat":    70,
-  "ecrin_credits_diamant": 150,
 }
 
 serve(async (req) => {

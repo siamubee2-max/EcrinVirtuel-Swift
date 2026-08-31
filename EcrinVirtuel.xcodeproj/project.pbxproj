@@ -67,6 +67,7 @@
 		5B42F281E50FEEAB9BAFD766 /* StoneDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78410BA4F05547A507ED59B7 /* StoneDatabase.swift */; };
 		5C2FC0C04063E3FB66374BA1 /* AppLaunchEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6880731010569E615F29B622 /* AppLaunchEnvironment.swift */; };
 		5CDB8C56DFFF0FDB2130A268 /* MoodBoardResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB23CD48E0D5DEBA0463A37 /* MoodBoardResultView.swift */; };
+		5E5587C70CD0BDB610B136D0 /* GrilleTarifaireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08929B4CD76B010EE563D639 /* GrilleTarifaireTests.swift */; };
 		5EEF3520479AAF410D868D0A /* MoodBoardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06744DF67667D279F7861063 /* MoodBoardService.swift */; };
 		621DAD737CABDA7EAA082D6C /* GiftRevealView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DCE64C0A1E536162D969C91 /* GiftRevealView.swift */; };
 		638512DAC373D013102D1FBA /* LookDuJourViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B133B9C49A9B14B1472F706B /* LookDuJourViewModel.swift */; };
@@ -230,6 +231,7 @@
 		07C0D519C95FC0D2FAD037D3 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		0832D713A1E56971C9B85552 /* WeddingLook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeddingLook.swift; sourceTree = "<group>"; };
 		088539DBC8D327A10153BB5C /* MetalScoreCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalScoreCard.swift; sourceTree = "<group>"; };
+		08929B4CD76B010EE563D639 /* GrilleTarifaireTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrilleTarifaireTests.swift; sourceTree = "<group>"; };
 		08AA19BA47F90C4541B9184C /* WardrobeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WardrobeViewModel.swift; sourceTree = "<group>"; };
 		091CD68EE00AD04A315AB318 /* WeatherLookRecommenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherLookRecommenderTests.swift; sourceTree = "<group>"; };
 		0A804B19B6D514E4AAA251B0 /* OutfitViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutfitViewModel.swift; sourceTree = "<group>"; };
@@ -761,6 +763,7 @@
 			children = (
 				676ED63B498478EA7B2B2CF4 /* AppLaunchEnvironmentTests.swift */,
 				DD729EE7CD369D50DEC6A878 /* AppStateLaunchModeTests.swift */,
+				08929B4CD76B010EE563D639 /* GrilleTarifaireTests.swift */,
 				37DBF663AB1ACC5640DBC105 /* MoodBoardStoreTests.swift */,
 				B0419BF2BAB2EB0C58E1F009 /* SubjectCutoutTests.swift */,
 				F1EE303A6B667FF74AE12B8A /* SubscriptionStatusPersistenceTests.swift */,
@@ -1316,6 +1319,7 @@
 			files = (
 				694DF4F3FC317AB9C90718C4 /* AppLaunchEnvironmentTests.swift in Sources */,
 				73648EA810D22BFD782ECF5E /* AppStateLaunchModeTests.swift in Sources */,
+				5E5587C70CD0BDB610B136D0 /* GrilleTarifaireTests.swift in Sources */,
 				0E7AA1EC1734F124DDC545BD /* MoodBoardStoreTests.swift in Sources */,
 				39AB05F7E0CA52EBBF9A1B4D /* SubjectCutoutTests.swift in Sources */,
 				29954FF334924F2020398526 /* SubscriptionStatusPersistenceTests.swift in Sources */,
