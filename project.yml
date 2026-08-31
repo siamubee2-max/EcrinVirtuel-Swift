@@ -15,7 +15,7 @@ settings:
     IPHONEOS_DEPLOYMENT_TARGET: "18.0"
     TARGETED_DEVICE_FAMILY: "1"
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "10021"
+    CURRENT_PROJECT_VERSION: "10022"
 
 packages:
   RevenueCat:
@@ -81,6 +81,12 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ecrin.jewelry
         INFOPLIST_FILE: Sources/App/Info.plist
         CODE_SIGN_STYLE: Automatic
+        # iPhone SEULEMENT. Réglage obligatoire ICI : la valeur posée dans
+        # `settings.base` à la racine ne gagne pas sur la cible, et le projet
+        # généré repassait à "1,2". Un bundle iPad n'ayant que Portrait est
+        # rejeté à l'upload (ContentDelivery 90474 : le multitâche iPad exige
+        # les quatre orientations).
+        TARGETED_DEVICE_FAMILY: "1"
 
   EcrinVirtuelTests:
     type: bundle.unit-test

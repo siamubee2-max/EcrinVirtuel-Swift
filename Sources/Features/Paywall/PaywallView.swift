@@ -47,11 +47,21 @@ struct PaywallPlan: Identifiable {
     let name: String
     let price: String        // fallback — remplacé par localizedPriceString en runtime
     let period: String
+    /// Repli affiché tant que le produit StoreKit n'est pas chargé. Ne contient
+    /// AUCUN montant : les montants sont dérivés du prix réel par
+    /// `displayDescription(for:)`.
     let priceDescription: String
+    /// Repli pour les formules mensuelles et à vie. Pour l'annuel, l'économie
+    /// est calculée par `displaySavings(for:)` — jamais annoncée en dur.
     let savings: String
     let isBestValue: Bool
     let rcIdentifier: String
     let planPeriod: PlanPeriod
+    /// Crédits accordés chaque mois par ce plan — source unique des libellés.
+    let creditsPerMonth: Int
+    /// Pour une formule annuelle : identifiant du mensuel du MÊME palier,
+    /// nécessaire au calcul de l'économie réelle. `nil` ailleurs.
+    let monthlyCounterpart: String?
 
     /// Traduit le plan RevenueCat en SubscriptionStatus de l'app.
     var resolvedSubscriptionStatus: SubscriptionStatus {
@@ -113,7 +123,9 @@ final class PaywallViewModel: ObservableObject {
             savings: "Le meilleur volume",
             isBestValue: false,
             rcIdentifier: PaywallProductID.eliteMonthly,
-            planPeriod: .monthly
+            planPeriod: .monthly,
+            creditsPerMonth: 100,
+            monthlyCounterpart: nil
         ),
         PaywallPlan(
             id: "premium_monthly",
@@ -124,7 +136,9 @@ final class PaywallViewModel: ObservableObject {
             savings: "Le meilleur rapport qualité/prix",
             isBestValue: true,
             rcIdentifier: PaywallProductID.premiumMonthly,
-            planPeriod: .monthly
+            planPeriod: .monthly,
+            creditsPerMonth: 40,
+            monthlyCounterpart: nil
         ),
         PaywallPlan(
             id: "starter_monthly",
@@ -135,41 +149,54 @@ final class PaywallViewModel: ObservableObject {
             savings: "Parfait pour découvrir",
             isBestValue: false,
             rcIdentifier: PaywallProductID.starterMonthly,
-            planPeriod: .monthly
+            planPeriod: .monthly,
+            creditsPerMonth: 15,
+            monthlyCounterpart: nil
         ),
-        // ── Annuels (–35% vs mensuel) ──────────────────────────────────
+        // ── Annuels ────────────────────────────────────────────────────
+        // Les replis ne portent NI montant mensualisé NI pourcentage : les
+        // trois formules annonçaient « Économisez 35% » alors que l'économie
+        // réelle va de 8 % (Starter) à 46 % (Elite), et Premium affichait
+        // « 8,33€/mois » sous un prix de 79,99 € (soit 6,67 €). Ces libellés
+        // étaient figés dans le code et ne suivaient pas les prix App Store.
         PaywallPlan(
             id: "elite_yearly",
             name: "Elite",
             price: "194,99€",
             period: "/ an",
-            priceDescription: "100 crédits/mois · 16,25€/mois",
-            savings: "Économisez 35% vs mensuel",
+            priceDescription: "100 crédits/mois",
+            savings: "Facturé une fois par an",
             isBestValue: false,
             rcIdentifier: PaywallProductID.eliteYearly,
-            planPeriod: .yearly
+            planPeriod: .yearly,
+            creditsPerMonth: 100,
+            monthlyCounterpart: PaywallProductID.eliteMonthly
         ),
         PaywallPlan(
             id: "premium_yearly",
             name: "Premium",
             price: "99,99€",
             period: "/ an",
-            priceDescription: "40 crédits/mois · 8,33€/mois",
-            savings: "Économisez 35% vs mensuel",
+            priceDescription: "40 crédits/mois",
+            savings: "Facturé une fois par an",
             isBestValue: true,
             rcIdentifier: PaywallProductID.premiumYearly,
-            planPeriod: .yearly
+            planPeriod: .yearly,
+            creditsPerMonth: 40,
+            monthlyCounterpart: PaywallProductID.premiumMonthly
         ),
         PaywallPlan(
             id: "starter_yearly",
             name: "Starter",
             price: "54,99€",
             period: "/ an",
-            priceDescription: "15 crédits/mois · 4,58€/mois",
-            savings: "Économisez 35% vs mensuel",
+            priceDescription: "15 crédits/mois",
+            savings: "Facturé une fois par an",
             isBestValue: false,
             rcIdentifier: PaywallProductID.starterYearly,
-            planPeriod: .yearly
+            planPeriod: .yearly,
+            creditsPerMonth: 15,
+            monthlyCounterpart: PaywallProductID.starterMonthly
         ),
         // ── À vie ─────────────────────────────────────────────────────
         PaywallPlan(
@@ -181,7 +208,9 @@ final class PaywallViewModel: ObservableObject {
             savings: "Accès permanent · Plus jamais de frais",
             isBestValue: false,
             rcIdentifier: PaywallProductID.founderLifetime,
-            planPeriod: .lifetime
+            planPeriod: .lifetime,
+            creditsPerMonth: 100,
+            monthlyCounterpart: nil
         ),
     ]
 
@@ -212,6 +241,51 @@ final class PaywallViewModel: ObservableObject {
 
     func displayPrice(for plan: PaywallPlan) -> String {
         liveProducts[plan.rcIdentifier]?.localizedPriceString ?? plan.price
+    }
+
+    /// Sous-titre du plan. Le montant mensualisé d'une formule annuelle est
+    /// DÉRIVÉ du prix réel : il était figé dans `priceDescription`, si bien que
+    /// Premium annuel annonçait « 8,33€/mois » sous un prix de 79,99 € (soit
+    /// 6,67 €) dès que le prix App Store s'écartait du repli codé en dur.
+    func displayDescription(for plan: PaywallPlan) -> String {
+        guard plan.planPeriod == .yearly,
+              let product = liveProducts[plan.rcIdentifier],
+              let perMonth = Self.money((product.price as NSDecimalNumber).doubleValue / 12, like: product)
+        else { return plan.priceDescription }
+        return "\(plan.creditsPerMonth) crédits/mois · \(perMonth)/mois"
+    }
+
+    /// Économie annoncée, CALCULÉE contre le mensuel du même palier.
+    /// « Économisez 35% » s'affichait à l'identique sur les trois formules
+    /// annuelles alors que l'économie réelle va de 8 % à 46 % — une allégation
+    /// commerciale fausse, et un motif de rejet App Store 2.3.7.
+    /// Sans les deux prix réels, on n'annonce AUCUN chiffre.
+    func displaySavings(for plan: PaywallPlan) -> String {
+        guard plan.planPeriod == .yearly,
+              let counterpart = plan.monthlyCounterpart,
+              let yearly  = liveProducts[plan.rcIdentifier]?.price,
+              let monthly = liveProducts[counterpart]?.price
+        else { return plan.savings }
+
+        let full = (monthly as NSDecimalNumber).doubleValue * 12
+        let paid = (yearly as NSDecimalNumber).doubleValue
+        guard full > 0 else { return plan.savings }
+
+        let pct = Int(((full - paid) / full * 100).rounded())
+        // Un annuel plus cher que douze mensualités ne se vante pas.
+        guard pct > 0 else { return plan.savings }
+        return "Économisez \(pct)% vs mensuel"
+    }
+
+    /// Formate un montant dans la devise et la locale du produit StoreKit,
+    /// pour ne jamais mêler un montant à un symbole d'une autre devise.
+    private static func money(_ amount: Double, like product: StoreProduct) -> String? {
+        let f = NumberFormatter()
+        f.numberStyle = .currency
+        f.locale = product.priceFormatter?.locale ?? .current
+        if let code = product.currencyCode { f.currencyCode = code }
+        f.maximumFractionDigits = 2
+        return f.string(from: NSNumber(value: amount))
     }
 
     // MARK: Purchase
@@ -443,6 +517,8 @@ struct PaywallView: View {
                                 PlanCard(
                                     plan: plan,
                                     displayPrice: viewModel.displayPrice(for: plan),
+                                    displayDescription: viewModel.displayDescription(for: plan),
+                                    displaySavings: viewModel.displaySavings(for: plan),
                                     isSelected: viewModel.selectedPlan?.id == plan.id,
                                     onSelect: { viewModel.selectedPlan = plan }
                                 )
@@ -559,6 +635,10 @@ struct PaywallView: View {
 struct PlanCard: View {
     let plan: PaywallPlan
     let displayPrice: String
+    /// Calculés par le view-model à partir des prix RÉELS — ne jamais lire
+    /// `plan.priceDescription` ni `plan.savings` ici : ce sont des replis.
+    let displayDescription: String
+    let displaySavings: String
     let isSelected: Bool
     let onSelect: () -> Void
 
@@ -582,12 +662,14 @@ struct PlanCard: View {
                                 .clipShape(Capsule())
                         }
                     }
-                    Text(plan.priceDescription)
+                    Text(displayDescription)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
-                    Text(plan.savings)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(EcrinColor.gold)
+                    if !displaySavings.isEmpty {
+                        Text(displaySavings)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(EcrinColor.gold)
+                    }
                 }
 
                 Spacer()
