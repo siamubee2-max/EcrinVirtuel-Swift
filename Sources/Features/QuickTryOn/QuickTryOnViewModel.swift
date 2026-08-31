@@ -37,6 +37,21 @@ enum QuickTryOnItem: Identifiable, Equatable, Sendable {
         }
     }
 
+    /// Identifiant de l'article de garde-robe, dont la photo vit dans un
+    /// fichier. Prioritaire sur l'URL : un article ajouté par l'utilisateur n'a
+    /// pas d'`imageURL`, seulement cette photo (détourée si le réglage était
+    /// actif à l'ajout).
+    ///
+    /// On expose l'IDENTIFIANT et non les octets : les lire ici forcerait une
+    /// lecture disque synchrone sur le thread de l'appelant, qui est le thread
+    /// principal dans le parcours multi-poses.
+    var wardrobePhotoID: UUID? {
+        switch self {
+        case .wardrobe(let item): return item.id
+        case .catalog:            return nil
+        }
+    }
+
     var categoryLabel: String {
         switch self {
         case .wardrobe(let item): return item.category.rawValue

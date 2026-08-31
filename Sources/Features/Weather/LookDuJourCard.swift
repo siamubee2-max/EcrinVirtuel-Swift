@@ -349,24 +349,22 @@ struct LookDuJourCard: View {
         } else {
             VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
                 HStack(alignment: .top, spacing: EcrinSpacing.sm) {
-                    // Hero : on privilégie un visuel avec image —
-                    // un wardrobe item AVEC photo, sinon catalogue, sinon wardrobe sans photo.
-                    let wardrobeWithImage = clothingWardrobeItems.first { $0.imageURL != nil || $0.userPhotoData != nil }
-                    if let w = wardrobeWithImage {
-                        LookHeroWardrobeImage(item: w)
-                    } else if let firstCatalog = catalogItems.first {
+                    // Hero : le catalogue d'abord. C'est lui que nomme la sous-ligne
+                    // (voir WeatherLookRecommender), et lui seul garantit une vraie
+                    // photo produit. La garde-robe ne prend le relais que si le
+                    // recommandeur n'a retenu aucune pièce du catalogue — sans quoi
+                    // le texte annonçait des vêtements absents des vignettes.
+                    if let firstCatalog = catalogItems.first {
                         LookHeroImage(item: firstCatalog)
                     } else if let firstWardrobe = clothingWardrobeItems.first {
                         LookHeroWardrobeImage(item: firstWardrobe)
                     }
 
-                    // Colonne secondaire
+                    // Colonne secondaire — même ordre que le hero et que la sous-ligne.
                     VStack(spacing: EcrinSpacing.sm) {
-                        let secondaryWardrobe = clothingWardrobeItems.dropFirst()
-                        let secondaryCatalog = catalogItems.dropFirst()
-                        let allSecondary: [QuickTryOnItem] = secondaryWardrobe.prefix(2).map { .wardrobe($0) }
-                            + (clothingWardrobeItems.isEmpty ? [] : secondaryCatalog.prefix(1).map { .catalog($0) })
-                            + (clothingWardrobeItems.isEmpty ? secondaryCatalog.prefix(2).map { .catalog($0) } : [])
+                        let allSecondary: [QuickTryOnItem] = catalogItems.isEmpty
+                            ? clothingWardrobeItems.dropFirst().prefix(2).map { .wardrobe($0) }
+                            : catalogItems.dropFirst().prefix(2).map { .catalog($0) }
 
                         ForEach(Array(allSecondary.prefix(2).enumerated()), id: \.offset) { _, anyItem in
                             switch anyItem {
@@ -377,9 +375,12 @@ struct LookDuJourCard: View {
                             }
                         }
 
-                        let totalCatalog = catalogItems.count + (clothingWardrobeItems.isEmpty ? 0 : 1)
-                        if totalCatalog > 3 {
-                            Text("+\(totalCatalog - 3)")
+                        // Trois vignettes sont montrées (1 hero + 2 secondaires), toutes
+                        // issues de la même source que la sous-ligne. Le compteur porte
+                        // donc sur cette source, plus sur un mélange des deux.
+                        let shownSource = catalogItems.isEmpty ? clothingWardrobeItems.count : catalogItems.count
+                        if shownSource > 3 {
+                            Text("+\(shownSource - 3)")
                                 .font(EcrinFont.caption)
                                 .foregroundStyle(EcrinColor.gold)
                                 .frame(maxWidth: .infinity, minHeight: 44)
@@ -595,7 +596,7 @@ private struct LookHeroWardrobeImage: View {
             // Vignette hero 120×160 — scaledToFill pour effet "magazine cover".
             // frame + clipped obligatoires : sans eux l'image élargit le ZStack et
             // le label du bas se retrouve rogné par le frame final.
-            if let data = item.userPhotoData, let uiImage = UIImage(data: data) {
+            if let uiImage = WardrobePhotoStore.shared.image(for: item.id) {
                 Image(uiImage: uiImage).resizable().scaledToFill()
                     .frame(width: 120, height: 160)
                     .clipped()
@@ -657,7 +658,7 @@ private struct LookSecondaryWardrobeImage: View {
             RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .fill(EcrinColor.surface)
 
-            if let data = item.userPhotoData, let uiImage = UIImage(data: data) {
+            if let uiImage = WardrobePhotoStore.shared.image(for: item.id) {
                 Image(uiImage: uiImage).resizable().scaledToFill()
             } else if let url = item.displayImageURL {
                 DownsampledAsyncImage(url: url) { phase in

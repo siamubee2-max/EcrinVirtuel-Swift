@@ -524,7 +524,7 @@ struct MultiPoseFlowView: View {
     }
 
     /// Sauvegarde chaque image générée comme un nouvel élément de la garde-robe
-    /// (avec userPhotoData = JPEG de l'essayage). Le retour visuel passe par
+    /// (le JPEG de l'essayage part dans `WardrobePhotoStore`). Le retour visuel passe par
     /// `savedToDressingToast` et le dismiss après affichage.
     private func saveResultsToDressing() {
         let images = vm.results.compactMap { $0.image }
@@ -535,17 +535,17 @@ struct MultiPoseFlowView: View {
 
         for (index, img) in images.enumerated() {
             // Compresser en JPEG raisonnable (0.85) — équivalent à ce qui est fait
-            // dans le reste du dressing (FashionItem.userPhotoData).
+            // dans le reste du dressing.
             guard let data = img.jpegData(compressionQuality: 0.85) else { continue }
             let suffix = images.count > 1 ? " (vue \(index + 1))" : ""
             let saved = FashionItem(
                 name: baseName + suffix,
                 category: category,
-                userPhotoData: data,
                 tags: ["essayage virtuel"],
                 source: .userPhoto,
                 isFavorite: false
             )
+            WardrobePhotoStore.shared.save(data, for: saved.id)
             appState.wardrobe.add(saved)
         }
 

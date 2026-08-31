@@ -48,10 +48,22 @@ struct AddWardrobeItemSheet: View {
                     // Photo picker
                     PhotoPickerSection(
                         selectedItem: $form.photoItem,
-                        previewImage: form.previewImage
+                        previewImage: form.previewImage,
+                        isCutout: form.isShowingCutout
                     )
                     .onChange(of: form.photoItem) { _, item in
                         Task { await form.loadPhoto(from: item) }
+                    }
+
+                    if form.hasPhoto {
+                        CutoutToggleRow(
+                            isOn: $form.isCutoutEnabled,
+                            isProcessing: form.isProcessingCutout,
+                            isUnavailable: form.isCutoutUnavailable
+                        )
+                        .onChange(of: form.isCutoutEnabled) { _, _ in
+                            form.applyCutoutChoice()
+                        }
                     }
 
                     // Category selector
@@ -69,6 +81,10 @@ struct AddWardrobeItemSheet: View {
                     // CTA
                     GoldButton(title: L10n.WardrobeUI.addToMyWardrobe) {
                         let item = form.buildItem()
+                        // La photo est écrite AVANT que l'article rejoigne la
+                        // garde-robe : la vue qui l'affichera la cherche par
+                        // identifiant dès le premier rendu.
+                        form.persistPhoto(for: item.id)
                         onAdd(item)
                         dismiss()
                     }
@@ -89,6 +105,9 @@ struct AddWardrobeItemSheet: View {
 private struct PhotoPickerSection: View {
     @Binding var selectedItem: PhotosPickerItem?
     let previewImage: UIImage?
+    /// Un article détouré est déjà recadré au plus juste : le remplir couperait
+    /// un collier large ou une robe longue. On l'affiche entier.
+    let isCutout: Bool
 
     var body: some View {
         PhotosPicker(selection: $selectedItem, matching: .images) {
@@ -107,7 +126,7 @@ private struct PhotoPickerSection: View {
                 if let img = previewImage {
                     Image(uiImage: img)
                         .resizable()
-                        .scaledToFill()
+                        .aspectRatio(contentMode: isCutout ? .fit : .fill)
                         .frame(height: 220)
                         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                         .overlay(alignment: .bottomTrailing) {
@@ -294,6 +313,58 @@ private struct FormField: View {
     }
 }
 
+// MARK: - Cutout Toggle
+
+/// Le détourage est appliqué D'OFFICE dès qu'une photo est choisie — c'est le
+/// bon réglage dans la quasi-totalité des cas et personne ne pense à le
+/// demander. L'interrupteur existe pour les exceptions : une photo déjà
+/// détourée, ou un article que Vision découpe mal.
+private struct CutoutToggleRow: View {
+    @Binding var isOn: Bool
+    let isProcessing: Bool
+    let isUnavailable: Bool
+
+    var body: some View {
+        GlassCard(cornerRadius: 16) {
+            HStack(spacing: EcrinSpacing.md) {
+                Image(systemName: "person.and.background.dotted")
+                    .font(.system(size: 18, weight: .thin))
+                    .foregroundStyle(EcrinColor.gold)
+                    .frame(width: 32)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Détourer l'article")
+                        .font(EcrinFont.body)
+                        .foregroundStyle(EcrinColor.textPrimary)
+                    Text(subtitle)
+                        .font(EcrinFont.caption)
+                        .foregroundStyle(EcrinColor.textSecondary)
+                }
+                Spacer()
+
+                if isProcessing {
+                    ProgressView()
+                        .tint(EcrinColor.gold)
+                } else {
+                    Toggle("", isOn: $isOn)
+                        .tint(EcrinColor.gold)
+                        .labelsHidden()
+                        .disabled(isUnavailable)
+                        .opacity(isUnavailable ? 0.35 : 1)
+                }
+            }
+            .padding(EcrinSpacing.md)
+        }
+        .accessibilityIdentifier("wardrobe.cutout")
+    }
+
+    private var subtitle: String {
+        if isProcessing { return "Découpe en cours…" }
+        if isUnavailable { return "Aucun sujet détecté sur cette photo" }
+        return "Retire le fond, le cintre et le présentoir"
+    }
+}
+
 // MARK: - Boutique Toggle
 
 private struct BoutiqueToggleRow: View {
@@ -333,6 +404,18 @@ final class AddItemForm: ObservableObject {
     @Published var previewImage: UIImage?
     @Published var photoData: Data?
 
+    /// Détourage : activé par défaut, désactivable si le résultat déplaît.
+    @Published var isCutoutEnabled: Bool = true
+    @Published var isProcessingCutout: Bool = false
+    @Published var isCutoutUnavailable: Bool = false
+
+    private var originalImage: UIImage?
+    private var originalData: Data?
+    private var cutoutImage: UIImage?
+
+    var hasPhoto: Bool { originalImage != nil }
+    var isShowingCutout: Bool { isCutoutEnabled && cutoutImage != nil }
+
     @Published var selectedGroup: FashionGroup = .clothing
     @Published var selectedCategory: FashionCategory?
 
@@ -352,8 +435,43 @@ final class AddItemForm: ObservableObject {
         guard let item,
               let data = try? await item.loadTransferable(type: Data.self),
               let image = UIImage(data: data) else { return }
+
+        originalImage = image
+        originalData = data
+        cutoutImage = nil
+        isCutoutUnavailable = false
+        // Afficher la photo brute tout de suite : le détourage prend ~200 ms et
+        // un écran vide pendant ce temps se lit comme un bug.
         previewImage = image
         photoData = data
+
+        isProcessingCutout = true
+        let lifted = await SubjectCutout.lift(image)
+        isProcessingCutout = false
+
+        cutoutImage = lifted
+        isCutoutUnavailable = (lifted == nil)
+        applyCutoutChoice()
+    }
+
+    /// Bascule entre le détourage et la photo d'origine. `photoData` est ce qui
+    /// est stocké ET ce qui sert de référence au modèle : l'encodage conserve la
+    /// transparence, l'aplat blanc étant posé au moment de l'envoi.
+    func applyCutoutChoice() {
+        if isCutoutEnabled, let cutoutImage {
+            previewImage = cutoutImage
+            photoData = SubjectCutout.encoded(cutoutImage) ?? originalData
+        } else if let originalImage {
+            previewImage = originalImage
+            photoData = originalData
+        }
+    }
+
+    /// Écrit la photo choisie dans le magasin de fichiers. À appeler avec
+    /// l'identifiant de l'article construit par `buildItem()`.
+    func persistPhoto(for id: UUID) {
+        guard let photoData else { return }
+        WardrobePhotoStore.shared.save(photoData, for: id)
     }
 
     func buildItem() -> FashionItem {
@@ -364,7 +482,6 @@ final class AddItemForm: ObservableObject {
             brand: brand.isEmpty ? nil : brand,
             color: color.isEmpty ? nil : color,
             material: material.isEmpty ? nil : material,
-            userPhotoData: photoData,
             source: isFromBoutique ? .catalog : .userPhoto,
             price: Double(priceText),
             purchaseURL: purchaseURL.isEmpty ? nil : purchaseURL

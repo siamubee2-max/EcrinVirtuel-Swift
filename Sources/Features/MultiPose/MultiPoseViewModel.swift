@@ -145,8 +145,10 @@ final class MultiPoseViewModel {
         var completed = 0
 
         let service = imageService
-        // Image produit de référence (1 seul téléchargement, réutilisé pour toutes les poses).
-        let referenceData = await service.referenceData(for: items.first?.referenceImageURL)
+        // Image produit de référence (1 seule préparation, réutilisée pour toutes
+        // les poses). La photo locale passe avant l'URL catalogue : sinon un
+        // article ajouté par l'utilisateur partait sans aucune référence.
+        let referenceData = await Self.reference(for: items.first, using: service)
 
         var consentDeclined = false
 
@@ -239,7 +241,7 @@ final class MultiPoseViewModel {
         let model = Self.model(for: items.count)
 
         do {
-            let referenceData = await imageService.referenceData(for: items.first?.referenceImageURL)
+            let referenceData = await Self.reference(for: items.first, using: imageService)
             let generated = try await imageService.tryOnQuick(photo: photo, prompt: prompt, model: model, referenceImageData: referenceData)
             let result = PoseResult(id: pose.id, pose: pose, image: generated, state: .done)
             updateResult(result)
@@ -270,5 +272,17 @@ final class MultiPoseViewModel {
                 state: state
             )
         }
+    }
+
+    /// Référence produit : photo locale d'abord, image catalogue ensuite.
+    private static func reference(
+        for item: QuickTryOnItem?,
+        using service: ImageGenerationService
+    ) async -> Data? {
+        if let id = item?.wardrobePhotoID,
+           let prepared = await service.localReferenceData(for: id) {
+            return prepared
+        }
+        return await service.referenceData(for: item?.referenceImageURL)
     }
 }

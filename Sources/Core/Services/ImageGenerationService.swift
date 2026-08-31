@@ -95,6 +95,23 @@ final class ImageGenerationService: Sendable {
         await downloadReference(url)
     }
 
+    /// Prépare la photo LOCALE d'un article comme image de référence : lecture
+    /// du fichier, aplat blanc, compression.
+    ///
+    /// La LECTURE est à l'intérieur de la tâche détachée, pas avant elle.
+    /// `WardrobePhotoStore.data(for:)` est un `Data(contentsOf:)` synchrone, et
+    /// l'appelant est tantôt le main actor (MultiPoseViewModel est `@MainActor`),
+    /// tantôt un fil du pool coopératif — que Swift 6 interdit de bloquer.
+    /// Prendre l'identifiant plutôt que les octets rend cette garantie
+    /// impossible à contourner par mégarde.
+    func localReferenceData(for id: UUID) async -> Data? {
+        await Task.detached(priority: .userInitiated) {
+            guard let data = WardrobePhotoStore.shared.data(for: id),
+                  let image = UIImage(data: data) else { return nil }
+            return self.resizedImageData(SubjectCutout.flattenedOnWhite(image))
+        }.value
+    }
+
     // MARK: - QuickTryOn Enrichi — analyse corporelle + prompt contextuel
 
     // PAS @MainActor : la compression JPEG (resizedImageData) + l'analyse Vision
@@ -143,11 +160,26 @@ final class ImageGenerationService: Sendable {
         case .shoes:   .shoes
         default:       .clothing   // .clothing + .accessories
         }
-        let reference = await downloadReference(item.imageURL)
+        let reference = await reference(for: item)
         return try await sendRequest(imageData: imageData, prompt: prompt, model: model, category: category, referenceImageData: reference)
     }
 
     // MARK: - Private helpers
+
+    /// Image de référence d'un article : la photo prise par l'utilisateur passe
+    /// AVANT le catalogue.
+    ///
+    /// Un article ajouté à la garde-robe n'a pas d'`imageURL` — sa photo vit
+    /// dans un fichier. Elle ne servait donc qu'à la vignette : le modèle
+    /// ne voyait jamais l'article et réinventait un bijou générique à partir du
+    /// seul texte du prompt. Détourer sans corriger ça n'aurait rien changé au
+    /// rendu.
+    private func reference(for item: FashionItem) async -> Data? {
+        if let local = await localReferenceData(for: item.id) {
+            return local
+        }
+        return await downloadReference(item.imageURL)
+    }
 
     /// Télécharge l'image produit du catalogue (vraie photo de l'article) pour
     /// la fournir au modèle comme référence — garantit le bon bijou / vêtement.

@@ -106,6 +106,9 @@ final class WardrobeViewModel {
 
     func delete(_ item: FashionItem) {
         items.removeAll { $0.id == item.id }
+        // La photo vit dans un fichier : sans ça, supprimer un article laissait
+        // son image occuper le conteneur pour toujours.
+        WardrobePhotoStore.shared.delete(for: item.id)
         save()
         Task {
             do { try await supabase.deleteWardrobeItem(id: item.id) }
@@ -181,20 +184,12 @@ final class WardrobeViewModel {
             let cloudItems = try await supabase.fetchWardrobeItems()
             guard !cloudItems.isEmpty else { return }
             // Merge : conserver les items locaux sans uuid cloud, puis ajouter les cloud.
-            // Les lignes cloud ne portent jamais userPhotoData (volontairement non
-            // synchronisé) — recopier la photo locale sur l'item cloud correspondant,
-            // sinon chaque sync efface les photos de l'utilisateur.
-            let localByID = Dictionary(items.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-            let merged = cloudItems.map { cloudItem in
-                var patched = cloudItem
-                if patched.userPhotoData == nil {
-                    patched.userPhotoData = localByID[cloudItem.id]?.userPhotoData
-                }
-                return patched
-            }
+            // Le recollage manuel des photos a disparu : elles vivent dans des
+            // fichiers nommés par l'identifiant de l'article, donc un item venu
+            // du cloud retrouve la sienne tout seul (même `id`).
             let cloudIDs = Set(cloudItems.map(\.id))
             let localOnly = items.filter { !cloudIDs.contains($0.id) }
-            items = merged + localOnly
+            items = cloudItems + localOnly
             save()
         } catch {
             // Sync failure is non-fatal — local data stays intact.
@@ -219,6 +214,10 @@ final class WardrobeViewModel {
     }
 
     private func load() {
+        // AVANT tout décodage : `FashionItem` ne porte plus `userPhotoData`, donc
+        // décoder puis sauvegarder effacerait les photos des utilisateurs déjà
+        // installés. La migration les sort du JSON et les pose sur le disque.
+        WardrobePhotoStore.shared.migrateFromUserDefaults(key: storageKey)
         guard let data = UserDefaults.standard.data(forKey: storageKey),
               let decoded = try? JSONDecoder().decode([FashionItem].self, from: data) else { return }
         items = decoded
