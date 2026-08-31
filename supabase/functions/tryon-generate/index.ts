@@ -94,6 +94,13 @@ const FAL_MODELS: Record<string, FalModel> = {
 // Cascade de secours (essayée dans l'ordre après le modèle demandé)
 const FAL_FALLBACK_MODELS: FalModel[] = [FLUX_KONTEXT]
 
+// Coûts des fournisseurs de secours hors fal.ai, en dollars par image.
+// ⚠️ ESTIMATIONS, à confirmer sur les factures Google et OpenAI. La colonne
+// `provider` de generation_costs permet de recalculer a posteriori si ces
+// valeurs se révèlent fausses — c'est précisément pourquoi on la stocke.
+const GEMINI_COST_USD = 0.039
+const OPENAI_COST_USD = 0.040
+
 // ─── Main handler ──────────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -295,13 +302,20 @@ serve(async (req) => {
     }
 
     const promptWithRef = refUrl
-      ? `${generationPrompt}\n\nPRODUCT REFERENCE: the jewelry/item to add is EXACTLY the product shown in the SECOND reference image. Reproduce its exact design, shape, materials, stones and colors faithfully — do not invent a different design. CRITICAL SCALE — the product photo is a MACRO close-up, so you MUST shrink the jewel dramatically to real-life size on the person. Anatomical limits: a dangling earring must NOT extend below the wearer's jawline (shorter than the ear-to-jaw distance); a hoop's diameter must be smaller than the wearer's ear height x 1.5; a pendant must be smaller than the wearer's eye. The jewel must look small, dainty and delicate on the person, occupying only a tiny fraction of the image. When in doubt, render it SMALLER.`
+      ? `${generationPrompt}\n\nPRODUCT REFERENCE - IDENTITY IS THE HARD CONSTRAINT: the item to add is EXACTLY the product shown in the SECOND image. Reproduce its design, silhouette, length, proportions, materials, finish, stones and colors, including any asymmetry between the two pieces of a pair. Never substitute, simplify, shorten, split or invent a different piece. If any other instruction cannot be satisfied at the same time as this one, break that other instruction - never this one. A faithful product rendered imperfectly is a success; a well-composed image showing different jewelry is a total failure.\n\nIGNORE THE REFERENCE FRAMING: the second image is a macro shot taken a few centimeters from the lens, so the object fills the frame. It may also show a display card, an easel, a stand, packaging or a QR code - reproduce ONLY the jewelry itself, never its support. Its apparent size there carries NO information about its real size. Never scale the piece to match how big it looks in that image.\n\nSCALE BRIDGE - MEASURE, DO NOT GUESS: real jewelry is built from thin metal. In the reference, the post, ear wire, hoop wire, clasp or chain link is about 1 mm thick in reality; take that as your unit, read every other dimension of the product as a multiple of it, and keep those multiples exactly. Then place the piece on the person using the body as the ruler: an adult ear is about 6 cm tall, an earlobe about 1.5 cm, an eye about 3 cm wide, a finger about 1.8 cm wide, a wrist about 16 cm around. If the piece shows no thin metal, use the earlobe as the ruler instead.\n\nTHE RESULT OF THAT MEASUREMENT IS ALWAYS CORRECT: a stud stays a tiny point of light on the lobe, smaller than the iris. A wide hoop stays wide. A long drop earring stays long and hangs below the jawline onto the neck - expected, not an error. No outside rule caps or floors the size; the only wrong size is one that disagrees with the reference's own proportions. Scale the object as one rigid unit - never stretch, thin, crop or truncate one part relative to another.\n\nREMOVE WHAT IS ALREADY WORN: if the person in the first photo already wears jewelry on the same spot (earrings, studs, hoops, a necklace, a ring), remove it completely and leave bare skin before placing the product. The final image must show the product and nothing else.\n\nPLACE IT LIKE A REAL OBJECT: attached where the real piece attaches (through the earlobe, on its chain in the hollow of the neck, around the finger), hanging straight down under gravity with the weight and drape of its actual material, lit by the scene's own light, with a soft contact shadow on the skin and correct occlusion by hair and ear. If the piece at its true size does not fit the crop, widen the framing. Change the framing, never the jewel.`
       : generationPrompt
 
     // ── Cascade de fournisseurs ───────────────────────────────────────────────
     let resultBase64: string | null = null
     let provider = ""
     const errors: string[] = []
+
+    // Comptabilité du coût RÉEL de cette génération. Un appel exécuté est
+    // compté comme facturé même s'il échoue : hypothèse pessimiste, assumée —
+    // mieux vaut surestimer le coût que fonder un prix sur une sous-estimation.
+    const costT0 = Date.now()
+    let costAttempts = 0
+    let costUSD = 0
 
     // ── Fournisseur 1 : fal.ai (NB2 → NB Pro → Flux Kontext) ─────────────────
     if (signedUrl) {
@@ -311,6 +325,8 @@ serve(async (req) => {
       cascade.push(alternate, ...FAL_FALLBACK_MODELS)
 
       for (const cfg of cascade) {
+        costAttempts += 1
+        costUSD += cfg.costUSD
         try {
           resultBase64 = await generateWithFal(cfg, signedUrl, refUrl, promptWithRef, aspectRatio)
           provider = cfg.id
@@ -330,6 +346,8 @@ serve(async (req) => {
 
     // ── Fournisseur 2 : Google Gemini ─────────────────────────────────────────
     if (!resultBase64 && GOOGLE_API_KEY) {
+      costAttempts += 1
+      costUSD += GEMINI_COST_USD
       try {
         resultBase64 = await generateWithGemini(imageBase64, promptWithRef, aspectRatio, hasValidRef ? referenceImageBase64 : null)
         provider = "gemini-3.1-flash-image"
@@ -342,6 +360,8 @@ serve(async (req) => {
 
     // ── Fournisseur 3 : OpenAI GPT Image ──────────────────────────────────────
     if (!resultBase64 && OPENAI_API_KEY) {
+      costAttempts += 1
+      costUSD += OPENAI_COST_USD
       try {
         resultBase64 = await generateWithOpenAI(imageBase64, generationPrompt)
         provider = "openai-gpt-image-1"
@@ -351,6 +371,21 @@ serve(async (req) => {
         console.error("All providers failed:", errors)
       }
     }
+
+    // Télémétrie du coût réel — une ligne par génération, succès OU échec.
+    // Fire-and-forget : elle ne doit JAMAIS faire échouer une génération que
+    // l'utilisatrice a déjà payée en crédit.
+    adminClient.from("generation_costs").insert({
+      user_id:     userId,
+      tier:        model ?? "standard",
+      provider:    provider || "none",
+      attempts:    costAttempts,
+      cost_usd:    Number(costUSD.toFixed(5)),
+      duration_ms: Date.now() - costT0,
+      success:     Boolean(resultBase64),
+    }).then((res: { error?: unknown }) => {
+      if (res?.error) console.error("[tryon-generate] cost telemetry failed:", res.error)
+    })
 
     if (!resultBase64) {
       // Logger les détails côté serveur uniquement — jamais exposer au client
