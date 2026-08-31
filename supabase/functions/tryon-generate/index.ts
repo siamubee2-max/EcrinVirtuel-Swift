@@ -98,6 +98,15 @@ const FAL_FALLBACK_MODELS: FalModel[] = [FLUX_KONTEXT]
 // ⚠️ ESTIMATIONS, à confirmer sur les factures Google et OpenAI. La colonne
 // `provider` de generation_costs permet de recalculer a posteriori si ces
 // valeurs se révèlent fausses — c'est précisément pourquoi on la stocke.
+/// Nombre maximum d'appels FACTURÉS par crédit consommé : une tentative, plus
+/// une escalade. Au-delà, on abandonne.
+///
+/// Sans ce plafond la cascade pouvait enchaîner cinq fournisseurs — jusqu'à
+/// 0,30 $ pour UN crédit vendu 0,17 € au tarif annuel le plus bas. Une
+/// tentative ratée est facturée au même titre qu'une réussie : deux échecs
+/// avant succès font passer la ligne haute en marge négative.
+const MAX_BILLED_ATTEMPTS = 2
+
 const GEMINI_COST_USD = 0.039
 const OPENAI_COST_USD = 0.040
 
@@ -325,6 +334,7 @@ serve(async (req) => {
       cascade.push(alternate, ...FAL_FALLBACK_MODELS)
 
       for (const cfg of cascade) {
+        if (costAttempts >= MAX_BILLED_ATTEMPTS) break
         costAttempts += 1
         costUSD += cfg.costUSD
         try {
@@ -345,7 +355,7 @@ serve(async (req) => {
     }
 
     // ── Fournisseur 2 : Google Gemini ─────────────────────────────────────────
-    if (!resultBase64 && GOOGLE_API_KEY) {
+    if (!resultBase64 && GOOGLE_API_KEY && costAttempts < MAX_BILLED_ATTEMPTS) {
       costAttempts += 1
       costUSD += GEMINI_COST_USD
       try {
@@ -359,7 +369,7 @@ serve(async (req) => {
     }
 
     // ── Fournisseur 3 : OpenAI GPT Image ──────────────────────────────────────
-    if (!resultBase64 && OPENAI_API_KEY) {
+    if (!resultBase64 && OPENAI_API_KEY && costAttempts < MAX_BILLED_ATTEMPTS) {
       costAttempts += 1
       costUSD += OPENAI_COST_USD
       try {
@@ -388,6 +398,23 @@ serve(async (req) => {
     })
 
     if (!resultBase64) {
+      // Rendre le crédit AVANT de lever : il a été débité en amont comme garde
+      // atomique du quota, mais l'utilisatrice n'a reçu aucune image. Facturer
+      // un service non rendu, c'est une demande de remboursement et un avis à
+      // une étoile — sur une app qui n'en a encore aucun.
+      // Les comptes illimités n'ont rien payé : rien à rendre.
+      if (!isUnlimitedEmail(user.email)) {
+        const { error: refundError } = await adminClient.rpc("refund_credit", {
+          p_user_id: userId,
+          p_amount:  1,
+        })
+        if (refundError) {
+          // Ne pas masquer l'échec de génération par celui du remboursement,
+          // mais le tracer : c'est un crédit perdu pour quelqu'un.
+          console.error(`[tryon-generate] REFUND FAILED for ${userId}:`, refundError)
+        }
+      }
+
       // Logger les détails côté serveur uniquement — jamais exposer au client
       console.error("[tryon-generate] All providers failed:", errors)
       throw new Error("generation_failed")
