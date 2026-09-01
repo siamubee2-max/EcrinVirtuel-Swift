@@ -836,7 +836,6 @@ extension L10n {
         static var premiumFeaturesLine: String { String(localized: "paywallUI.premiumFeaturesLine") }
         static var restorePurchases: String { String(localized: "paywallUI.restorePurchases") }
         static var seeAllPlansRestore: String { String(localized: "paywallUI.seeAllPlansRestore") }
-        static var socialProof: String { String(localized: "paywallUI.socialProof") }
         static var unlimited: String { String(localized: "paywallUI.unlimited") }
         static var youFoundYourStyle: String { String(localized: "paywallUI.youFoundYourStyle") }
         static var yourCreations: String { String(localized: "paywallUI.yourCreations") }
@@ -1135,6 +1134,7 @@ extension L10n.ProfileUI {
 }
 extension L10n.QuickTryOnUI {
     static var chooseMyAngles: String { String(localized: "quickTryOnUI.chooseMyAngles") }
+    static var partialResult: String { String(localized: "quickTryOnUI.partialResult") }
     static var generationFailedRetry: String { String(localized: "quickTryOnUI.generationFailedRetry") }
     static var savedShort: String { String(localized: "quickTryOnUI.savedShort") }
 }

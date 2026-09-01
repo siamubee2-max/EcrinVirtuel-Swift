@@ -37,7 +37,6 @@ struct EmotionalPaywallView: View {
                     imagesStrip
 
                     // ── Social proof ────────────────────────────────────
-                    socialProof
 
                     // ── Plan cards ──────────────────────────────────────
                     planCards
@@ -134,7 +133,10 @@ struct EmotionalPaywallView: View {
             }
 
             if needsPlaceholder {
-                // Placeholder "+∞" card
+                // Carte « + » : il reste des pièces à essayer. L'ancien « ∞ /
+                // illimité » promettait l'infini au-dessus de formules à 25 et
+                // 60 crédits/mois — la famille d'allégation (2.3.1) qui a fait
+                // retirer la version.
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(EcrinColor.glassFill)
                     .frame(width: 80, height: 80)
@@ -146,58 +148,15 @@ struct EmotionalPaywallView: View {
                             )
                     )
                     .overlay(
-                        VStack(spacing: 2) {
-                            Text("∞")
-                                .font(EcrinFont.serif(24, weight: .light))
-                                .foregroundStyle(EcrinColor.gold)
-                            Text(L10n.PaywallUI.unlimited)
-                                .font(EcrinFont.caption)
-                                .foregroundStyle(EcrinColor.textMuted)
-                        }
+                        Text("+")
+                            .font(EcrinFont.serif(28, weight: .light))
+                            .foregroundStyle(EcrinColor.gold)
                     )
             }
         }
         .padding(.horizontal, EcrinSpacing.xl)
     }
 
-    // MARK: - Social proof
-
-    @ViewBuilder
-    private var socialProof: some View {
-        HStack(spacing: EcrinSpacing.sm) {
-            // Avatars superposés
-            ZStack {
-                ForEach(0..<3, id: \.self) { index in
-                    Circle()
-                        .fill(avatarColor(for: index))
-                        .frame(width: 28, height: 28)
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 11, weight: .light))
-                                .foregroundStyle(.white.opacity(0.7))
-                        )
-                        .overlay(Circle().strokeBorder(EcrinColor.background, lineWidth: 1.5))
-                        .offset(x: CGFloat(index) * 16)
-                }
-            }
-            .frame(width: 28 + 16 * 2)
-
-            Text(L10n.PaywallUI.socialProof)
-                .font(EcrinFont.caption)
-                .foregroundStyle(EcrinColor.textMuted)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(.horizontal, EcrinSpacing.xl)
-    }
-
-    private func avatarColor(for index: Int) -> Color {
-        let colors: [Color] = [
-            Color(hex: "#8B5CF6"),
-            Color(hex: "#EC4899"),
-            Color(hex: "#F59E0B")
-        ]
-        return colors[index % colors.count]
-    }
 
     // MARK: - Plan cards
     // Quotas depuis SubscriptionStatus (aligné serveur : 25/60) ; prix = les

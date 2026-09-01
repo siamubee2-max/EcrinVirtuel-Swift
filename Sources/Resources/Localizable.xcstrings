@@ -21743,37 +21743,37 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unbegrenzte Anproben · KI-Stylist · Premium-Garderobe"
+            "value": "KI-Anproben · KI-Stylist · Premium-Garderobe"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unlimited try-ons · AI stylist · Premium wardrobe"
+            "value": "AI try-ons · AI stylist · Premium wardrobe"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pruebas ilimitadas · Estilista IA · Vestidor premium"
+            "value": "Pruebas con IA · Estilista IA · Vestidor premium"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Essayage illimité · Styliste IA · Dressing premium"
+            "value": "Essayage IA · Styliste IA · Dressing premium"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Prove illimitate · Stilista IA · Guardaroba premium"
+            "value": "Prove con IA · Stilista IA · Guardaroba premium"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Provas ilimitadas · Estilista IA · Guarda-roupa premium"
+            "value": "Provas com IA · Estilista IA · Guarda-roupa premium"
           }
         }
       }
@@ -21856,47 +21856,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ver todos os planos · Restaurar as minhas compras"
-          }
-        }
-      }
-    },
-    "paywallUI.socialProof": {
-      "extractionState": "stale",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+12.400 Nutzerinnen haben ihren perfekten Schmuck entdeckt"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+12,400 users have discovered their perfect jewelry"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+12.400 usuarias han descubierto sus joyas perfectas"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+12 400 utilisatrices ont découvert leurs bijoux parfaits"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+12.400 utenti hanno scoperto i loro gioielli perfetti"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "+12 400 utilizadoras descobriram as suas joias perfeitas"
           }
         }
       }
@@ -37123,7 +37082,47 @@
     "∞": {},
     "✦": {},
     "✦ %@": {},
-    "📷": {}
+    "📷": {},
+    "quickTryOnUI.partialResult": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Teilweise Anprobe: Nur der erste Artikel konnte angewendet werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Partial try-on: only the first item could be applied."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prueba parcial: solo se pudo aplicar el primer artículo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Essayage partiel : seul le premier article a pu être appliqué."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prova parziale: è stato applicato solo il primo articolo."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prova parcial: apenas o primeiro artigo pôde ser aplicado."
+          }
+        }
+      }
+    }
   },
   "version": "1.0"
 }
