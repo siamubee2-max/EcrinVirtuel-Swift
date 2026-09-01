@@ -68,6 +68,21 @@ final class GrilleTarifaireTests: XCTestCase {
         }
     }
 
+    /// Les crédits affichés par le paywall ÉMOTIONNEL viennent de
+    /// SubscriptionStatus.trialLimit ; ceux du paywall complet de
+    /// PaywallPlan.creditsPerMonth ; ceux réellement accordés du serveur.
+    /// Les trois divergeaient (15/40 contre 25/60) : le même tunnel d'achat
+    /// annonçait deux quotas différents à trois secondes d'écart.
+    func testLesQuotasAffichesSontCeuxDesFormules() {
+        let plans = PaywallViewModel().allPlans
+        let essentiel = plans.first { $0.rcIdentifier.contains("starter") }
+        let signature = plans.first { $0.rcIdentifier.contains("premium") }
+        XCTAssertEqual(SubscriptionStatus.starter.monthlyGenerations, essentiel?.creditsPerMonth,
+                       "trialLimit(starter) a dérivé des formules du paywall")
+        XCTAssertEqual(SubscriptionStatus.premium.monthlyGenerations, signature?.creditsPerMonth,
+                       "trialLimit(premium) a dérivé des formules du paywall")
+    }
+
     /// Aucun badge « meilleure offre » tant qu'une formule le porte à tort.
     func testAucuneFormuleNeSeDeclareMeilleure() {
         let plans = PaywallViewModel().allPlans

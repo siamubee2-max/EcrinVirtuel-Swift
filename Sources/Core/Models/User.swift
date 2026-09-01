@@ -36,15 +36,16 @@ enum SubscriptionStatus: String {
     case premium = "premium"
     case elite   = "elite"
 
-    /// Crédits mensuels par tier — source unique, alignée sur ce que le
-    /// paywall vend (15/40/100). L'Edge Function credit-generations reste
-    /// l'autorité : ces valeurs ne servent qu'à l'affichage en attendant
-    /// le sync serveur.
+    /// Crédits mensuels par tier — pour l'AFFICHAGE seulement. L'autorité est
+    /// le serveur : revenuecat-webhook `planForProduct` (starter→25, premium→60).
+    /// Grille du 31/08/2026 : starter est vendu « Essentiel », premium
+    /// « Signature ». Les anciennes valeurs (15/40) restées ici faisaient
+    /// annoncer au paywall émotionnel des quotas que personne ne recevait.
     var trialLimit: Int {
         switch self {
         case .free:    return 3
-        case .starter: return 15
-        case .premium: return 40
+        case .starter: return 25
+        case .premium: return 60
         case .elite:   return 100
         }
     }

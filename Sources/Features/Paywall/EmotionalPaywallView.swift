@@ -200,26 +200,28 @@ struct EmotionalPaywallView: View {
     }
 
     // MARK: - Plan cards
-    // Quotas depuis SubscriptionStatus (source unique) ; prix = fallbacks de
-    // PaywallView (les prix localisés StoreKit sont affichés sur le paywall
-    // complet où l'achat a réellement lieu).
+    // Quotas depuis SubscriptionStatus (aligné serveur : 25/60) ; prix = les
+    // MÊMES fallbacks que PaywallView.allPlans (6,99 / 14,99). Cet écran et le
+    // paywall complet appartiennent au même tunnel d'achat : deux chiffres
+    // différents à trois secondes d'écart, c'est la famille de défaut qui a
+    // fait retirer la version (« Économisez 35 % », « Essayages illimités »).
 
     @ViewBuilder
     private var planCards: some View {
         VStack(spacing: EcrinSpacing.sm) {
-            // Starter — glass background
+            // Essentiel — glass background
             PlanRow(
-                name: "Starter",
+                name: "Essentiel",
                 description: "\(SubscriptionStatus.starter.monthlyGenerations) crédits/mois",
                 price: "6,99€",
                 isPopular: false
             )
 
-            // Premium — gold border + badge
+            // Signature — gold border + badge
             PlanRow(
-                name: "Premium",
+                name: "Signature",
                 description: "\(SubscriptionStatus.premium.monthlyGenerations) crédits/mois",
-                price: "12,99€",
+                price: "14,99€",
                 isPopular: true
             )
         }
