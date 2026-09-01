@@ -284,9 +284,16 @@ serve(async (req) => {
     const stamp      = Date.now()
     const tempPath   = `${userId}/${stamp}.jpg`
 
+    // Chemins RÉELLEMENT écrits dans le bucket, nettoyés quoi qu'il arrive.
+    // L'ancien remove() vivait dans le bloc `if (signedUrl)` : si la signature
+    // échouait APRÈS l'upload, la photo de visage restait dans tryon-temp pour
+    // toujours — aucune purge nulle part (rétention indéfinie, enjeu RGPD).
+    const uploadedPaths: string[] = []
+
     const { error: uploadError } = await adminClient.storage
       .from(STORAGE_BUCKET)
       .upload(tempPath, imageBytes, { contentType: "image/jpeg", upsert: true })
+    if (!uploadError) uploadedPaths.push(tempPath)
 
     if (uploadError) {
       console.warn("Storage upload failed — fal.ai unavailable, using direct APIs:", uploadError)
@@ -311,6 +318,9 @@ serve(async (req) => {
         console.warn("Reference upload failed — generating without product reference:", refUploadError)
         refPath = null
       } else {
+        // Enregistré AVANT tout `refPath = null` : une signature ratée remettait
+        // le chemin à null et le fichier échappait au nettoyage.
+        uploadedPaths.push(refPath)
         refUrl = await signTempUrl(refPath)
         if (!refUrl) refPath = null
       }
@@ -355,10 +365,14 @@ serve(async (req) => {
         }
       }
 
-      // Nettoyage Storage — loggé en cas d'échec pour détecter les fuites
-      const toClean = refPath ? [tempPath, refPath] : [tempPath]
-      adminClient.storage.from(STORAGE_BUCKET).remove(toClean).catch((cleanupErr) => {
-        console.error(`[tryon-generate] Storage cleanup failed (orphaned: ${toClean.join(",")}):`, cleanupErr)
+    }
+
+    // Nettoyage Storage — INCONDITIONNEL : tout chemin uploadé est retiré, que
+    // la cascade fal ait tourné ou non. Loggé en cas d'échec pour détecter les
+    // fuites.
+    if (uploadedPaths.length > 0) {
+      adminClient.storage.from(STORAGE_BUCKET).remove(uploadedPaths).then((res: { error?: unknown }) => {
+        if (res?.error) console.error(`[tryon-generate] Storage cleanup failed (orphaned: ${uploadedPaths.join(",")}):`, res.error)
       })
     }
 

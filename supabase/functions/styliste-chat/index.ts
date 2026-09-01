@@ -12,10 +12,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const SUPABASE_URL      = Deno.env.get("SUPABASE_URL")!
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!
+const SERVICE_ROLE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 const OPENAI_API_KEY    = Deno.env.get("OPENAI_API_KEY")
 const GOOGLE_API_KEY    = Deno.env.get("GOOGLE_API_KEY")
 
 const MAX_MESSAGES     = 40
+// Plafond quotidien par utilisateur. Sans lui, un seul JWT valide (3 essais
+// gratuits suffisent à en obtenir un) pouvait boucler sans limite sur un
+// endpoint LLM facturé. 100/jour est loin au-dessus de tout usage réel de
+// conseil mode, et loin en dessous d'un abus de scripting.
+const MAX_CHAT_PER_DAY = 100
 const MAX_CONTENT_LEN  = 4_000
 
 const SYSTEM_PROMPT = `Tu es la styliste personnelle de L'Écrin Virtuel, une application
@@ -34,6 +40,18 @@ serve(async (req) => {
   })
   const { data: { user }, error: authError } = await userClient.auth.getUser()
   if (authError || !user) return json({ error: "unauthorized" }, 401)
+
+  // Limitation de débit (migration 017) : compteur quotidien atomique.
+  const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
+  const { error: rateError } = await admin.rpc("increment_chat_usage", {
+    p_user_id: user.id,
+    p_max:     MAX_CHAT_PER_DAY,
+  })
+  if (rateError) {
+    if (rateError.message?.includes("RATE_LIMITED")) return json({ error: "rate_limited" }, 429)
+    // Compteur indisponible ≠ chat interdit : on laisse passer mais on trace.
+    console.error("[styliste-chat] rate limit check failed:", rateError)
+  }
 
   try {
     const { messages, context } = await req.json()

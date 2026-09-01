@@ -299,18 +299,33 @@ final class QuickTryOnViewModel {
                 // résultat intermédiaire du flow multi-articles l'affichait comme final
                 // et créait un doublon.
                 var finalImages = generated
+                var partialFailure = false
                 if selectedItems.count > 1 {
                     let fullPrompt = buildEnrichedMultiItemPrompt(
                         mode: mode,
                         items: selectedItems,
                         bodyContext: context
                     )
-                    finalImages = try await imageService.tryOnQuick(
-                        photo: generated,
-                        prompt: fullPrompt
-                    )
+                    // Filet propre au 2e appel : son échec faisait tomber tout le
+                    // `do` — l'image intermédiaire, DÉJÀ générée et débitée d'un
+                    // crédit côté serveur, était jetée et l'écran disait « échec ».
+                    // On la publie en repli (une seule assignation de `result`,
+                    // le contrat de la vue est respecté) et on ne rend que le
+                    // crédit local du 2e article.
+                    do {
+                        finalImages = try await imageService.tryOnQuick(
+                            photo: generated,
+                            prompt: fullPrompt
+                        )
+                    } catch {
+                        partialFailure = true
+                        CreditsManager.shared.refund(count: 1)
+                    }
                 }
                 result = finalImages
+                if partialFailure {
+                    errorMessage = L10n.QuickTryOnUI.partialResult
+                }
                 CreditsManager.shared.syncDetached()
                 GamingService.shared.record(.tryOnGenerated)
                 // Enregistrer la session Try-On en arrière-plan (sans bloquer l'UI)
