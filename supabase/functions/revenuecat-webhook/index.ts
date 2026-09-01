@@ -185,35 +185,26 @@ async function handle(req: Request, meta: DeliveryMeta): Promise<Response> {
       return json({ ignored: "unknown_product", product_id: productId })
     }
 
-    const { error: txError } = await admin.from("credit_transactions").insert({
-      user_id:        appUserId,
-      product_id:     productId,
-      transaction_id: txId,
-      credits_added:  mapping.credits,
+    // ── Abonnement : octroi ATOMIQUE (migration 016) ─────────────────────────
+    // L'ancien chemin faisait insert registre PUIS select+upsert du solde :
+    // un échec entre les deux + le retry RevenueCat donnait « already_processed »
+    // sans crédit (l'insert tombait sur l'UNIQUE), et le select+upsert était une
+    // course avec les packs et consume_credits. Registre, solde, plan_type et
+    // reset_at vivent désormais dans UNE transaction Postgres.
+    const { data: newTotal, error: subError } = await admin.rpc("credit_subscription_atomic", {
+      p_user_id:        appUserId,
+      p_product_id:     productId,
+      p_transaction_id: txId,
+      p_credits:        mapping.credits,
+      p_plan:           mapping.plan,
     })
-    if (txError) {
-      if (txError.code === "23505") {
+    if (subError) {
+      if (subError.message?.includes("ALREADY_CREDITED")) {
         meta.outcome = "already_processed"
         return json({ ok: true, action: "already_processed" })
       }
-      console.error("[revenuecat-webhook] tx insert failed:", txError)
-      meta.outcome = "tx_insert_failed"
-      return json({ error: "service_unavailable" }, 503)
-    }
-
-    const { data: existing } = await admin.from("user_quotas")
-      .select("generations_remaining").eq("user_id", appUserId).maybeSingle()
-    const newTotal = (existing?.generations_remaining ?? 0) + mapping.credits
-
-    const { error: upsertError } = await admin.from("user_quotas").upsert({
-      user_id:               appUserId,
-      plan_type:             mapping.plan,
-      generations_remaining: newTotal,
-      reset_at:              new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString(),
-    }, { onConflict: "user_id" })
-    if (upsertError) {
-      console.error("[revenuecat-webhook] quota upsert failed:", upsertError)
-      meta.outcome = "quota_upsert_failed"
+      console.error("[revenuecat-webhook] credit_subscription_atomic:", subError)
+      meta.outcome = "sub_credit_failed"
       return json({ error: "service_unavailable" }, 503)
     }
 

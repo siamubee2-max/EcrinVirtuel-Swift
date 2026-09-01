@@ -43,6 +43,12 @@ const MAX_PROMPT_CHARS       = 4_000
 const MAX_IMAGE_BASE64_CHARS = 6 * 1024 * 1024   // ~4.5 MB binaire
 const POLL_INTERVAL_MS       = 3_000
 const POLL_MAX_ATTEMPTS      = 30                  // 30 × 3s = 90s max
+// Échéance GLOBALE de la cascade, tous fournisseurs confondus. Sans elle, deux
+// tentatives fal pouvaient poller 2 × 90 s : le runtime Edge (~150 s) tuait la
+// fonction APRÈS consume_credits et AVANT refund_credit — crédit débité, pas
+// d'image, jamais remboursé, et pas même une ligne de télémétrie. 110 s laisse
+// ~40 s de marge pour le refund, la télémétrie et la réponse.
+const CASCADE_DEADLINE_MS    = 110_000
 // Bucket `tryon-temp` privé (migration 010) → URL signée courte pour fal.ai.
 // Couvre la file d'attente fal (POLL_MAX_ATTEMPTS × POLL_INTERVAL_MS = 90 s).
 const SIGNED_URL_TTL_SECONDS = 300
@@ -323,6 +329,7 @@ serve(async (req) => {
     // compté comme facturé même s'il échoue : hypothèse pessimiste, assumée —
     // mieux vaut surestimer le coût que fonder un prix sur une sous-estimation.
     const costT0 = Date.now()
+    const deadline = costT0 + CASCADE_DEADLINE_MS
     let costAttempts = 0
     let costUSD = 0
 
@@ -335,10 +342,11 @@ serve(async (req) => {
 
       for (const cfg of cascade) {
         if (costAttempts >= MAX_BILLED_ATTEMPTS) break
+        if (Date.now() >= deadline) break
         costAttempts += 1
         costUSD += cfg.costUSD
         try {
-          resultBase64 = await generateWithFal(cfg, signedUrl, refUrl, promptWithRef, aspectRatio)
+          resultBase64 = await generateWithFal(cfg, signedUrl, refUrl, promptWithRef, aspectRatio, deadline)
           provider = cfg.id
           break // succès → on sort de la cascade
         } catch (err) {
@@ -355,7 +363,7 @@ serve(async (req) => {
     }
 
     // ── Fournisseur 2 : Google Gemini ─────────────────────────────────────────
-    if (!resultBase64 && GOOGLE_API_KEY && costAttempts < MAX_BILLED_ATTEMPTS) {
+    if (!resultBase64 && GOOGLE_API_KEY && costAttempts < MAX_BILLED_ATTEMPTS && Date.now() < deadline) {
       costAttempts += 1
       costUSD += GEMINI_COST_USD
       try {
@@ -369,7 +377,7 @@ serve(async (req) => {
     }
 
     // ── Fournisseur 3 : OpenAI GPT Image ──────────────────────────────────────
-    if (!resultBase64 && OPENAI_API_KEY && costAttempts < MAX_BILLED_ATTEMPTS) {
+    if (!resultBase64 && OPENAI_API_KEY && costAttempts < MAX_BILLED_ATTEMPTS && Date.now() < deadline) {
       costAttempts += 1
       costUSD += OPENAI_COST_USD
       try {
@@ -463,7 +471,7 @@ async function generateWithFal(
   refUrl: string | null,
   prompt: string,
   aspectRatio: string
-): Promise<string> {
+, deadline: number): Promise<string> {
   // Schéma d'entrée par famille (vérifié fal.ai/models/*/api) :
   //   nano-banana-2/edit & gemini-3-pro-image-preview/edit → image_urls: [..]
   //   flux-pro/kontext                                     → image_url: ".."
@@ -499,6 +507,9 @@ async function generateWithFal(
 
   // Polling du statut
   for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
+    // L'échéance globale prime sur le compteur local : deux tentatives se
+    // PARTAGENT le budget au lieu de l'additionner.
+    if (Date.now() >= deadline) throw new Error("fal budget exceeded (cascade deadline)")
     await sleep(POLL_INTERVAL_MS)
 
     const statusRes = await fetch(statusUrl, {

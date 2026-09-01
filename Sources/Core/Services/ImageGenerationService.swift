@@ -51,9 +51,14 @@ final class ImageGenerationService: Sendable {
         // modèle primaire échoue et que la cascade enchaîne les fallbacks, aucun octet
         // n'arrive pendant >60 s. Un timeoutIntervalForRequest à 60 s coupait alors la
         // requête AVANT que le serveur ait fini → « image non générée » à tort.
-        // On aligne les deux timeouts sur le budget serveur (cascade plafonnée ~130 s).
+        //
+        // Le serveur borne désormais sa cascade par CASCADE_DEADLINE_MS = 110 s et
+        // répond toujours sous ~150 s (remboursement compris). 180 s côté client
+        // laisse cette marge ENTIÈRE : le client ne doit JAMAIS abandonner avant le
+        // serveur — sinon crédit débité, image générée, et « échec » à l'écran
+        // (que MultiPose retentait ×3, débitant jusqu'à 3 crédits par pose).
         config.timeoutIntervalForRequest  = 180  // pas de coupure prématurée sans octet reçu
-        config.timeoutIntervalForResource = 180  // timeout total ressource
+        config.timeoutIntervalForResource = 180  // > pire cas serveur (~150 s), jamais l'inverse
         session = URLSession(configuration: config)
     }
 
