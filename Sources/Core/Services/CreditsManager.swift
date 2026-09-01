@@ -57,22 +57,39 @@ final class CreditsManager {
 
     /// Synchronise le solde depuis Supabase user_quotas.
     /// À appeler au démarrage de l'app, après chaque génération réussie et après un achat.
+    /// Numéro d'époque : incrémenté à chaque déconnexion. Un sync suspendu sur
+    /// le réseau avec le JWT du compte PRÉCÉDENT reprend après resetForSignOut
+    /// et réappliquait son solde — y compris le statut fondateur illimité — au
+    /// poste déconnecté. Comparer l'époque au retour de l'await jette ce
+    /// résultat périmé.
+    private var epoch = 0
+
     func sync() async {
         guard !isSyncing else { return }
         isSyncing = true
         defer { isSyncing = false }
+        let startEpoch = epoch
 
         guard let session = try? await SupabaseService.shared.client.auth.session else {
             // Pas de session : utilisateur non connecté.
             // Accordons 3 essais gratuits seulement si jamais chargé (évite de réinitialiser
             // après que l'utilisateur a déjà consommé des essais dans la session courante).
+            guard epoch == startEpoch else { return }
             isUnlimited = false
             if !hasLoaded { remaining = 3 }
             hasLoaded = true
             return
         }
 
-        if let count = try? await SupabaseService.shared.fetchRemainingCredits() {
+        let fetched = try? await SupabaseService.shared.fetchRemainingCredits()
+        // Déconnexion pendant l'await : la réponse est partie avec le JWT de
+        // l'ANCIEN compte. On la jette et on relance un sync propre une fois
+        // isSyncing retombé (le Task de syncDetached passe après le defer).
+        guard epoch == startEpoch else {
+            syncDetached()
+            return
+        }
+        if let count = fetched {
             remaining = max(0, count)
             isUnlimited = UnlimitedAccess.isUnlimited(remainingCredits: count)
         } else {
@@ -92,6 +109,7 @@ final class CreditsManager {
     /// statut fondateur illimité — du compte précédent ne doit pas rester
     /// affiché pour l'utilisateur suivant sur le même appareil.
     func resetForSignOut() {
+        epoch += 1
         isUnlimited = false
         remaining = 0
         hasLoaded = false

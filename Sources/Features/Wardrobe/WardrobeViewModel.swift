@@ -180,8 +180,14 @@ final class WardrobeViewModel {
     func syncFromCloud() async {
         isSyncing = true
         defer { isSyncing = false }
+        // Un sync suspendu sur le réseau pendant que switchUser change de compte
+        // reprendrait avec les articles cloud de l'ANCIEN compte — et save() les
+        // écrirait sous la clé du NOUVEAU scope (la garde-robe de A persistée
+        // sous la clé anonyme, visible par le prochain utilisateur du poste).
+        let scopeAtStart = userScope
         do {
             let cloudItems = try await supabase.fetchWardrobeItems()
+            guard scopeAtStart == userScope else { return }
             guard !cloudItems.isEmpty else { return }
             // Merge : conserver les items locaux sans uuid cloud, puis ajouter les cloud.
             // Le recollage manuel des photos a disparu : elles vivent dans des
