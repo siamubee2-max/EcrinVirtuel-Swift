@@ -117,7 +117,7 @@
       <CommandLineArguments>
       </CommandLineArguments>
       <StoreKitConfigurationFileReference
-         identifier = "../../EcrinVirtuel.storekit">
+         identifier = "../../../EcrinVirtuel.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction
