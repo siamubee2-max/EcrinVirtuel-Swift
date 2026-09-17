@@ -41,21 +41,21 @@
       "type": "Consumable"
     },
     {
-      "displayPrice": "16.99",
+      "displayPrice": "10.99",
       "familySharable": false,
       "groupID": "",
       "internalID": "ecrin_credits_eclat",
       "introductoryOffer": null,
       "localizations": [
         {
-          "description": "70 essais virtuels + 5 offerts — pack Éclat",
-          "displayName": "Éclat — 70 essais (+5)",
+          "description": "40 essais virtuels — pack Éclat",
+          "displayName": "Éclat — 40 essais",
           "locale": "fr_FR"
         }
       ],
       "productID": "ecrin_credits_eclat",
       "recurringSubscriptionPeriod": "",
-      "referenceName": "Éclat 70 crédits",
+      "referenceName": "Éclat 40 crédits",
       "subscriptionGroupID": "",
       "type": "Consumable"
     },
@@ -67,14 +67,14 @@
       "introductoryOffer": null,
       "localizations": [
         {
-          "description": "150 essais virtuels + 20 offerts — pack Diamant",
-          "displayName": "Diamant — 150 essais (+20)",
+          "description": "140 essais virtuels — pack Diamant",
+          "displayName": "Diamant — 140 essais",
           "locale": "fr_FR"
         }
       ],
       "productID": "ecrin_credits_diamant",
       "recurringSubscriptionPeriod": "",
-      "referenceName": "Diamant 150 crédits",
+      "referenceName": "Diamant 140 crédits",
       "subscriptionGroupID": "",
       "type": "Consumable"
     },
@@ -119,7 +119,7 @@
         {
           "adHocOffers": [],
           "codeOffers": [],
-          "displayPrice": "4.99",
+          "displayPrice": "6.99",
           "familySharable": false,
           "groupID": "ecrin_subscription_group",
           "groupLevel": 3,
@@ -127,14 +127,14 @@
           "introductoryOffer": null,
           "localizations": [
             {
-              "description": "20 générations d'essayage virtuel par mois",
-              "displayName": "Starter",
+              "description": "Essentiel — 25 essayages virtuels par mois",
+              "displayName": "Essentiel",
               "locale": "fr_FR"
             }
           ],
           "productID": "ecrin.starter.monthly",
           "recurringSubscriptionPeriod": "P1M",
-          "referenceName": "Starter mensuel",
+          "referenceName": "Essentiel mensuel (ecrin.starter.monthly)",
           "subscriptionGroupID": "ecrin_subscription_group",
           "type": "RecurringSubscription"
         },
@@ -163,28 +163,22 @@
         {
           "adHocOffers": [],
           "codeOffers": [],
-          "displayPrice": "9.99",
+          "displayPrice": "14.99",
           "familySharable": false,
           "groupID": "ecrin_subscription_group",
           "groupLevel": 2,
           "internalID": "ecrin.premium.month",
-          "introductoryOffer": {
-            "offerID": "",
-            "offerMode": "FREE_TRIAL",
-            "period": "P3D",
-            "periodCount": 1,
-            "type": "introductory"
-          },
+          "introductoryOffer": null,
           "localizations": [
             {
-              "description": "Essayages virtuels illimités, accès prioritaire aux nouvelles fonctionnalités",
-              "displayName": "Premium",
+              "description": "Signature — 60 essayages virtuels par mois",
+              "displayName": "Signature",
               "locale": "fr_FR"
             }
           ],
           "productID": "ecrin.premium.month",
           "recurringSubscriptionPeriod": "P1M",
-          "referenceName": "Premium mensuel",
+          "referenceName": "Signature mensuel (ecrin.premium.month)",
           "subscriptionGroupID": "ecrin_subscription_group",
           "type": "RecurringSubscription"
         },

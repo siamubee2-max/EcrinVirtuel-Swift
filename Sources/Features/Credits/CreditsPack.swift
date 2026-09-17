@@ -3,9 +3,20 @@ import Foundation
 // MARK: - Packs de recharge d'essais (consommables IAP)
 
 // Le `count` de chaque pack DOIT rester égal au nombre annoncé par le produit
-// App Store Connect (10 / 30 / 70 / 150) : c'est ce libellé que l'acheteur lit
-// sur la feuille de confirmation Apple. Les anciens « +5 / +20 offerts » —
-// affichés 75 et 170 dans l'app — contredisaient ASC (motif de rejet).
+// App Store Connect : c'est ce libellé que l'acheteur lit sur la feuille de
+// confirmation Apple, et le serveur (`credit-generations`, VALID_PACKS) qui
+// fait foi crédite EXACTEMENT ce nombre — jamais un bonus implicite (motif
+// de rejet : les anciens « +5 / +20 offerts » affichaient 75 et 170 dans
+// l'app pour des fiches ASC qui en annonçaient 70 et 150).
+//
+// ⚠️ Grille du 31/08/2026 (Spark 10 / Éclat 40 / Diamant 140, Glow retiré) —
+// alignée avec `supabase/functions/credit-generations/index.ts` ET avec
+// `EcrinVirtuel.storekit` (sandbox local). PAS ENCORE répercutée sur les
+// fiches produit App Store Connect elles-mêmes : au 17/09/2026, ASC annonce
+// toujours Éclat à 70 crédits/9,99 $ et Diamant à 150 crédits/24,99 $ (Glow
+// encore en vente à 6,99 $/30 crédits). Tant que ASC n'est pas corrigée, un
+// acheteur y lit un nombre que le serveur ne créditera pas — à corriger côté
+// dashboard ASC (prix + texte des fiches) avant toute nouvelle soumission.
 struct CreditsPack: Identifiable {
     let id: String          // = rcProductIdentifier
     let label: String
