@@ -13,7 +13,16 @@ struct EcrinVirtuelApp: App {
     init() {
         if AppLaunchEnvironment.isUITesting { return }
         Purchases.configure(withAPIKey: Secrets.revenueCatAPIKey)
+        // En DEBUG, `.debug` nomme chaque identifiant que StoreKit refuse de
+        // renvoyer. C'est la seule façon de distinguer une offering mal
+        // configurée d'un blocage côté App Store Connect (contrat Paid
+        // Applications inactif, produit en « Missing Metadata ») : dans les deux
+        // cas `availablePackages` est vide, et `.warn` ne dit rien.
+        #if DEBUG
+        Purchases.logLevel = .debug
+        #else
         Purchases.logLevel = .warn
+        #endif
     }
 
     var body: some Scene {
