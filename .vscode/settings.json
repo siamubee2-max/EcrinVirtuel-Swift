@@ -1,1 +1,6 @@
-{}
+{
+    "sweetpad.build.destination": {
+        "id": "iossimulator-7C8690ED-E59D-488A-B4A4-87EED8D07BD9",
+        "type": "iOSSimulator"
+    }
+}
