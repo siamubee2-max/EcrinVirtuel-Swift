@@ -91,6 +91,11 @@ final class PaywallViewModel: ObservableObject {
     @Published var isPurchasing = false
     @Published var selectedPeriod: PlanPeriod = .monthly
     @Published var liveProducts: [String: StoreProduct] = [:]
+    /// Chargement des produits en cours — le CTA reste désactivé tant qu'il tourne.
+    @Published var isLoadingProducts = false
+    /// Aucun produit n'a pu être chargé : la vue affiche l'avertissement + « Réessayer »
+    /// au lieu de laisser croire que les prix statiques sont achetables.
+    @Published var productsUnavailable = false
     /// Plan acheté avec succès — observé par PaywallView pour mettre à jour AppState.
     @Published var purchasedPlan: PaywallPlan?
     /// Statut restauré avec succès — observé par PaywallView (même mécanique).
@@ -196,12 +201,40 @@ final class PaywallViewModel: ObservableObject {
 
     init() {
         selectedPlan = allPlans.first { $0.id == "premium_monthly" }
+    }
+
+    /// Identifiants des 7 produits affichés par le paywall.
+    private var allProductIds: [String] { allPlans.map(\.rcIdentifier) }
+
+    /// Tâche de chargement en cours — évite qu'un `.task` rejoué (réouverture de
+    /// la feuille, changement de période) empile plusieurs appels RevenueCat.
+    private var loadTask: Task<Void, Never>?
+
+    /// Point d'entrée appelé par la vue. Le chargement était auparavant lancé
+    /// depuis `init()` : au lancement, `Purchases.configure` venait tout juste
+    /// d'être appelé et l'appel partait avant que la config RevenueCat ne soit
+    /// redescendue — le paywall restait alors sans aucun produit jusqu'au
+    /// relaunch, sans trace ni possibilité de réessayer.
+    func loadProductsIfNeeded() async {
         // Skip live product loading in UI-test mode — RC is not configured,
         // and Purchases.shared.offerings() would fatalError. Static fallback
         // prices in PaywallPlan are used instead (the paywall UI is fully assertable).
-        if !AppLaunchEnvironment.isUITesting {
-            Task { await loadLiveProducts() }
+        guard !AppLaunchEnvironment.isUITesting else { return }
+        guard liveProducts.count < allProductIds.count else { return }
+        if let loadTask {
+            await loadTask.value
+            return
         }
+        let task = Task { await loadLiveProducts() }
+        loadTask = task
+        await task.value
+        loadTask = nil
+    }
+
+    /// Relance explicite depuis le bouton « Réessayer ».
+    func retryLoadingProducts() async {
+        productsUnavailable = false
+        await loadProductsIfNeeded()
     }
 
     // MARK: Display Price (dynamique via RC, fallback statique)
@@ -298,16 +331,31 @@ final class PaywallViewModel: ObservableObject {
     // MARK: Private
 
     private func loadLiveProducts() async {
-        do {
-            let offerings = try await Purchases.shared.offerings()
-            let packages = offerings.current?.availablePackages ?? []
-            var map: [String: StoreProduct] = [:]
-            for pkg in packages {
-                map[pkg.storeProduct.productIdentifier] = pkg.storeProduct
+        isLoadingProducts = true
+        defer { isLoadingProducts = false }
+
+        let ids = allProductIds
+        // Trois tentatives espacées : au démarrage, la config RevenueCat ou le
+        // réseau peuvent n'arriver qu'après le premier appel. Une seule tentative
+        // laissait le paywall vide pour toute la session.
+        for attempt in 0..<3 {
+            let products = await RevenueCatService.loadProducts(identifiers: ids)
+            if !products.isEmpty {
+                // Fusion : un rechargement partiel ne doit pas effacer ce qui
+                // avait déjà été récupéré.
+                liveProducts.merge(products) { _, new in new }
             }
-            liveProducts = map
-        } catch {
-            // Fallback silencieux — les prix statiques seront utilisés
+            if liveProducts.count == ids.count { break }
+            if attempt < 2 {
+                try? await Task.sleep(for: .seconds(attempt == 0 ? 1 : 2))
+            }
+        }
+
+        productsUnavailable = liveProducts.isEmpty
+        if productsUnavailable {
+            // L'échec était auparavant avalé par un `catch` vide : plus aucune
+            // trace côté monitoring alors que l'écran d'achat était inutilisable.
+            MonitoringService.shared.recordProductsUnavailable(identifiers: ids)
         }
     }
 
@@ -316,12 +364,13 @@ final class PaywallViewModel: ObservableObject {
         if let cached = liveProducts[plan.rcIdentifier] {
             return cached
         }
-        // 2. Rechargement depuis RC
-        let offerings = try await Purchases.shared.offerings()
-        guard let product = offerings.current?.availablePackages
-            .first(where: { $0.storeProduct.productIdentifier == plan.rcIdentifier })?
-            .storeProduct
-        else {
+        // 2. Rechargement via la même cascade que l'affichage. La version
+        //    précédente n'interrogeait que `offerings.current` : un produit rangé
+        //    hors de l'offering courante était déclaré introuvable alors qu'il
+        //    était parfaitement achetable.
+        let refreshed = await RevenueCatService.loadProducts(identifiers: [plan.rcIdentifier])
+        liveProducts.merge(refreshed) { _, new in new }
+        guard let product = liveProducts[plan.rcIdentifier] else {
             throw PaywallError.productNotFound(plan.rcIdentifier)
         }
         return product
@@ -403,6 +452,26 @@ struct PaywallView: View {
                             }
                         }
 
+                        // Produits indisponibles : le paywall affichait jusqu'ici
+                        // ses prix statiques sans rien dire, et l'achat échouait
+                        // ensuite sur un « Produit introuvable » incompréhensible.
+                        if viewModel.productsUnavailable {
+                            VStack(spacing: EcrinSpacing.sm) {
+                                Text("Les offres n'ont pas pu être chargées depuis l'App Store. Vérifiez votre connexion.")
+                                    .font(EcrinFont.caption)
+                                    .multilineTextAlignment(.center)
+                                    .foregroundStyle(EcrinColor.textSecondary)
+
+                                Button("Réessayer") {
+                                    Task { await viewModel.retryLoadingProducts() }
+                                }
+                                .font(EcrinFont.caption)
+                                .foregroundStyle(EcrinColor.gold)
+                                .accessibilityIdentifier("paywall.retryProducts")
+                            }
+                            .padding(.horizontal, EcrinSpacing.lg)
+                        }
+
                         // Plans
                         VStack(spacing: EcrinSpacing.md) {
                             ForEach(viewModel.currentPlans) { plan in
@@ -451,7 +520,7 @@ struct PaywallView: View {
                             GoldButton(title: viewModel.ctaTitle) {
                                 Task { await viewModel.purchase(dismiss: { dismiss() }) }
                             }
-                            .disabled(viewModel.isPurchasing)
+                            .disabled(viewModel.isPurchasing || viewModel.isLoadingProducts)
                             .accessibilityIdentifier("paywall.cta")
 
                             Button(L10n.PaywallUI.restorePurchases) {
@@ -484,6 +553,9 @@ struct PaywallView: View {
             }
         }
         .accessibilityIdentifier("paywall.root")
+        // Charger les produits à l'ouverture de la feuille — et non depuis
+        // l'init du view model, qui courait avant la config RevenueCat.
+        .task { await viewModel.loadProductsIfNeeded() }
         // Mettre à jour AppState dès qu'un achat est confirmé
         .onChange(of: viewModel.purchasedPlan?.id) { _, _ in
             guard let plan = viewModel.purchasedPlan else { return }

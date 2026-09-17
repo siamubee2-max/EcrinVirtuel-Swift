@@ -43,9 +43,20 @@ final class CreditsPackViewModel {
 
     private func loadStoreProducts() async {
         let ids = CreditsPack.all.map { $0.id }
-        let products = await Purchases.shared.products(ids)
-        for product in products {
-            storeProducts[product.productIdentifier] = product
+        // Même cascade que le paywall abonnements, et même raison : au lancement
+        // le premier appel peut partir avant que RevenueCat ne soit prêt, et
+        // l'écran restait alors sur ses prix statiques, tout achat répondant
+        // « produit indisponible ».
+        for attempt in 0..<3 {
+            let products = await RevenueCatService.loadProducts(identifiers: ids)
+            storeProducts.merge(products) { _, new in new }
+            if storeProducts.count == ids.count { break }
+            if attempt < 2 {
+                try? await Task.sleep(for: .seconds(attempt == 0 ? 1 : 2))
+            }
+        }
+        if storeProducts.isEmpty {
+            MonitoringService.shared.recordProductsUnavailable(identifiers: ids)
         }
         for (i, pack) in packs.enumerated() {
             if let sp = storeProducts[pack.id] {
