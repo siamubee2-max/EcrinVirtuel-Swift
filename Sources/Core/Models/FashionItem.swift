@@ -13,7 +13,6 @@ struct FashionItem: Identifiable, Codable, Equatable {
     var color: String?
     var material: String?
     var imageURL: URL?
-    var userPhotoData: Data?
     var tags: [String]
     var tryOnPrompt: String
     var source: ItemSource
@@ -31,7 +30,6 @@ struct FashionItem: Identifiable, Codable, Equatable {
         color: String? = nil,
         material: String? = nil,
         imageURL: URL? = nil,
-        userPhotoData: Data? = nil,
         tags: [String] = [],
         tryOnPrompt: String = "",
         source: ItemSource = .userPhoto,
@@ -48,7 +46,6 @@ struct FashionItem: Identifiable, Codable, Equatable {
         self.color = color
         self.material = material
         self.imageURL = imageURL
-        self.userPhotoData = userPhotoData
         self.tags = tags
         self.tryOnPrompt = tryOnPrompt.isEmpty ? category.defaultPrompt(name: name) : tryOnPrompt
         self.source = source
@@ -58,8 +55,18 @@ struct FashionItem: Identifiable, Codable, Equatable {
         self.createdAt = createdAt
     }
 
-    /// URL d'affichage : photo utilisateur > URL réelle > stock URL Unsplash par catégorie.
-    /// Garantit qu'on a toujours une image à afficher (sauf si userPhotoData est utilisé séparément).
+    // La photo de l'utilisateur n'est PAS une propriété de ce modèle : elle vit
+    // dans un fichier nommé par `id`, via `WardrobePhotoStore`. Elle ne transite
+    // donc ni par `UserDefaults` ni par `Codable`.
+    //
+    // Aucune propriété calculée ne la ramène ici volontairement : elle lirait le
+    // disque de façon synchrone sur le thread de son appelant, thread principal
+    // compris. Pour AFFICHER : `WardrobePhotoStore.shared.image(for: item.id)`.
+    // Pour GÉNÉRER : `ImageGenerationService.localReferenceData(for: item.id)`.
+
+    /// URL d'affichage : URL réelle > stock URL Unsplash par catégorie.
+    /// Garantit qu'on a toujours une image à afficher (la photo de l'utilisateur,
+    /// elle, se lit par `WardrobePhotoStore.shared.image(for: item.id)`).
     var displayImageURL: URL? {
         if let url = imageURL { return url }
         return category.stockImageURL
@@ -151,7 +158,7 @@ enum FashionCategory: String, CaseIterable, Codable {
     }
 
     /// URL Unsplash de stock par catégorie — utilisée comme fallback quand
-    /// l'item n'a ni `imageURL` ni `userPhotoData`. Garantit une vraie photo
+    /// l'item n'a ni `imageURL` ni photo sur disque. Garantit une vraie photo
     /// au lieu d'une icône SF Symbol grise.
     var stockImageURL: URL? {
         let unsplashID: String? = switch self {

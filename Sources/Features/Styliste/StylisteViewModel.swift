@@ -38,10 +38,17 @@ final class StylisteViewModel {
         let userMessage = StylisteMessage(role: .user, text: trimmed)
         messages.append(userMessage)
 
+        // Apple 5.1.1(i) / 5.1.2(i) — le contexte styliste est de la donnée
+        // personnelle (garde-robe avec marques, météo locale, budget, genre) envoyée
+        // à un LLM tiers. Elle ne part qu'après accord explicite ; un refus n'empêche
+        // pas de discuter, il envoie seulement la question sans le contexte.
+        let context = await AIConsentGate.requireConsent(for: .styliste)
+            ? buildContext(appState: appState)
+            : ""
+
         isThinking = true
         defer { isThinking = false }
 
-        let context = buildContext(appState: appState)
         let history = messages
             .dropLast()              // exclude the message we just added
             .map(\.asAPIMessage)

@@ -836,7 +836,6 @@ extension L10n {
         static var premiumFeaturesLine: String { String(localized: "paywallUI.premiumFeaturesLine") }
         static var restorePurchases: String { String(localized: "paywallUI.restorePurchases") }
         static var seeAllPlansRestore: String { String(localized: "paywallUI.seeAllPlansRestore") }
-        static var socialProof: String { String(localized: "paywallUI.socialProof") }
         static var unlimited: String { String(localized: "paywallUI.unlimited") }
         static var youFoundYourStyle: String { String(localized: "paywallUI.youFoundYourStyle") }
         static var yourCreations: String { String(localized: "paywallUI.yourCreations") }
@@ -962,6 +961,7 @@ extension L10n {
         static var openingQuote: String { String(localized: "stoneTherapyUI.openingQuote") }
         static var searchStonePlaceholder: String { String(localized: "stoneTherapyUI.searchStonePlaceholder") }
         static var stoneGuide: String { String(localized: "stoneTherapyUI.stoneGuide") }
+        static var wellnessDisclaimer: String { String(localized: "stoneTherapyUI.wellnessDisclaimer") }
         static var tryOnResultPlaceholder: String { String(localized: "stoneTherapyUI.tryOnResultPlaceholder") }
         static var tryOtherFilters: String { String(localized: "stoneTherapyUI.tryOtherFilters") }
         static var virtues: String { String(localized: "stoneTherapyUI.virtues") }
@@ -971,6 +971,12 @@ extension L10n {
     enum StylisteUI {
         static var aiStylist: String { String(localized: "stylisteUI.aiStylist") }
         static var askQuestionPlaceholder: String { String(localized: "stylisteUI.askQuestionPlaceholder") }
+        static var consentAccept: String { String(localized: "stylisteUI.consentAccept") }
+        static var consentData: String { String(localized: "stylisteUI.consentData") }
+        static var consentDecline: String { String(localized: "stylisteUI.consentDecline") }
+        static var consentIntro: String { String(localized: "stylisteUI.consentIntro") }
+        static var consentRecipients: String { String(localized: "stylisteUI.consentRecipients") }
+        static var consentTitle: String { String(localized: "stylisteUI.consentTitle") }
         static var personalizedAdvice: String { String(localized: "stylisteUI.personalizedAdvice") }
     }
 }
@@ -980,6 +986,13 @@ extension L10n {
         static var aiPoweredTryOn: String { String(localized: "tryOnUI.aiPoweredTryOn") }
         static var cameraAccessSettingsHint: String { String(localized: "tryOnUI.cameraAccessSettingsHint") }
         static var chooseAJewel: String { String(localized: "tryOnUI.chooseAJewel") }
+        static var consentDeclinedMessage: String { String(localized: "tryOnUI.consentDeclinedMessage") }
+        static var consentDeletion: String { String(localized: "tryOnUI.consentDeletion") }
+        static var consentIntro: String { String(localized: "tryOnUI.consentIntro") }
+        static var consentProviderPolicies: String { String(localized: "tryOnUI.consentProviderPolicies") }
+        static var consentPrivacyLink: String { String(localized: "tryOnUI.consentPrivacyLink") }
+        static var consentRecipients: String { String(localized: "tryOnUI.consentRecipients") }
+        static var consentTransfer: String { String(localized: "tryOnUI.consentTransfer") }
         static var decline: String { String(localized: "tryOnUI.decline") }
         static var multiViewChooseAngles: String { String(localized: "tryOnUI.multiViewChooseAngles") }
         static var openSettings: String { String(localized: "tryOnUI.openSettings") }
@@ -1121,6 +1134,7 @@ extension L10n.ProfileUI {
 }
 extension L10n.QuickTryOnUI {
     static var chooseMyAngles: String { String(localized: "quickTryOnUI.chooseMyAngles") }
+    static var partialResult: String { String(localized: "quickTryOnUI.partialResult") }
     static var generationFailedRetry: String { String(localized: "quickTryOnUI.generationFailedRetry") }
     static var savedShort: String { String(localized: "quickTryOnUI.savedShort") }
 }
@@ -1150,6 +1164,9 @@ extension L10n.MultiPoseUI {
     static var addedToWardrobe: String { String(localized: "multiPoseUI.addedToWardrobe") }
     static func viewsAddedToWardrobe(_ count: Int) -> String {
         String(format: String(localized: "multiPoseUI.viewsAddedToWardrobe"), count)
+    }
+    static func viewsFailed(_ count: Int) -> String {
+        String(format: String(localized: "multiPoseUI.viewsFailed"), count)
     }
 }
 extension L10n.WeatherUI {

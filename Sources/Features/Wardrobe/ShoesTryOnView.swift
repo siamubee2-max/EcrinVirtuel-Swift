@@ -543,7 +543,7 @@ private struct ShoeThumb: View {
                                 )
                         }
 
-                    if let data = shoe.userPhotoData, let img = UIImage(data: data) {
+                    if let img = WardrobePhotoStore.shared.image(for: shoe.id) {
                         Image(uiImage: img)
                             .resizable()
                             .scaledToFill()

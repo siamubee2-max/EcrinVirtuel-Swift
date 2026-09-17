@@ -133,6 +133,19 @@ struct ProfileView: View {
                         .buttonStyle(.plain)
                         .padding(.horizontal, EcrinSpacing.lg)
                         .accessibilityLabel("Essais disponibles, \(remainingCredits.map { "\($0) restants" } ?? ""). Ouvre la boutique de recharge")
+
+                        // Accès PERMANENT aux abonnements. Auparavant le paywall
+                        // n'existait qu'à solde nul : un compte neuf (3 essais)
+                        // n'avait aucun moyen de s'abonner, et les six formules
+                        // restaient introuvables — y compris pour App Review.
+                        Button { showSubscription = true } label: {
+                            Text("Voir les abonnements")
+                                .font(EcrinFont.caption)
+                                .foregroundStyle(EcrinColor.gold.opacity(0.85))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.horizontal, EcrinSpacing.lg)
+                        .accessibilityIdentifier("profile.subscriptions")
                     }
 
                     // Gift creator entry point — la feature était inaccessible

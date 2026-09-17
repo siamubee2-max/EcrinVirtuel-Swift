@@ -5,14 +5,12 @@ import RevenueCat
 
 enum PaywallError: LocalizedError {
     case productNotFound(String)
-    case entitlementNotActivated
-    case creditGrantFailed
+    // `entitlementNotActivated` supprimé : un achat encaissé ne doit jamais
+    // produire de message d'erreur — voir `activationPending`.
 
     var errorDescription: String? {
         switch self {
         case .productNotFound(let id): return "Produit introuvable : \(id)"
-        case .entitlementNotActivated: return "L'achat n'a pas pu être activé. Essayez 'Restaurer mes achats'."
-        case .creditGrantFailed: return "Votre achat a bien été validé, mais vos crédits n'ont pas encore été ajoutés. Ils arrivent sous peu — utilisez 'Restaurer mes achats' si le solde ne se met pas à jour."
         }
     }
 }
@@ -49,11 +47,21 @@ struct PaywallPlan: Identifiable {
     let name: String
     let price: String        // fallback — remplacé par localizedPriceString en runtime
     let period: String
+    /// Repli affiché tant que le produit StoreKit n'est pas chargé. Ne contient
+    /// AUCUN montant : les montants sont dérivés du prix réel par
+    /// `displayDescription(for:)`.
     let priceDescription: String
+    /// Repli pour les formules mensuelles et à vie. Pour l'annuel, l'économie
+    /// est calculée par `displaySavings(for:)` — jamais annoncée en dur.
     let savings: String
     let isBestValue: Bool
     let rcIdentifier: String
     let planPeriod: PlanPeriod
+    /// Crédits accordés chaque mois par ce plan — source unique des libellés.
+    let creditsPerMonth: Int
+    /// Pour une formule annuelle : identifiant du mensuel du MÊME palier,
+    /// nécessaire au calcul de l'économie réelle. `nil` ailleurs.
+    let monthlyCounterpart: String?
 
     /// Traduit le plan RevenueCat en SubscriptionStatus de l'app.
     var resolvedSubscriptionStatus: SubscriptionStatus {
@@ -96,93 +104,74 @@ final class PaywallViewModel: ObservableObject {
     /// Aucun produit n'a pu être chargé : la vue affiche l'avertissement + « Réessayer »
     /// au lieu de laisser croire que les prix statiques sont achetables.
     @Published var productsUnavailable = false
-    /// Plan acheté avec succès — observé par PaywallView pour mettre à jour AppState.
-    @Published var purchasedPlan: PaywallPlan?
+    /// Statut résolu après un achat abouti — observé par PaywallView pour mettre à jour AppState.
+    @Published var purchasedStatus: SubscriptionStatus?
     /// Statut restauré avec succès — observé par PaywallView (même mécanique).
     @Published var restoredStatus: SubscriptionStatus?
+    /// Achat encaissé mais entitlement/crédits pas encore visibles : message
+    /// NEUTRE d'attente, jamais une erreur (motif de refus 2.1(b)).
+    @Published var activationPending = false
+    /// Aucune session Supabase : la vue présente GenerationSignInSheet et
+    /// relance l'achat une fois la connexion obtenue.
+    @Published var needsSignIn = false
 
-    // MARK: All Plans (7 plans complets)
+    // MARK: Formules proposées
 
-    private let allPlans: [PaywallPlan] = [
-        // ── Mensuels ──────────────────────────────────────────────────
+    /// Deux formules, mensuelles uniquement.
+    ///
+    /// Elles s'insèrent dans UNE seule échelle avec les packs de crédits,
+    /// triée par montant débité, où le prix au crédit décroît strictement :
+    ///
+    ///   2,99 €  Spark (pack)         10 cr  -> 0,299 €/cr
+    ///   6,99 €  Essentiel            25 cr  -> 0,280 €/cr
+    ///  10,99 €  Éclat (pack)         40 cr  -> 0,275 €/cr
+    ///  14,99 €  Signature            60 cr  -> 0,250 €/cr
+    ///  29,99 €  Diamant (pack)      140 cr  -> 0,214 €/cr
+    ///
+    /// Ce qui a été RETIRÉ, et pourquoi :
+    /// - Elite mensuel (100 cr, 29,99 €) était strictement dominé par le pack
+    ///   Diamant : même prix, moins de crédits, et un engagement en plus.
+    /// - Starter mensuel (15 cr, 4,99 €) affichait 0,333 €/cr, le PIRE prix du
+    ///   catalogue : s'abonner coûtait plus cher que ne pas s'abonner.
+    /// - Les formules annuelles attendent : demander 120 € d'avance à quelqu'un
+    ///   qui ne peut lire aucun avis, c'est se refuser soi-même. Elles
+    ///   reviendront en montée en gamme après quelques mois d'usage réel.
+    /// - Fondateur (100 cr/mois à vie, 349,99 €) : point mort à 106 mois nets
+    ///   d'Apple. Retiré tant qu'il n'a aucun acheteur — au premier, il devient
+    ///   une dette perpétuelle irréversible.
+    ///
+    /// Aucun badge « meilleure offre ». Signature bat Essentiel au crédit
+    /// (0,250 contre 0,280) mais pas le pack Diamant (0,214) : toute mention
+    /// de « meilleure » serait fausse quelque part, et c'est exactement le
+    /// défaut qui a fait retirer la version précédente.
+    // Non privé : le test qui verrouille la monotonie de l'échelle doit
+    // pouvoir lire les formules réelles, pas une copie qui dériverait.
+    let allPlans: [PaywallPlan] = [
         PaywallPlan(
-            id: "elite_monthly",
-            name: "Elite",
-            price: "24,99€",
-            period: "/ mois",
-            priceDescription: "100 crédits inclus/mois",
-            savings: "Le meilleur volume",
-            isBestValue: false,
-            rcIdentifier: PaywallProductID.eliteMonthly,
-            planPeriod: .monthly
-        ),
-        PaywallPlan(
-            id: "premium_monthly",
-            name: "Premium",
-            price: "12,99€",
-            period: "/ mois",
-            priceDescription: "40 crédits inclus/mois",
-            savings: "Le meilleur rapport qualité/prix",
-            isBestValue: true,
-            rcIdentifier: PaywallProductID.premiumMonthly,
-            planPeriod: .monthly
-        ),
-        PaywallPlan(
-            id: "starter_monthly",
-            name: "Starter",
+            id: "essentiel_monthly",
+            name: "Essentiel",
             price: "6,99€",
             period: "/ mois",
-            priceDescription: "15 crédits inclus/mois",
-            savings: "Parfait pour découvrir",
+            priceDescription: "25 crédits inclus/mois",
+            savings: "Pour essayer régulièrement",
             isBestValue: false,
             rcIdentifier: PaywallProductID.starterMonthly,
-            planPeriod: .monthly
+            planPeriod: .monthly,
+            creditsPerMonth: 25,
+            monthlyCounterpart: nil
         ),
-        // ── Annuels (–35% vs mensuel) ──────────────────────────────────
         PaywallPlan(
-            id: "elite_yearly",
-            name: "Elite",
-            price: "194,99€",
-            period: "/ an",
-            priceDescription: "100 crédits/mois · 16,25€/mois",
-            savings: "Économisez 35% vs mensuel",
+            id: "signature_monthly",
+            name: "Signature",
+            price: "14,99€",
+            period: "/ mois",
+            priceDescription: "60 crédits inclus/mois",
+            savings: "Deux essayages par jour",
             isBestValue: false,
-            rcIdentifier: PaywallProductID.eliteYearly,
-            planPeriod: .yearly
-        ),
-        PaywallPlan(
-            id: "premium_yearly",
-            name: "Premium",
-            price: "99,99€",
-            period: "/ an",
-            priceDescription: "40 crédits/mois · 8,33€/mois",
-            savings: "Économisez 35% vs mensuel",
-            isBestValue: true,
-            rcIdentifier: PaywallProductID.premiumYearly,
-            planPeriod: .yearly
-        ),
-        PaywallPlan(
-            id: "starter_yearly",
-            name: "Starter",
-            price: "54,99€",
-            period: "/ an",
-            priceDescription: "15 crédits/mois · 4,58€/mois",
-            savings: "Économisez 35% vs mensuel",
-            isBestValue: false,
-            rcIdentifier: PaywallProductID.starterYearly,
-            planPeriod: .yearly
-        ),
-        // ── À vie ─────────────────────────────────────────────────────
-        PaywallPlan(
-            id: "founder_lifetime",
-            name: "Fondateur",
-            price: "349,99€",
-            period: "une fois",
-            priceDescription: "100 crédits/mois · À vie",
-            savings: "Accès permanent · Plus jamais de frais",
-            isBestValue: false,
-            rcIdentifier: PaywallProductID.founderLifetime,
-            planPeriod: .lifetime
+            rcIdentifier: PaywallProductID.premiumMonthly,
+            planPeriod: .monthly,
+            creditsPerMonth: 60,
+            monthlyCounterpart: nil
         ),
     ]
 
@@ -190,6 +179,15 @@ final class PaywallViewModel: ObservableObject {
 
     var currentPlans: [PaywallPlan] {
         allPlans.filter { $0.planPeriod == selectedPeriod }
+    }
+
+    /// Périodes qui portent au moins une formule. Dérivée des formules et non
+    /// de `PlanPeriod.allCases` : un segment « Annuel » qui n'ouvre sur aucune
+    /// carte est un cul-de-sac, et l'annuel n'est pas proposé au lancement.
+    var availablePeriods: [PlanPeriod] {
+        PlanPeriod.allCases.filter { period in
+            allPlans.contains { $0.planPeriod == period }
+        }
     }
 
     var ctaTitle: String {
@@ -200,10 +198,13 @@ final class PaywallViewModel: ObservableObject {
     // MARK: Init
 
     init() {
-        selectedPlan = allPlans.first { $0.id == "premium_monthly" }
+        // Entrée de gamme présélectionnée : sans aucun avis à lire, la
+        // question « est-ce que ça vaut 7 € » est la seule qu'un inconnu
+        // accepte de trancher.
+        selectedPlan = allPlans.first { $0.id == "essentiel_monthly" } ?? allPlans.first
     }
 
-    /// Identifiants des 7 produits affichés par le paywall.
+    /// Identifiants de tous les produits affichés par le paywall.
     private var allProductIds: [String] { allPlans.map(\.rcIdentifier) }
 
     /// Tâche de chargement en cours — évite qu'un `.task` rejoué (réouverture de
@@ -243,56 +244,103 @@ final class PaywallViewModel: ObservableObject {
         liveProducts[plan.rcIdentifier]?.localizedPriceString ?? plan.price
     }
 
+    /// Sous-titre du plan. Le montant mensualisé d'une formule annuelle est
+    /// DÉRIVÉ du prix réel : il était figé dans `priceDescription`, si bien que
+    /// Premium annuel annonçait « 8,33€/mois » sous un prix de 79,99 € (soit
+    /// 6,67 €) dès que le prix App Store s'écartait du repli codé en dur.
+    func displayDescription(for plan: PaywallPlan) -> String {
+        guard plan.planPeriod == .yearly,
+              let product = liveProducts[plan.rcIdentifier],
+              let perMonth = Self.money((product.price as NSDecimalNumber).doubleValue / 12, like: product)
+        else { return plan.priceDescription }
+        return "\(plan.creditsPerMonth) crédits/mois · \(perMonth)/mois"
+    }
+
+    /// Économie annoncée, CALCULÉE contre le mensuel du même palier.
+    /// « Économisez 35% » s'affichait à l'identique sur les trois formules
+    /// annuelles alors que l'économie réelle va de 8 % à 46 % — une allégation
+    /// commerciale fausse, et un motif de rejet App Store 2.3.7.
+    /// Sans les deux prix réels, on n'annonce AUCUN chiffre.
+    func displaySavings(for plan: PaywallPlan) -> String {
+        guard plan.planPeriod == .yearly,
+              let counterpart = plan.monthlyCounterpart,
+              let yearly  = liveProducts[plan.rcIdentifier]?.price,
+              let monthly = liveProducts[counterpart]?.price
+        else { return plan.savings }
+
+        let full = (monthly as NSDecimalNumber).doubleValue * 12
+        let paid = (yearly as NSDecimalNumber).doubleValue
+        guard full > 0 else { return plan.savings }
+
+        let pct = Int(((full - paid) / full * 100).rounded())
+        // Un annuel plus cher que douze mensualités ne se vante pas.
+        guard pct > 0 else { return plan.savings }
+        return "Économisez \(pct)% vs mensuel"
+    }
+
+    /// Formate un montant dans la devise et la locale du produit StoreKit,
+    /// pour ne jamais mêler un montant à un symbole d'une autre devise.
+    private static func money(_ amount: Double, like product: StoreProduct) -> String? {
+        let f = NumberFormatter()
+        f.numberStyle = .currency
+        f.locale = product.priceFormatter?.locale ?? .current
+        if let code = product.currencyCode { f.currencyCode = code }
+        f.maximumFractionDigits = 2
+        return f.string(from: NSNumber(value: amount))
+    }
+
     // MARK: Purchase
 
     func purchase(dismiss: @escaping () -> Void) async {
         guard let plan = selectedPlan else { return }
         isPurchasing = true
         purchaseError = nil
+        activationPending = false
         defer { isPurchasing = false }
+
+        // Identité EXIGÉE avant de lancer le paiement. Sans session Supabase,
+        // l'app_user_id RevenueCat reste `$RCAnonymousID:…` et le webhook ignore
+        // l'événement : abonnement encaissé, jamais attribué. Le résultat de cette
+        // garde n'est plus ignorable — on ne descend pas dans le `do` sans identité.
+        guard await GenerationAuthGate.requirePurchaseIdentity() else {
+            needsSignIn = true
+            return
+        }
+
         do {
             let product = try await fetchProduct(plan)
+            // Référence FRAÎCHE avant paiement (voir CreditsPackViewModel).
+            await CreditsManager.shared.sync()
+            let baseline = CreditsManager.shared.remaining
             let result = try await Purchases.shared.purchase(product: product)
             // RevenueCat 5.x ne throw pas sur l'annulation utilisateur — sans ce check,
             // annuler affichait « L'achat n'a pas pu être activé » + un faux mismatch.
             if result.userCancelled { return }
+
+            // ─ À partir d'ici Apple a encaissé : plus AUCUN message d'erreur. ─
             // Résolution par productIdentifier — même convention que le launch et le
             // customerInfoStream, quel que soit le découpage des entitlements RC.
-            if RevenueCatService.resolveStatus(from: result.customerInfo) != .free {
-                // L'identifiant de transaction DOIT venir d'Apple : le serveur le
-                // confronte à RevenueCat — un identifiant fabriqué (UUID local) ne
-                // serait jamais vérifiable, donc achat payé sans crédits accordés.
-                guard let txnId = result.transaction?.transactionIdentifier else {
-                    MonitoringService.shared.recordCreditGrantFailure(
-                        nil, productId: plan.rcIdentifier, transactionId: nil
-                    )
-                    purchaseError = PaywallError.creditGrantFailed.errorDescription
-                    return
-                }
+            let status = await resolvedStatusAllowingPropagation(from: result.customerInfo)
 
-                do {
-                    _ = try await SupabaseService.shared.creditGenerations(
-                        productId: plan.rcIdentifier,
-                        transactionId: txnId
-                    )
-                } catch {
-                    // L'achat Apple a abouti mais l'octroi a échoué : ne PAS fermer en
-                    // silence. L'entitlement reste actif ; seuls les crédits manquent
-                    // (le webhook revenuecat-webhook reste le filet serveur).
-                    MonitoringService.shared.recordCreditGrantFailure(
-                        error, productId: plan.rcIdentifier, transactionId: txnId
-                    )
-                    await CreditsManager.shared.sync()
-                    purchaseError = PaywallError.creditGrantFailed.errorDescription
-                    return
-                }
+            // Les crédits d'abonnement sont accordés par `revenuecat-webhook`
+            // (INITIAL_PURCHASE / RENEWAL, barème starter 15 / premium 40 / elite 100).
+            // L'app n'appelle pas `credit-generations` pour un abonnement : cette
+            // fonction est réservée aux packs consommables.
+            let credited = await CreditsManager.shared.syncUntilIncrease(above: baseline)
 
-                purchasedPlan = plan          // ← notifie la vue
-                await CreditsManager.shared.sync() // ← rafraîchit le compteur
+            if status != .free {
+                purchasedStatus = status      // ← notifie la vue (AppState)
                 dismiss()
             } else {
+                // L'entitlement RevenueCat n'est toujours pas actif : on n'invente
+                // pas de succès (aucun statut appliqué) et on n'affiche pas d'échec.
                 MonitoringService.shared.recordEntitlementMismatch(productId: plan.rcIdentifier)
-                purchaseError = PaywallError.entitlementNotActivated.errorDescription
+                activationPending = true
+            }
+            if !credited && status != .free {
+                MonitoringService.shared.recordCreditGrantFailure(
+                    nil, productId: plan.rcIdentifier, transactionId: result.transaction?.transactionIdentifier
+                )
             }
         } catch {
             let nsError = error as NSError
@@ -309,7 +357,14 @@ final class PaywallViewModel: ObservableObject {
     func restore(dismiss: @escaping () -> Void) async {
         isPurchasing = true
         purchaseError = nil
+        activationPending = false
         defer { isPurchasing = false }
+        // Restaurer sans session rattacherait les achats à un id anonyme —
+        // même exigence que l'achat.
+        guard await GenerationAuthGate.requirePurchaseIdentity() else {
+            needsSignIn = true
+            return
+        }
         do {
             let info = try await Purchases.shared.restorePurchases()
             let status = RevenueCatService.resolveStatus(from: info)
@@ -329,6 +384,27 @@ final class PaywallViewModel: ObservableObject {
     }
 
     // MARK: Private
+
+    /// Statut RevenueCat, en tolérant le délai de propagation de l'entitlement.
+    ///
+    /// Le `CustomerInfo` renvoyé par `purchase` peut précéder l'activation
+    /// côté RevenueCat. On relit donc le cache serveur quelques fois avant de
+    /// conclure — sans cette tolérance, un achat encaissé finissait sur
+    /// « L'achat n'a pas pu être activé » (motif 2.1(b) du 5 mai).
+    private func resolvedStatusAllowingPropagation(
+        from info: CustomerInfo,
+        attempts: Int = 3
+    ) async -> SubscriptionStatus {
+        var status = RevenueCatService.resolveStatus(from: info)
+        var remaining = attempts
+        while status == .free && remaining > 0 {
+            remaining -= 1
+            try? await Task.sleep(for: .seconds(2))
+            guard let fresh = try? await Purchases.shared.customerInfo(fetchPolicy: .fetchCurrent) else { continue }
+            status = RevenueCatService.resolveStatus(from: fresh)
+        }
+        return status
+    }
 
     private func loadLiveProducts() async {
         isLoadingProducts = true
@@ -434,21 +510,19 @@ struct PaywallView: View {
                         }
                         .padding(.top, EcrinSpacing.lg)
 
-                        // Period selector
-                        Picker("Période", selection: $viewModel.selectedPeriod) {
-                            ForEach(PlanPeriod.allCases, id: \.self) { period in
-                                Text(period.rawValue).tag(period)
+                        // Sélecteur de période — masqué tant qu'une seule
+                        // période porte des formules.
+                        if viewModel.availablePeriods.count > 1 {
+                            Picker("Période", selection: $viewModel.selectedPeriod) {
+                                ForEach(viewModel.availablePeriods, id: \.self) { period in
+                                    Text(period.rawValue).tag(period)
+                                }
                             }
-                        }
-                        .pickerStyle(.segmented)
-                        .padding(.horizontal, EcrinSpacing.lg)
-                        .onChange(of: viewModel.selectedPeriod) { _, newPeriod in
-                            // Sélectionner automatiquement le plan Best Value de la nouvelle période
-                            let plans = viewModel.currentPlans
-                            if let best = plans.first(where: { $0.isBestValue }) {
-                                viewModel.selectedPlan = best
-                            } else {
-                                viewModel.selectedPlan = plans.first
+                            .pickerStyle(.segmented)
+                            .padding(.horizontal, EcrinSpacing.lg)
+                            .onChange(of: viewModel.selectedPeriod) { _, _ in
+                                let plans = viewModel.currentPlans
+                                viewModel.selectedPlan = plans.first(where: { $0.isBestValue }) ?? plans.first
                             }
                         }
 
@@ -478,6 +552,8 @@ struct PaywallView: View {
                                 PlanCard(
                                     plan: plan,
                                     displayPrice: viewModel.displayPrice(for: plan),
+                                    displayDescription: viewModel.displayDescription(for: plan),
+                                    displaySavings: viewModel.displaySavings(for: plan),
                                     isSelected: viewModel.selectedPlan?.id == plan.id,
                                     onSelect: { viewModel.selectedPlan = plan }
                                 )
@@ -515,6 +591,17 @@ struct PaywallView: View {
                                     .foregroundStyle(.red.opacity(0.85))
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, EcrinSpacing.sm)
+                            }
+
+                            // Achat encaissé, activation encore en attente : ton
+                            // neutre (or), jamais rouge — ce n'est pas un échec.
+                            if viewModel.activationPending {
+                                Text("Achat confirmé. L'activation peut prendre quelques instants — vos crédits apparaîtront automatiquement.")
+                                    .font(EcrinFont.caption)
+                                    .foregroundStyle(EcrinColor.gold)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, EcrinSpacing.sm)
+                                    .accessibilityIdentifier("paywall.activationPending")
                             }
 
                             GoldButton(title: viewModel.ctaTitle) {
@@ -556,11 +643,20 @@ struct PaywallView: View {
         // Charger les produits à l'ouverture de la feuille — et non depuis
         // l'init du view model, qui courait avant la config RevenueCat.
         .task { await viewModel.loadProductsIfNeeded() }
-        // Mettre à jour AppState dès qu'un achat est confirmé
-        .onChange(of: viewModel.purchasedPlan?.id) { _, _ in
-            guard let plan = viewModel.purchasedPlan else { return }
-            appState.subscription = plan.resolvedSubscriptionStatus
-            CreditsManager.shared.handleSubscriptionUpgrade(to: appState.subscription)
+        // Connexion exigée avant paiement : on présente la feuille puis on
+        // relance l'achat une fois la session ouverte.
+        .sheet(isPresented: $viewModel.needsSignIn) {
+            GenerationSignInSheet {
+                Task { await viewModel.purchase(dismiss: { dismiss() }) }
+            }
+        }
+        // Mettre à jour AppState dès qu'un achat est confirmé.
+        // Le solde n'est PLUS écrit ici : `syncUntilIncrease` (dans le
+        // ViewModel) a déjà posé la valeur serveur. L'ancienne affectation
+        // locale courait contre ce sync et affichait « 15 » puis « 3 ».
+        .onChange(of: viewModel.purchasedStatus) { _, status in
+            guard let status else { return }
+            appState.subscription = status
         }
         // Appliquer une restauration réussie (statut + crédits) puis fermer
         .onChange(of: viewModel.restoredStatus) { _, status in
@@ -577,6 +673,10 @@ struct PaywallView: View {
 struct PlanCard: View {
     let plan: PaywallPlan
     let displayPrice: String
+    /// Calculés par le view-model à partir des prix RÉELS — ne jamais lire
+    /// `plan.priceDescription` ni `plan.savings` ici : ce sont des replis.
+    let displayDescription: String
+    let displaySavings: String
     let isSelected: Bool
     let onSelect: () -> Void
 
@@ -600,12 +700,14 @@ struct PlanCard: View {
                                 .clipShape(Capsule())
                         }
                     }
-                    Text(plan.priceDescription)
+                    Text(displayDescription)
                         .font(EcrinFont.caption)
                         .foregroundStyle(EcrinColor.textSecondary)
-                    Text(plan.savings)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(EcrinColor.gold)
+                    if !displaySavings.isEmpty {
+                        Text(displaySavings)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(EcrinColor.gold)
+                    }
                 }
 
                 Spacer()

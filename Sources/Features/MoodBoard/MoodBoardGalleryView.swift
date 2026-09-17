@@ -7,7 +7,6 @@ struct MoodBoardGalleryView: View {
     @State private var store                = MoodBoardStore.shared
     @State private var showGenerator        = false
     @State private var selectedBoard: MoodBoard?
-    @State private var showDetail           = false
     @State private var showARTryOn          = false
     @State private var arTryOnJewelry: JewelryItem?
     @State private var headerVisible        = false
@@ -59,10 +58,11 @@ struct MoodBoardGalleryView: View {
                     .navigationBarTitleDisplayMode(.inline)
             }
         }
-        .fullScreenCover(isPresented: $showDetail) {
-            if let board = selectedBoard {
-                MoodBoardResultView(board: board)
-            }
+        // fullScreenCover(item:) et non (isPresented:) : avec deux états séparés,
+        // la présentation pouvait précéder la propagation de `selectedBoard` et
+        // le premier tap ouvrait un plein écran vide.
+        .fullScreenCover(item: $selectedBoard) { board in
+            MoodBoardResultView(board: board)
         }
         .fullScreenCover(isPresented: $showARTryOn, onDismiss: {
             appState.pendingMoodBoardJewelry = nil
@@ -144,7 +144,6 @@ struct MoodBoardGalleryView: View {
         MoodBoardCard(board: board, isTall: index % 3 == 0)
             .onTapGesture {
                 selectedBoard = board
-                showDetail    = true
             }
             .contextMenu {
                 Button(role: .destructive) {

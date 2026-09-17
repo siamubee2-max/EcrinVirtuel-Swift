@@ -99,7 +99,7 @@ struct WardrobeItemCard: View {
         // l'item d'un coup d'œil sans crop sauvage de la tête ou des pieds.
         ZStack {
             Color.black
-            if let data = item.userPhotoData, let img = UIImage(data: data) {
+            if let img = WardrobePhotoStore.shared.image(for: item.id) {
                 Image(uiImage: img)
                     .resizable()
                     .scaledToFit()

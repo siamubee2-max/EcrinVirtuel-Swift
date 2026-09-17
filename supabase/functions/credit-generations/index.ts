@@ -1,7 +1,13 @@
 // Supabase Edge Function — crédit d'essais après achat consommable RevenueCat (v10)
 //
-// ⚠️ NON DÉPLOYÉE — correctif d'audit 007 (2026-08-09) à relire avant `functions deploy`.
-//    Nécessite la migration 012 + le secret REVENUECAT_SECRET_KEY.
+// ⚠️ PRÉREQUIS DE DÉPLOIEMENT (dans cet ordre, sinon la fonction est inopérante) :
+//    1. migration 012 appliquée  → fournit la RPC `credit_generations_atomic`
+//    2. secrets posés            → REVENUECAT_SECRET_KEY (obligatoire, fail-closed 503),
+//                                  REVENUECAT_PROJECT_ID,
+//                                  ALLOW_SANDBOX_PURCHASES=true tant que TestFlight /
+//                                  App Review achètent en sandbox (sinon 402 sur un
+//                                  achat de revue parfaitement légitime)
+//    3. `supabase functions deploy credit-generations`
 //
 // ─── Ce que corrige cette version ────────────────────────────────────────────────
 // C1 (CRITIQUE) — la v9 n'avait AUCUNE vérification d'achat : `transaction_id` venait
@@ -62,10 +68,23 @@ const CORS = {
 }
 
 // Barème serveur — le nombre de crédits ne vient JAMAIS du client.
+// IDs = ceux réellement créés dans App Store Connect (docs/appstore/2026-06-22-asc-iap-setup-RESULT.md)
+// et vendus par l'app (Sources/Features/Credits/CreditsPack.swift). Les anciens
+// `ecrin_credits_10/30/100` n'existaient dans AUCUN store : les 4 packs réels
+// tombaient donc sur `unknown_product` (400) — achat encaissé, crédits jamais accordés.
+// Totaux = EXACTEMENT le nombre annoncé par le produit App Store Connect
+// (« 70 crédits », « 150 crédits ») : c'est ce que l'acheteur lit sur la feuille
+// de confirmation Apple. Aucun bonus implicite ici.
 const VALID_PACKS: Record<string, number> = {
-  "ecrin_credits_10":  10,
-  "ecrin_credits_30":  30,
-  "ecrin_credits_100": 120,  // 100 + 20 bonus Prestige
+  // Grille du 31/08/2026. Le SERVEUR fait foi : ces nombres sont ce que
+  // l'utilisatrice reçoit réellement, l'app ne fait que les afficher.
+  "ecrin_credits_spark":    10,   //  2,99 € -> 0,299 €/crédit
+  "ecrin_credits_eclat":    40,   // 10,99 € -> 0,275 €/crédit  (était 70 à 16,99 €)
+  "ecrin_credits_diamant": 140,   // 29,99 € -> 0,214 €/crédit  (était 150)
+  // Retiré de la vente : à 7,99 € pour 30 crédits (0,266 €/cr) il se plaçait
+  // entre Essentiel et Éclat et cassait la décroissance du prix unitaire.
+  // La correspondance reste pour créditer un achat encore en vol.
+  "ecrin_credits_glow":     30,
 }
 
 serve(async (req) => {
