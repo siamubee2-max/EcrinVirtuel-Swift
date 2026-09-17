@@ -373,6 +373,14 @@ final class MonitoringService: @unchecked Sendable {
         Task.detached { await SupabaseService.shared.insertMonitoringEvent(type: "restore_error",     productId: nil,       domain: d, code: c, message: m) }
     }
 
+    /// Aucun produit n'a pu être chargé sur un écran d'achat : l'utilisateur voit
+    /// un paywall sans offre réelle. Auparavant invisible — l'erreur était avalée
+    /// par un `catch` vide côté PaywallViewModel.
+    func recordProductsUnavailable(identifiers: [String]) {
+        let message = "RevenueCat n'a retourné aucun produit — demandés: \(identifiers.joined(separator: ", "))"
+        Task.detached { await SupabaseService.shared.insertMonitoringEvent(type: "products_unavailable", productId: nil, domain: "Paywall", code: -3, message: message) }
+    }
+
     func recordEntitlementMismatch(productId: String) {
         Task.detached { await SupabaseService.shared.insertMonitoringEvent(type: "entitlement_mismatch", productId: productId, domain: "Paywall", code: -1, message: "Purchase succeeded but premium entitlement not active") }
     }
