@@ -3,7 +3,11 @@
 # Prérequis : CLI Supabase authentifiée.
 set -euo pipefail
 
-PROJECT_REF="itjtshfzpknlzownpwte"
+# Projet RÉEL de l'app : c'est le SUPABASE_URL de Secrets.xcconfig, et c'est
+# là que tourne tryon-generate. L'ancienne valeur (itjtshfzpknlzownpwte)
+# n'existe dans aucun projet du compte : le script déployait dans le vide
+# pendant que la production restait inchangée.
+PROJECT_REF="vffafgzlsmfecqejoytw"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 cd "$ROOT"

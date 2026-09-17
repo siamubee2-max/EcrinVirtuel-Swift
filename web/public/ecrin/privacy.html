@@ -27,7 +27,7 @@
 <header>
   <div class="label">✦ L'Écrin Virtuel</div>
   <h1>Politique de confidentialité</h1>
-  <p class="meta">Dernière mise à jour : 26 août 2026</p>
+  <p class="meta">Dernière mise à jour : 27 août 2026</p>
 </header>
 
 <a href="/ecrin" class="back">← Retour</a>
@@ -38,7 +38,8 @@
 <h2>2. Données collectées</h2>
 <ul>
   <li><strong>Adresse email</strong> — authentification uniquement (code à 6 chiffres ou Sign in with Apple)</li>
-  <li><strong>Photos</strong> — transmises à nos prestataires d'IA (fal.ai, Google, OpenAI) pour l'essayage virtuel. Non conservées après traitement.</li>
+  <li><strong>Photos</strong> — transmises à nos prestataires d'IA (fal.ai, Google, OpenAI) pour générer votre essayage virtuel, après votre consentement explicite. La copie temporaire est supprimée de nos serveurs dès la fin de la génération.</li>
+  <li><strong>Contexte styliste</strong> — si vous y consentez, votre garde-robe (pièces, couleurs, marques), la météo de votre position, votre budget et le style recherché sont envoyés au styliste IA. Aucune photo, aucune adresse précise. Vous pouvez refuser : le styliste répond alors sans ces informations.</li>
   <li><strong>Identifiant utilisateur</strong> — UUID interne pour vos looks sauvegardés</li>
   <li><strong>Historique d'utilisation</strong> — looks sauvegardés, sessions d'essayage</li>
   <li><strong>Données d'achat</strong> — gérées par Apple StoreKit et RevenueCat (aucune donnée bancaire stockée)</li>
@@ -59,11 +60,14 @@
   <li><strong>Google (Gemini Image API)</strong> — <a href="https://policies.google.com/privacy" target="_blank">policies.google.com/privacy</a></li>
   <li><strong>OpenAI (GPT Image)</strong> — <a href="https://openai.com/policies/privacy-policy" target="_blank">openai.com/policies/privacy-policy</a></li>
 </ul>
-<p>Conformément à leurs conditions API respectives, ces prestataires n'utilisent pas vos photos pour entraîner leurs modèles.</p>
+<p>Le styliste IA s'appuie sur OpenAI, puis sur Google Gemini si OpenAI est indisponible.</p>
+<p>Ces prestataires traitent les données sur des serveurs situés aux États-Unis.</p>
+<p>Nous demandons à fal.ai de ne pas conserver les données envoyées (en-têtes <code>X-Fal-Store-IO</code> et <code>X-Fal-Object-Lifecycle-Preference</code> transmis à chaque requête). Au-delà, chaque prestataire applique sa propre politique de confidentialité, publiée aux adresses ci-dessus : nous ne pouvons pas garantir à leur place qu'ils n'utilisent pas les données reçues pour améliorer ou entraîner leurs modèles. Consultez leurs politiques avant de donner votre consentement.</p>
 
 <h2>5. Conservation</h2>
 <ul>
-  <li>Photos : non conservées après traitement</li>
+  <li>Photos : supprimées de nos serveurs dès la fin de la génération ; la rétention chez chaque prestataire d'IA relève de sa propre politique</li>
+  <li>Contexte styliste : non conservé par nos serveurs ; la rétention chez OpenAI et Google relève de leurs propres politiques</li>
   <li>Compte : jusqu'à suppression par l'utilisateur</li>
   <li>Logs : 90 jours</li>
 </ul>

@@ -15,8 +15,20 @@ struct LoginView: View {
         ZStack {
             EcrinColor.background.ignoresSafeArea()
 
+            // ScrollView + minHeight : sur iPad (et en Dynamic Type large) le
+            // contenu dépassait la hauteur disponible, débordait de son parent
+            // et devenait intouchable — un enfant hors du frame ne reçoit plus
+            // les taps. minHeight garde le centrage vertical quand ça tient.
+            GeometryReader { proxy in
+            ScrollView {
             VStack(spacing: EcrinSpacing.xl) {
-                Spacer()
+                // Spacers bornés : sans limite ils absorbaient tout l'espace
+                // résiduel et creusaient ~450 pt de vide au milieu de l'écran sur
+                // iPad. Sous la borne (cas iPhone) la mise en page est inchangée ;
+                // au-delà, le minHeight du ScrollView recentre le bloc.
+                // Le premier est plus court que le second : il s'ajoute à la marge
+                // de centrage haute, alors qu'en bas il n'y a que les paddings.
+                Spacer().frame(maxHeight: 80)
 
                 // Logo
                 VStack(spacing: 8) {
@@ -33,7 +45,7 @@ struct LoginView: View {
                         .kerning(2)
                 }
 
-                Spacer()
+                Spacer().frame(maxHeight: 140)
 
                 // Auth options
                 VStack(spacing: EcrinSpacing.md) {
@@ -195,6 +207,11 @@ struct LoginView: View {
                 .buttonStyle(.plain)
                 .padding(.bottom, 12)
                 #endif
+            }
+            .frame(maxWidth: 420)
+            .frame(maxWidth: .infinity, minHeight: proxy.size.height)
+            }
+            .scrollBounceBehavior(.basedOnSize)
             }
         }
     }

@@ -25,6 +25,7 @@ struct StoneDetailView: View {
                         zodiacSection
                         usageSection
                         pairsSection
+                        WellnessDisclaimer()
                     }
                     .padding(.horizontal, EcrinSpacing.lg)
                     .padding(.bottom, EcrinSpacing.xxl)

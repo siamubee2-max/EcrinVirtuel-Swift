@@ -51,9 +51,14 @@ final class ImageGenerationService: Sendable {
         // modèle primaire échoue et que la cascade enchaîne les fallbacks, aucun octet
         // n'arrive pendant >60 s. Un timeoutIntervalForRequest à 60 s coupait alors la
         // requête AVANT que le serveur ait fini → « image non générée » à tort.
-        // On aligne les deux timeouts sur le budget serveur (cascade plafonnée ~130 s).
+        //
+        // Le serveur borne désormais sa cascade par CASCADE_DEADLINE_MS = 110 s et
+        // répond toujours sous ~150 s (remboursement compris). 180 s côté client
+        // laisse cette marge ENTIÈRE : le client ne doit JAMAIS abandonner avant le
+        // serveur — sinon crédit débité, image générée, et « échec » à l'écran
+        // (que MultiPose retentait ×3, débitant jusqu'à 3 crédits par pose).
         config.timeoutIntervalForRequest  = 180  // pas de coupure prématurée sans octet reçu
-        config.timeoutIntervalForResource = 180  // timeout total ressource
+        config.timeoutIntervalForResource = 180  // > pire cas serveur (~150 s), jamais l'inverse
         session = URLSession(configuration: config)
     }
 
@@ -93,6 +98,23 @@ final class ImageGenerationService: Sendable {
     /// (ex MultiPose : 1 seul fetch pour N poses). Retourne nil si indisponible.
     func referenceData(for url: URL?) async -> Data? {
         await downloadReference(url)
+    }
+
+    /// Prépare la photo LOCALE d'un article comme image de référence : lecture
+    /// du fichier, aplat blanc, compression.
+    ///
+    /// La LECTURE est à l'intérieur de la tâche détachée, pas avant elle.
+    /// `WardrobePhotoStore.data(for:)` est un `Data(contentsOf:)` synchrone, et
+    /// l'appelant est tantôt le main actor (MultiPoseViewModel est `@MainActor`),
+    /// tantôt un fil du pool coopératif — que Swift 6 interdit de bloquer.
+    /// Prendre l'identifiant plutôt que les octets rend cette garantie
+    /// impossible à contourner par mégarde.
+    func localReferenceData(for id: UUID) async -> Data? {
+        await Task.detached(priority: .userInitiated) {
+            guard let data = WardrobePhotoStore.shared.data(for: id),
+                  let image = UIImage(data: data) else { return nil }
+            return self.resizedImageData(SubjectCutout.flattenedOnWhite(image))
+        }.value
     }
 
     // MARK: - QuickTryOn Enrichi — analyse corporelle + prompt contextuel
@@ -143,11 +165,26 @@ final class ImageGenerationService: Sendable {
         case .shoes:   .shoes
         default:       .clothing   // .clothing + .accessories
         }
-        let reference = await downloadReference(item.imageURL)
+        let reference = await reference(for: item)
         return try await sendRequest(imageData: imageData, prompt: prompt, model: model, category: category, referenceImageData: reference)
     }
 
     // MARK: - Private helpers
+
+    /// Image de référence d'un article : la photo prise par l'utilisateur passe
+    /// AVANT le catalogue.
+    ///
+    /// Un article ajouté à la garde-robe n'a pas d'`imageURL` — sa photo vit
+    /// dans un fichier. Elle ne servait donc qu'à la vignette : le modèle
+    /// ne voyait jamais l'article et réinventait un bijou générique à partir du
+    /// seul texte du prompt. Détourer sans corriger ça n'aurait rien changé au
+    /// rendu.
+    private func reference(for item: FashionItem) async -> Data? {
+        if let local = await localReferenceData(for: item.id) {
+            return local
+        }
+        return await downloadReference(item.imageURL)
+    }
 
     /// Télécharge l'image produit du catalogue (vraie photo de l'article) pour
     /// la fournir au modèle comme référence — garantit le bon bijou / vêtement.
@@ -221,6 +258,13 @@ final class ImageGenerationService: Sendable {
         category: GenerationCategory? = nil,
         referenceImageData: Data? = nil
     ) async throws -> UIImage {
+        // Apple 5.1.1(i) / 5.1.2(i) — le consentement est demandé ICI, au seul point
+        // de passage de tous les écrans d'essayage : aucune photo ne peut partir sans
+        // accord explicite, et un futur appelant ne peut pas court-circuiter la porte.
+        guard await AIConsentGate.requireConsent() else {
+            throw GenerationError.consentDeclined
+        }
+
         // Obtenir le JWT utilisateur.
         // Pour les utilisateurs non connectés (wizard first-run), on crée une session anonyme.
         // L'Edge Function accepte les users anonymes Supabase (isAnonymous = true côté serveur).
@@ -305,6 +349,7 @@ final class ImageGenerationService: Sendable {
         case apiError
         case invalidResponse
         case authenticationRequired
+        case consentDeclined
         case quotaExceeded
         case serverError(String)
 
@@ -314,6 +359,7 @@ final class ImageGenerationService: Sendable {
             case .apiError:                  return "Erreur lors de la génération. Réessayez."
             case .invalidResponse:           return "Réponse inattendue du serveur."
             case .authenticationRequired:    return "Connectez-vous avec Apple pour générer votre essayage."
+            case .consentDeclined:           return L10n.TryOnUI.consentDeclinedMessage
             case .quotaExceeded:             return "Plus de crédits disponibles. Passez à un abonnement pour continuer."
             case .serverError(let msg):      return "Serveur : \(msg)"
             }

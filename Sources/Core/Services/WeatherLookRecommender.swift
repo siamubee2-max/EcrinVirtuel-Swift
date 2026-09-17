@@ -43,9 +43,16 @@ struct WeatherLookRecommender: Sendable {
             limit: limit
         )
 
-        // Subline : articles garde-robe en premier, puis catalogue
-        let allNames = (wardrobeResult.prefix(2).map(\.name) + catalogResult.prefix(2).map(\.name)).prefix(3)
-        let subline = allNames.joined(separator: " + ")
+        // Subline : les pièces du CATALOGUE, c'est-à-dire exactement celles que la
+        // carte affiche en vignettes. Nommer la garde-robe en premier produisait un
+        // texte sans rapport avec les images — « Chemise Blanche + Pantalon Palazzo »
+        // au-dessus d'un jean et d'escarpins — parce que le texte et les vignettes
+        // faisaient deux sélections indépendantes. La garde-robe n'est nommée que
+        // lorsqu'aucune pièce du catalogue n'a pu être retenue.
+        let displayedNames = catalogResult.isEmpty
+            ? wardrobeResult.prefix(3).map(\.name)
+            : catalogResult.prefix(3).map(\.name)
+        let subline = displayedNames.joined(separator: " + ")
         let headline = makeHeadline(weather: weather, gender: gender)
         let styleTag = pickStyleTag(weather: weather, items: catalogResult)
 
@@ -151,12 +158,14 @@ struct WeatherLookRecommender: Sendable {
             }.map(\.0)
         }
 
+        // Les trois créneaux VÊTEMENTS sont pris dans le CATALOGUE, jamais dans la
+        // garde-robe. Auparavant la garde-robe servie en premier pouvait occuper un
+        // créneau — les chaussures, typiquement — et la tenue se retrouvait amputée
+        // de cette pièce puisque la carte et la sous-ligne n'affichent que le
+        // catalogue. Seul le bijou reste tiré de la garde-robe (voir plus bas).
+
         // Slot HAUT
-        let topWardrobeCategories: [FashionCategory] = [.top, .jacket, .coat, .dress]
-        if let wTop = bestWardrobeItem(for: topWardrobeCategories) {
-            wardrobeResult.append(wTop)
-            wardrobeUsed.insert(wTop.id)
-        } else if let cTop = bestCatalogItem(for: ["top", "jacket"]) {
+        if let cTop = bestCatalogItem(for: ["top", "jacket"]) {
             catalogResult.append(cTop)
             catalogUsedIDs.insert(cTop.id.uuidString)
         } else if let cDress = bestCatalogItem(for: ["dress"]) {
@@ -165,15 +174,10 @@ struct WeatherLookRecommender: Sendable {
             catalogUsedIDs.insert(cDress.id.uuidString)
         }
 
-        // Slot BAS (sauf si robe déjà prise côté catalogue)
+        // Slot BAS (sauf si robe déjà prise)
         let hasCatalogDress = catalogResult.first?.category.lowercased() == "dress"
-        let hasWardrobeDress = wardrobeResult.first?.category == .dress
-        if !hasCatalogDress && !hasWardrobeDress {
-            let bottomWardrobeCategories: [FashionCategory] = [.bottom]
-            if let wBottom = bestWardrobeItem(for: bottomWardrobeCategories) {
-                wardrobeResult.append(wBottom)
-                wardrobeUsed.insert(wBottom.id)
-            } else if let cBottom = bestCatalogItem(for: ["bottom"]) {
+        if !hasCatalogDress {
+            if let cBottom = bestCatalogItem(for: ["bottom"]) {
                 catalogResult.append(cBottom)
                 catalogUsedIDs.insert(cBottom.id.uuidString)
             } else if let cDress = bestCatalogItem(for: ["dress"]) {
@@ -183,11 +187,7 @@ struct WeatherLookRecommender: Sendable {
         }
 
         // Slot CHAUSSURES
-        let shoesWardrobeCategories: [FashionCategory] = [.heels, .flats, .boots, .sneakers, .sandals, .loafers]
-        if let wShoes = bestWardrobeItem(for: shoesWardrobeCategories) {
-            wardrobeResult.append(wShoes)
-            wardrobeUsed.insert(wShoes.id)
-        } else if let cShoes = bestCatalogItem(for: ["shoes"]) {
+        if let cShoes = bestCatalogItem(for: ["shoes"]) {
             catalogResult.append(cShoes)
             catalogUsedIDs.insert(cShoes.id.uuidString)
         }

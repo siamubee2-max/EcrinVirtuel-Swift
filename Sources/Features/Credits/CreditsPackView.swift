@@ -46,6 +46,7 @@ struct CreditsPackView: View {
                                 PackCard(
                                     pack: pack,
                                     displayPrice: vm.displayPrice(for: pack),
+                                    perCredit: vm.perCredit(for: pack),
                                     isSelected: vm.selectedPack?.id == pack.id
                                 ) {
                                     withAnimation(EcrinAnimation.springSnap) {
@@ -77,6 +78,12 @@ struct CreditsPackView: View {
             }
         }
         .task { await vm.onAppear() }
+        // Connexion exigée avant paiement, puis relance automatique de l'achat.
+        .sheet(isPresented: $vm.needsSignIn) {
+            GenerationSignInSheet {
+                Task { await vm.purchase() }
+            }
+        }
     }
 
     // MARK: - Header
@@ -140,7 +147,7 @@ struct CreditsPackView: View {
             VStack(spacing: EcrinSpacing.sm) {
                 ReassuranceRow(icon: "checkmark.shield", text: "Les essais achetés n'expirent pas")
                 ReassuranceRow(icon: "arrow.triangle.2.circlepath", text: "S'ajoutent à votre solde existant")
-                ReassuranceRow(icon: "bolt.badge.checkmark", text: "Crédités instantanément après l'achat")
+                ReassuranceRow(icon: "bolt.badge.checkmark", text: "Crédités automatiquement après l'achat")
             }
             .padding(EcrinSpacing.md)
         }
@@ -190,6 +197,7 @@ struct CreditsPackView: View {
 private struct PackCard: View {
     let pack: CreditsPack
     let displayPrice: String
+    let perCredit: String
     let isSelected: Bool
     let onSelect: () -> Void
 
@@ -225,17 +233,9 @@ private struct PackCard: View {
                         }
                     }
 
-                    HStack(spacing: 6) {
-                        Text("\(pack.count) essais")
-                            .font(EcrinFont.caption)
-                            .foregroundStyle(EcrinColor.textSecondary)
-
-                        if let bonus = pack.bonus {
-                            Text(bonus)
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(EcrinColor.gold)
-                        }
-                    }
+                    Text("\(pack.count) essais")
+                        .font(EcrinFont.caption)
+                        .foregroundStyle(EcrinColor.textSecondary)
                 }
 
                 Spacer()
@@ -245,7 +245,7 @@ private struct PackCard: View {
                     Text(displayPrice)
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text(pack.perTrial)
+                    Text(perCredit)
                         .font(.system(size: 10))
                         .foregroundStyle(EcrinColor.textMuted)
                 }
@@ -326,11 +326,17 @@ struct PurchaseSuccessOverlay: View {
                 .frame(width: 120, height: 120)
 
                 VStack(spacing: 8) {
-                    Text(L10n.CreditsUI.topUpDone)
+                    // Achat toujours présenté comme réussi (Apple a encaissé), mais
+                    // le NOMBRE annoncé est celui réellement constaté côté serveur.
+                    // count == 0 : octroi encore en vol — on le dit, on n'invente pas.
+                    Text(count > 0 ? L10n.CreditsUI.topUpDone : "Achat confirmé")
                         .font(EcrinFont.sectionHead)
                         .foregroundStyle(EcrinColor.textPrimary)
-                    Text("+\(count) essai\(count > 1 ? "s" : "") ajouté\(count > 1 ? "s" : "") à votre compte")
+                    Text(count > 0
+                         ? "+\(count) essai\(count > 1 ? "s" : "") ajouté\(count > 1 ? "s" : "") à votre compte"
+                         : "Vos essais sont en cours d'attribution — ils apparaîtront dans un instant.")
                         .font(EcrinFont.caption)
+                        .multilineTextAlignment(.center)
                         .foregroundStyle(EcrinColor.textSecondary)
                 }
 

@@ -37,6 +37,21 @@ enum QuickTryOnItem: Identifiable, Equatable, Sendable {
         }
     }
 
+    /// Identifiant de l'article de garde-robe, dont la photo vit dans un
+    /// fichier. Prioritaire sur l'URL : un article ajouté par l'utilisateur n'a
+    /// pas d'`imageURL`, seulement cette photo (détourée si le réglage était
+    /// actif à l'ajout).
+    ///
+    /// On expose l'IDENTIFIANT et non les octets : les lire ici forcerait une
+    /// lecture disque synchrone sur le thread de l'appelant, qui est le thread
+    /// principal dans le parcours multi-poses.
+    var wardrobePhotoID: UUID? {
+        switch self {
+        case .wardrobe(let item): return item.id
+        case .catalog:            return nil
+        }
+    }
+
     var categoryLabel: String {
         switch self {
         case .wardrobe(let item): return item.category.rawValue
@@ -284,18 +299,33 @@ final class QuickTryOnViewModel {
                 // résultat intermédiaire du flow multi-articles l'affichait comme final
                 // et créait un doublon.
                 var finalImages = generated
+                var partialFailure = false
                 if selectedItems.count > 1 {
                     let fullPrompt = buildEnrichedMultiItemPrompt(
                         mode: mode,
                         items: selectedItems,
                         bodyContext: context
                     )
-                    finalImages = try await imageService.tryOnQuick(
-                        photo: generated,
-                        prompt: fullPrompt
-                    )
+                    // Filet propre au 2e appel : son échec faisait tomber tout le
+                    // `do` — l'image intermédiaire, DÉJÀ générée et débitée d'un
+                    // crédit côté serveur, était jetée et l'écran disait « échec ».
+                    // On la publie en repli (une seule assignation de `result`,
+                    // le contrat de la vue est respecté) et on ne rend que le
+                    // crédit local du 2e article.
+                    do {
+                        finalImages = try await imageService.tryOnQuick(
+                            photo: generated,
+                            prompt: fullPrompt
+                        )
+                    } catch {
+                        partialFailure = true
+                        CreditsManager.shared.refund(count: 1)
+                    }
                 }
                 result = finalImages
+                if partialFailure {
+                    errorMessage = L10n.QuickTryOnUI.partialResult
+                }
                 CreditsManager.shared.syncDetached()
                 GamingService.shared.record(.tryOnGenerated)
                 // Enregistrer la session Try-On en arrière-plan (sans bloquer l'UI)

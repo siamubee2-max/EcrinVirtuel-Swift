@@ -43,6 +43,30 @@ const MAX_PROMPT_CHARS       = 4_000
 const MAX_IMAGE_BASE64_CHARS = 6 * 1024 * 1024   // ~4.5 MB binaire
 const POLL_INTERVAL_MS       = 3_000
 const POLL_MAX_ATTEMPTS      = 30                  // 30 × 3s = 90s max
+// Échéance GLOBALE de la cascade, tous fournisseurs confondus. Sans elle, deux
+// tentatives fal pouvaient poller 2 × 90 s : le runtime Edge (~150 s) tuait la
+// fonction APRÈS consume_credits et AVANT refund_credit — crédit débité, pas
+// d'image, jamais remboursé, et pas même une ligne de télémétrie. 110 s laisse
+// ~40 s de marge pour le refund, la télémétrie et la réponse.
+const CASCADE_DEADLINE_MS    = 110_000
+// Bucket `tryon-temp` privé (migration 010) → URL signée courte pour fal.ai.
+// Couvre la file d'attente fal (POLL_MAX_ATTEMPTS × POLL_INTERVAL_MS = 90 s).
+const SIGNED_URL_TTL_SECONDS = 300
+
+// ── En-têtes plateforme fal.ai (fal.ai/docs/documentation/model-apis/common-parameters)
+//   X-Fal-Store-IO: "0"                    → fal ne stocke pas les payloads JSON
+//                                            (défaut : conservation 30 jours).
+//   X-Fal-Object-Lifecycle-Preference      → expiration des fichiers CDN produits
+//                                            + ACL initiale ("forbid" = 403 pour
+//                                            les tiers ; le propriétaire de la clé
+//                                            garde l'accès).
+const FAL_PRIVACY_HEADERS: Record<string, string> = {
+  "X-Fal-Store-IO": "0",
+  "X-Fal-Object-Lifecycle-Preference": JSON.stringify({
+    expiration_duration_seconds: SIGNED_URL_TTL_SECONDS,
+    initial_acl: { default: "forbid" },
+  }),
+}
 
 // Comptes fondateur — pas de décompte quota (aligné iOS UnlimitedAccess.swift)
 const UNLIMITED_EMAILS = new Set([
@@ -76,6 +100,22 @@ const FAL_MODELS: Record<string, FalModel> = {
 // Cascade de secours (essayée dans l'ordre après le modèle demandé)
 const FAL_FALLBACK_MODELS: FalModel[] = [FLUX_KONTEXT]
 
+// Coûts des fournisseurs de secours hors fal.ai, en dollars par image.
+// ⚠️ ESTIMATIONS, à confirmer sur les factures Google et OpenAI. La colonne
+// `provider` de generation_costs permet de recalculer a posteriori si ces
+// valeurs se révèlent fausses — c'est précisément pourquoi on la stocke.
+/// Nombre maximum d'appels FACTURÉS par crédit consommé : une tentative, plus
+/// une escalade. Au-delà, on abandonne.
+///
+/// Sans ce plafond la cascade pouvait enchaîner cinq fournisseurs — jusqu'à
+/// 0,30 $ pour UN crédit vendu 0,17 € au tarif annuel le plus bas. Une
+/// tentative ratée est facturée au même titre qu'une réussie : deux échecs
+/// avant succès font passer la ligne haute en marge négative.
+const MAX_BILLED_ATTEMPTS = 2
+
+const GEMINI_COST_USD = 0.039
+const OPENAI_COST_USD = 0.040
+
 // ─── Main handler ──────────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -98,6 +138,19 @@ serve(async (req) => {
 
   const userId      = user.id
   const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+
+  // Signe un objet du bucket privé `tryon-temp` pour que fal.ai puisse le lire.
+  // `null` si la signature échoue → la cascade bascule sur les APIs directes.
+  const signTempUrl = async (path: string): Promise<string | null> => {
+    const { data, error } = await adminClient.storage
+      .from(STORAGE_BUCKET)
+      .createSignedUrl(path, SIGNED_URL_TTL_SECONDS)
+    if (error || !data?.signedUrl) {
+      console.warn(`Signed URL failed for ${path}:`, error)
+      return null
+    }
+    return data.signedUrl
+  }
 
   try {
     let rawBodyText: string | undefined
@@ -222,23 +275,31 @@ serve(async (req) => {
       }
     }
 
-    // ── Upload Storage pour fal.ai (besoin d'une URL publique) ───────────────
+    // ── Upload Storage pour fal.ai (besoin d'une URL fetchable) ─────────────
+    // Le bucket est PRIVÉ depuis la migration 010 : getPublicUrl y renvoie une
+    // URL qui répond 400/404, donc fal.ai échouait à chaque appel et la cascade
+    // retombait systématiquement sur Gemini. On signe l'URL (TTL court).
     const falConfig  = FAL_MODELS[model] ?? FAL_MODELS.standard
     const imageBytes = base64ToBytes(imageBase64)
     const stamp      = Date.now()
     const tempPath   = `${userId}/${stamp}.jpg`
 
+    // Chemins RÉELLEMENT écrits dans le bucket, nettoyés quoi qu'il arrive.
+    // L'ancien remove() vivait dans le bloc `if (signedUrl)` : si la signature
+    // échouait APRÈS l'upload, la photo de visage restait dans tryon-temp pour
+    // toujours — aucune purge nulle part (rétention indéfinie, enjeu RGPD).
+    const uploadedPaths: string[] = []
+
     const { error: uploadError } = await adminClient.storage
       .from(STORAGE_BUCKET)
       .upload(tempPath, imageBytes, { contentType: "image/jpeg", upsert: true })
-
-    const publicUrl = uploadError
-      ? null
-      : adminClient.storage.from(STORAGE_BUCKET).getPublicUrl(tempPath).data.publicUrl
+    if (!uploadError) uploadedPaths.push(tempPath)
 
     if (uploadError) {
       console.warn("Storage upload failed — fal.ai unavailable, using direct APIs:", uploadError)
     }
+
+    const signedUrl = uploadError ? null : await signTempUrl(tempPath)
 
     // Photo produit du bijou/vêtement sélectionné — SANS elle le modèle invente
     // un bijou différent à chaque génération. Transmise comme 2e image de
@@ -257,12 +318,16 @@ serve(async (req) => {
         console.warn("Reference upload failed — generating without product reference:", refUploadError)
         refPath = null
       } else {
-        refUrl = adminClient.storage.from(STORAGE_BUCKET).getPublicUrl(refPath).data.publicUrl
+        // Enregistré AVANT tout `refPath = null` : une signature ratée remettait
+        // le chemin à null et le fichier échappait au nettoyage.
+        uploadedPaths.push(refPath)
+        refUrl = await signTempUrl(refPath)
+        if (!refUrl) refPath = null
       }
     }
 
     const promptWithRef = refUrl
-      ? `${generationPrompt}\n\nPRODUCT REFERENCE: the jewelry/item to add is EXACTLY the product shown in the SECOND reference image. Reproduce its exact design, shape, materials, stones and colors faithfully — do not invent a different design. CRITICAL SCALE — the product photo is a MACRO close-up, so you MUST shrink the jewel dramatically to real-life size on the person. Anatomical limits: a dangling earring must NOT extend below the wearer's jawline (shorter than the ear-to-jaw distance); a hoop's diameter must be smaller than the wearer's ear height x 1.5; a pendant must be smaller than the wearer's eye. The jewel must look small, dainty and delicate on the person, occupying only a tiny fraction of the image. When in doubt, render it SMALLER.`
+      ? `${generationPrompt}\n\nPRODUCT REFERENCE - IDENTITY IS THE HARD CONSTRAINT: the item to add is EXACTLY the product shown in the SECOND image. Reproduce its design, silhouette, length, proportions, materials, finish, stones and colors, including any asymmetry between the two pieces of a pair. Never substitute, simplify, shorten, split or invent a different piece. If any other instruction cannot be satisfied at the same time as this one, break that other instruction - never this one. A faithful product rendered imperfectly is a success; a well-composed image showing different jewelry is a total failure.\n\nIGNORE THE REFERENCE FRAMING: the second image is a macro shot taken a few centimeters from the lens, so the object fills the frame. It may also show a display card, an easel, a stand, packaging or a QR code - reproduce ONLY the jewelry itself, never its support. Its apparent size there carries NO information about its real size. Never scale the piece to match how big it looks in that image.\n\nSCALE BRIDGE - MEASURE, DO NOT GUESS: real jewelry is built from thin metal. In the reference, the post, ear wire, hoop wire, clasp or chain link is about 1 mm thick in reality; take that as your unit, read every other dimension of the product as a multiple of it, and keep those multiples exactly. Then place the piece on the person using the body as the ruler: an adult ear is about 6 cm tall, an earlobe about 1.5 cm, an eye about 3 cm wide, a finger about 1.8 cm wide, a wrist about 16 cm around. If the piece shows no thin metal, use the earlobe as the ruler instead.\n\nTHE RESULT OF THAT MEASUREMENT IS ALWAYS CORRECT: a stud stays a tiny point of light on the lobe, smaller than the iris. A wide hoop stays wide. A long drop earring stays long and hangs below the jawline onto the neck - expected, not an error. No outside rule caps or floors the size; the only wrong size is one that disagrees with the reference's own proportions. Scale the object as one rigid unit - never stretch, thin, crop or truncate one part relative to another.\n\nREMOVE WHAT IS ALREADY WORN: if the person in the first photo already wears jewelry on the same spot (earrings, studs, hoops, a necklace, a ring), remove it completely and leave bare skin before placing the product. The final image must show the product and nothing else.\n\nPLACE IT LIKE A REAL OBJECT: attached where the real piece attaches (through the earlobe, on its chain in the hollow of the neck, around the finger), hanging straight down under gravity with the weight and drape of its actual material, lit by the scene's own light, with a soft contact shadow on the skin and correct occlusion by hair and ear. If the piece at its true size does not fit the crop, widen the framing. Change the framing, never the jewel.`
       : generationPrompt
 
     // ── Cascade de fournisseurs ───────────────────────────────────────────────
@@ -270,16 +335,28 @@ serve(async (req) => {
     let provider = ""
     const errors: string[] = []
 
+    // Comptabilité du coût RÉEL de cette génération. Un appel exécuté est
+    // compté comme facturé même s'il échoue : hypothèse pessimiste, assumée —
+    // mieux vaut surestimer le coût que fonder un prix sur une sous-estimation.
+    const costT0 = Date.now()
+    const deadline = costT0 + CASCADE_DEADLINE_MS
+    let costAttempts = 0
+    let costUSD = 0
+
     // ── Fournisseur 1 : fal.ai (NB2 → NB Pro → Flux Kontext) ─────────────────
-    if (publicUrl) {
+    if (signedUrl) {
       const cascade: FalModel[] = [falConfig]
       // Escalade vers l'autre Nano Banana si le modèle demandé n'est pas lui
       const alternate = falConfig.id === NANO_BANANA_PRO.id ? NANO_BANANA_2 : NANO_BANANA_PRO
       cascade.push(alternate, ...FAL_FALLBACK_MODELS)
 
       for (const cfg of cascade) {
+        if (costAttempts >= MAX_BILLED_ATTEMPTS) break
+        if (Date.now() >= deadline) break
+        costAttempts += 1
+        costUSD += cfg.costUSD
         try {
-          resultBase64 = await generateWithFal(cfg, publicUrl, refUrl, promptWithRef, aspectRatio)
+          resultBase64 = await generateWithFal(cfg, signedUrl, refUrl, promptWithRef, aspectRatio, deadline)
           provider = cfg.id
           break // succès → on sort de la cascade
         } catch (err) {
@@ -288,15 +365,21 @@ serve(async (req) => {
         }
       }
 
-      // Nettoyage Storage — loggé en cas d'échec pour détecter les fuites
-      const toClean = refPath ? [tempPath, refPath] : [tempPath]
-      adminClient.storage.from(STORAGE_BUCKET).remove(toClean).catch((cleanupErr) => {
-        console.error(`[tryon-generate] Storage cleanup failed (orphaned: ${toClean.join(",")}):`, cleanupErr)
+    }
+
+    // Nettoyage Storage — INCONDITIONNEL : tout chemin uploadé est retiré, que
+    // la cascade fal ait tourné ou non. Loggé en cas d'échec pour détecter les
+    // fuites.
+    if (uploadedPaths.length > 0) {
+      adminClient.storage.from(STORAGE_BUCKET).remove(uploadedPaths).then((res: { error?: unknown }) => {
+        if (res?.error) console.error(`[tryon-generate] Storage cleanup failed (orphaned: ${uploadedPaths.join(",")}):`, res.error)
       })
     }
 
     // ── Fournisseur 2 : Google Gemini ─────────────────────────────────────────
-    if (!resultBase64 && GOOGLE_API_KEY) {
+    if (!resultBase64 && GOOGLE_API_KEY && costAttempts < MAX_BILLED_ATTEMPTS && Date.now() < deadline) {
+      costAttempts += 1
+      costUSD += GEMINI_COST_USD
       try {
         resultBase64 = await generateWithGemini(imageBase64, promptWithRef, aspectRatio, hasValidRef ? referenceImageBase64 : null)
         provider = "gemini-3.1-flash-image"
@@ -308,7 +391,9 @@ serve(async (req) => {
     }
 
     // ── Fournisseur 3 : OpenAI GPT Image ──────────────────────────────────────
-    if (!resultBase64 && OPENAI_API_KEY) {
+    if (!resultBase64 && OPENAI_API_KEY && costAttempts < MAX_BILLED_ATTEMPTS && Date.now() < deadline) {
+      costAttempts += 1
+      costUSD += OPENAI_COST_USD
       try {
         resultBase64 = await generateWithOpenAI(imageBase64, generationPrompt)
         provider = "openai-gpt-image-1"
@@ -319,7 +404,39 @@ serve(async (req) => {
       }
     }
 
+    // Télémétrie du coût réel — une ligne par génération, succès OU échec.
+    // Fire-and-forget : elle ne doit JAMAIS faire échouer une génération que
+    // l'utilisatrice a déjà payée en crédit.
+    adminClient.from("generation_costs").insert({
+      user_id:     userId,
+      tier:        model ?? "standard",
+      provider:    provider || "none",
+      attempts:    costAttempts,
+      cost_usd:    Number(costUSD.toFixed(5)),
+      duration_ms: Date.now() - costT0,
+      success:     Boolean(resultBase64),
+    }).then((res: { error?: unknown }) => {
+      if (res?.error) console.error("[tryon-generate] cost telemetry failed:", res.error)
+    })
+
     if (!resultBase64) {
+      // Rendre le crédit AVANT de lever : il a été débité en amont comme garde
+      // atomique du quota, mais l'utilisatrice n'a reçu aucune image. Facturer
+      // un service non rendu, c'est une demande de remboursement et un avis à
+      // une étoile — sur une app qui n'en a encore aucun.
+      // Les comptes illimités n'ont rien payé : rien à rendre.
+      if (!isUnlimitedEmail(user.email)) {
+        const { error: refundError } = await adminClient.rpc("refund_credit", {
+          p_user_id: userId,
+          p_amount:  1,
+        })
+        if (refundError) {
+          // Ne pas masquer l'échec de génération par celui du remboursement,
+          // mais le tracer : c'est un crédit perdu pour quelqu'un.
+          console.error(`[tryon-generate] REFUND FAILED for ${userId}:`, refundError)
+        }
+      }
+
       // Logger les détails côté serveur uniquement — jamais exposer au client
       console.error("[tryon-generate] All providers failed:", errors)
       throw new Error("generation_failed")
@@ -368,7 +485,7 @@ async function generateWithFal(
   refUrl: string | null,
   prompt: string,
   aspectRatio: string
-): Promise<string> {
+, deadline: number): Promise<string> {
   // Schéma d'entrée par famille (vérifié fal.ai/models/*/api) :
   //   nano-banana-2/edit & gemini-3-pro-image-preview/edit → image_urls: [..]
   //   flux-pro/kontext                                     → image_url: ".."
@@ -389,6 +506,7 @@ async function generateWithFal(
     headers: {
       "Authorization": `Key ${FAL_API_KEY}`,
       "Content-Type":  "application/json",
+      ...FAL_PRIVACY_HEADERS,
     },
     body: JSON.stringify(input),
   })
@@ -403,6 +521,9 @@ async function generateWithFal(
 
   // Polling du statut
   for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
+    // L'échéance globale prime sur le compteur local : deux tentatives se
+    // PARTAGENT le budget au lieu de l'additionner.
+    if (Date.now() >= deadline) throw new Error("fal budget exceeded (cascade deadline)")
     await sleep(POLL_INTERVAL_MS)
 
     const statusRes = await fetch(statusUrl, {
@@ -420,7 +541,13 @@ async function generateWithFal(
         json.images?.[0]?.url ?? json.image?.url ?? json.output?.[0]?.url
       if (!outputUrl) throw new Error("fal: job done but no image URL in response")
 
-      const imgRes = await fetch(outputUrl)
+      // L'ACL initiale "forbid" ferme le fichier CDN aux tiers ; le propriétaire
+      // de la clé garde l'accès, d'où le repli authentifié si l'appel anonyme
+      // est refusé (403/404).
+      let imgRes = await fetch(outputUrl)
+      if (imgRes.status === 403 || imgRes.status === 404) {
+        imgRes = await fetch(outputUrl, { headers: { "Authorization": `Key ${FAL_API_KEY}` } })
+      }
       if (!imgRes.ok) throw new Error(`fal: image download failed ${imgRes.status}`)
       return bytesToBase64(new Uint8Array(await imgRes.arrayBuffer()))
     }

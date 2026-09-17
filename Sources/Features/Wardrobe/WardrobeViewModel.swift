@@ -25,6 +25,21 @@ final class WardrobeViewModel {
     // user id : sans cela, un changement de compte sur le même appareil
     // montrait la garde-robe du compte précédent.
     private let baseStorageKey = "ecrin_wardrobe_items_v2"
+
+    /// Numéro d'époque : incrémenté à CHAQUE mutation locale (ajout, édition,
+    /// suppression, favori, changement de compte). Un syncFromCloud suspendu
+    /// sur le réseau pendant qu'une mutation survient reprendrait avec un
+    /// instantané périmé : l'article supprimé ressusciterait (sans sa photo,
+    /// déjà effacée du disque), l'édition serait écrasée. Même idiome que
+    /// CreditsManager : capturer le monde avant l'await, le vérifier après.
+    private var epoch = 0
+
+    /// Suppressions dont le delete cloud n'a pas encore abouti (hors-ligne,
+    /// erreur réseau). Sans cette liste, l'article revenait du cloud au sync
+    /// suivant — en zombie définitif, puisque sa photo locale est détruite au
+    /// moment du delete. Persistée par scope, rejouée à chaque sync.
+    private var pendingDeletions: Set<UUID> = []
+    private var pendingDeletionsKey: String { storageKey + "_pending_deletions" }
     private var userScope: String?
     private var storageKey: String {
         userScope.map { "\(baseStorageKey)_\($0)" } ?? baseStorageKey
@@ -86,6 +101,7 @@ final class WardrobeViewModel {
     // MARK: - CRUD
 
     func add(_ item: FashionItem) {
+        epoch += 1
         items.append(item)
         save()
         Task {
@@ -95,6 +111,7 @@ final class WardrobeViewModel {
     }
 
     func update(_ item: FashionItem) {
+        epoch += 1
         guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
         items[idx] = item
         save()
@@ -105,15 +122,27 @@ final class WardrobeViewModel {
     }
 
     func delete(_ item: FashionItem) {
+        epoch += 1
         items.removeAll { $0.id == item.id }
+        // La photo vit dans un fichier : sans ça, supprimer un article laissait
+        // son image occuper le conteneur pour toujours.
+        WardrobePhotoStore.shared.delete(for: item.id)
+        // Enregistrée AVANT le delete cloud : si celui-ci échoue (hors-ligne),
+        // le prochain sync la rejouera au lieu de ressusciter l'article.
+        pendingDeletions.insert(item.id)
         save()
         Task {
-            do { try await supabase.deleteWardrobeItem(id: item.id) }
+            do {
+                try await supabase.deleteWardrobeItem(id: item.id)
+                pendingDeletions.remove(item.id)
+                save()
+            }
             catch { errorMessage = "Suppression non synchronisée. Réessayez." }
         }
     }
 
     func toggleFavorite(_ item: FashionItem) {
+        epoch += 1
         guard let idx = items.firstIndex(where: { $0.id == item.id }) else { return }
         var updated = items[idx]
         updated.isFavorite.toggle()
@@ -148,6 +177,7 @@ final class WardrobeViewModel {
     /// c'est le comportement historique de la clé unique, mais borné à
     /// cette transition anonyme → compte.
     func switchUser(to userId: String?) {
+        epoch += 1
         guard userId != userScope else {
             if userId != nil { Task { await syncFromCloud() } }
             return
@@ -177,20 +207,44 @@ final class WardrobeViewModel {
     func syncFromCloud() async {
         isSyncing = true
         defer { isSyncing = false }
+        // Un sync suspendu sur le réseau pendant que switchUser change de compte
+        // reprendrait avec les articles cloud de l'ANCIEN compte — et save() les
+        // écrirait sous la clé du NOUVEAU scope (la garde-robe de A persistée
+        // sous la clé anonyme, visible par le prochain utilisateur du poste).
+        // L'époque couvre le reste : une mutation locale (suppression, édition)
+        // pendant l'await rend l'instantané cloud périmé — on le jette.
+        let scopeAtStart = userScope
+        let epochAtStart = epoch
+        // Rejouer d'abord les suppressions en attente : tant qu'elles n'ont pas
+        // abouti côté cloud, l'article reviendrait à chaque fetch.
+        for id in pendingDeletions {
+            Task {
+                try? await supabase.deleteWardrobeItem(id: id)
+                pendingDeletions.remove(id)
+                save()
+            }
+        }
         do {
-            let cloudItems = try await supabase.fetchWardrobeItems()
+            let fetched = try await supabase.fetchWardrobeItems()
+            guard scopeAtStart == userScope, epochAtStart == epoch else { return }
+            let cloudItems = fetched.filter { !pendingDeletions.contains($0.id) }
             guard !cloudItems.isEmpty else { return }
-            // Merge : conserver les items locaux sans uuid cloud, puis ajouter les cloud.
-            // Les lignes cloud ne portent jamais userPhotoData (volontairement non
-            // synchronisé) — recopier la photo locale sur l'item cloud correspondant,
-            // sinon chaque sync efface les photos de l'utilisateur.
+            // FUSION par article, pas remplacement. La ligne cloud ne porte que
+            // 10 colonnes : tags, matière, prix, lien d'achat, prompt, source y
+            // sont reconstruits par défaut. `items = cloudItems + localOnly`
+            // remplaçait l'article local riche par ce fantôme appauvri À CHAQUE
+            // sync — perte silencieuse et définitive pour tout compte connecté.
+            // On garde donc la version locale quand elle existe, et on ne
+            // reporte du cloud que ce dont il est réellement l'autorité : le
+            // favori (togglable d'un autre appareil) et l'image catalogue si le
+            // local n'en a pas. Les photos, elles, vivent dans des fichiers
+            // nommés par l'identifiant — rien à recoller.
             let localByID = Dictionary(items.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
-            let merged = cloudItems.map { cloudItem in
-                var patched = cloudItem
-                if patched.userPhotoData == nil {
-                    patched.userPhotoData = localByID[cloudItem.id]?.userPhotoData
-                }
-                return patched
+            let merged = cloudItems.map { cloud -> FashionItem in
+                guard var local = localByID[cloud.id] else { return cloud }
+                local.isFavorite = cloud.isFavorite
+                if local.imageURL == nil { local.imageURL = cloud.imageURL }
+                return local
             }
             let cloudIDs = Set(cloudItems.map(\.id))
             let localOnly = items.filter { !cloudIDs.contains($0.id) }
@@ -216,9 +270,22 @@ final class WardrobeViewModel {
         if let data = try? JSONEncoder().encode(items) {
             UserDefaults.standard.set(data, forKey: storageKey)
         }
+        if let data = try? JSONEncoder().encode(pendingDeletions) {
+            UserDefaults.standard.set(data, forKey: pendingDeletionsKey)
+        }
     }
 
     private func load() {
+        // AVANT tout décodage : `FashionItem` ne porte plus `userPhotoData`, donc
+        // décoder puis sauvegarder effacerait les photos des utilisateurs déjà
+        // installés. La migration les sort du JSON et les pose sur le disque.
+        WardrobePhotoStore.shared.migrateFromUserDefaults(key: storageKey)
+        if let raw = UserDefaults.standard.data(forKey: pendingDeletionsKey),
+           let pending = try? JSONDecoder().decode(Set<UUID>.self, from: raw) {
+            pendingDeletions = pending
+        } else {
+            pendingDeletions = []
+        }
         guard let data = UserDefaults.standard.data(forKey: storageKey),
               let decoded = try? JSONDecoder().decode([FashionItem].self, from: data) else { return }
         items = decoded
