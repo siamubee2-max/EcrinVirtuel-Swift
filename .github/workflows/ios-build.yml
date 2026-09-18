@@ -41,6 +41,13 @@ jobs:
       - name: Check StoreKit scheme path
         run: ./scripts/fix-storekit-scheme-path.sh --check
 
+      # project.pbxproj est généré mais versionné : c'est lui qui sert à la CI
+      # et à qui compile sans régénérer. Bumper project.yml sans régénérer
+      # laisse l'archive partir avec l'ANCIEN numéro, et ASC refuse l'upload
+      # pour doublon alors que project.yml affiche bien le nouveau.
+      - name: Check build number is in sync
+        run: ./scripts/check-build-number-sync.sh
+
   build:
     runs-on: macos-15
     timeout-minutes: 40
