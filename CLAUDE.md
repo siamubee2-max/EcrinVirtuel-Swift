@@ -14,6 +14,21 @@ xcodebuild build -project EcrinVirtuel.xcodeproj -scheme EcrinVirtuel \
 - Targets: `EcrinVirtuel`, `EcrinVirtuelTests`
 - Check result with `grep -E "BUILD SUCCEEDED|BUILD FAILED|error:"` — `xcodebuild ... | tail` masks the real exit code.
 
+**⚠️ After EVERY `xcodegen generate`, run this — no exceptions:**
+
+```bash
+./scripts/fix-storekit-scheme-path.sh
+```
+
+XcodeGen rewrites the scheme's StoreKit reference to `../../EcrinVirtuel.storekit`
+on every generation (confirmed 18/09/2026). Two levels up from
+`EcrinVirtuel.xcodeproj/xcshareddata/xcschemes/` is the `.xcodeproj` bundle, not
+the repo root — the path points at a file that does not exist. **Xcode reports
+nothing**: it just runs with no StoreKit configuration, so on the simulator none
+of the 11 products resolve, every screen falls back to its hardcoded prices, and
+it looks identical to a RevenueCat or App Store Connect problem. Hours were lost
+to this once. CI rejects a committed bad path (`pricing` job).
+
 **Pricing grid — run before touching any price or credit count:**
 
 ```bash

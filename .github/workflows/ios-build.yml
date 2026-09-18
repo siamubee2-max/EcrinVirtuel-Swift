@@ -34,6 +34,13 @@ jobs:
       - name: Check pricing consistency
         run: python3 scripts/check-pricing-consistency.py
 
+      # XcodeGen réécrit ce chemin en `../../` à CHAQUE génération (vérifié le
+      # 18/09/2026). Deux niveaux tombent dans le bundle .xcodeproj, pas à la
+      # racine : Xcode lance alors l'app sans configuration StoreKit, en
+      # silence, et aucun produit ne se résout sur simulateur.
+      - name: Check StoreKit scheme path
+        run: ./scripts/fix-storekit-scheme-path.sh --check
+
   build:
     runs-on: macos-15
     timeout-minutes: 40
