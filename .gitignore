@@ -10,3 +10,9 @@ DerivedData/
 *.xcuserstate
 xcuserdata/
 .superpowers/
+
+# État local du CLI Supabase (quel projet `supabase link` a lié sur CETTE
+# machine, cache de version). Committé par erreur — linked-project.json
+# pointait vers le projet mort `itjtshfzpknlzownpwte` ("lecrin-replit"),
+# jamais le projet canonique `vffafgzlsmfecqejoytw`.
+supabase/.temp/
