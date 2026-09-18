@@ -14,6 +14,20 @@ xcodebuild build -project EcrinVirtuel.xcodeproj -scheme EcrinVirtuel \
 - Targets: `EcrinVirtuel`, `EcrinVirtuelTests`
 - Check result with `grep -E "BUILD SUCCEEDED|BUILD FAILED|error:"` — `xcodebuild ... | tail` masks the real exit code.
 
+**Pricing grid — run before touching any price or credit count:**
+
+```bash
+python3 scripts/check-pricing-consistency.py
+```
+
+Cross-checks the app (`CreditsPack.all`, `PaywallView.allPlans`), the server
+(`credit-generations` `VALID_PACKS`, `revenuecat-webhook` `planForProduct`) and
+`EcrinVirtuel.storekit`. These drifted silently once — the app and server moved
+to Spark 10 / Éclat 40 / Diamant 140 while the sandbox still advertised Éclat
+70 + 5 offerts at 16,99 €. Runs in CI (`pricing` job, Ubuntu). It CANNOT see
+App Store Connect, which is the fourth source and the only one the buyer reads:
+compare its printed grid against the ASC product pages by hand.
+
 ## Backend (Supabase)
 
 - **CANONICAL project: `vffafgzlsmfecqejoytw`** (`https://vffafgzlsmfecqejoytw.supabase.co`, account sabrina930212@gmail.com, org `qdneeeodnfxspmjdkxtv`, eu-north-1). Restored 17 Aug 2026 from the 10 Aug backup of the former project.

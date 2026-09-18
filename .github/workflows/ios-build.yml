@@ -22,6 +22,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Garde-fou tarifaire — Ubuntu, quelques secondes, aucune minute macOS.
+  # L'app, les deux Edge Functions et le sandbox StoreKit énoncent chacun la
+  # grille de prix ; quand ils divergent, rien ne casse — l'utilisatrice paie
+  # simplement un prix ou reçoit un nombre de crédits que personne n'a voulu.
+  pricing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check pricing consistency
+        run: python3 scripts/check-pricing-consistency.py
+
   build:
     runs-on: macos-15
     timeout-minutes: 40
