@@ -292,7 +292,7 @@ struct MoodBoardResultView: View {
     private var actionsSection: some View {
         VStack(spacing: EcrinSpacing.md) {
             // "Essayer ces bijoux" — pose pendingMoodBoardJewelry dans AppState puis
-            // dismisse ; MoodBoardGalleryView observe et ouvre ARTryOnWrapperView.
+            // dismisse ; MoodBoardGalleryView observe et ouvre l'essayage IA (TryOnView).
             GoldButton(title: L10n.MoodBoardUI.tryTheseJewels) {
                 guard !board.jewelryItems.isEmpty else { return }
                 appState.pendingMoodBoardJewelry = board.jewelryItems

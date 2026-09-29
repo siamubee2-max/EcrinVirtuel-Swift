@@ -33,18 +33,15 @@
 		1C7606D047D8E2627DC1844F /* WeddingLook.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0832D713A1E56971C9B85552 /* WeddingLook.swift */; };
 		1E1B8661D8D380A067D5BC4E /* CatalogBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5604F885CA393003A36695A5 /* CatalogBrowserView.swift */; };
 		1F5ACFD73125F53534A7E460 /* BadgeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14F4A6F976F110EFF6ABD9F1 /* BadgeCard.swift */; };
-		1FE1A57867B802BEF8C6AFB3 /* ARTryOnWrapperView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA4FDB9B0F58EB6205D1AC4 /* ARTryOnWrapperView.swift */; };
 		218F15871BAE39647B247662 /* QuickTryOnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AFE4A3CB0107E57EA1485DA /* QuickTryOnView.swift */; };
 		265507266CF884D6A5FD2B15 /* EmotionalPaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E1CDC4027AA9EDCE4CCECA0 /* EmotionalPaywallView.swift */; };
 		28BFC1F25A240CDF871ABD06 /* GamingModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2E21A407F04072A5713E0AB /* GamingModels.swift */; };
-		28DB832AEA2B6596AA2A0D59 /* ARJewelryEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EED9A3F4D8427EAC9CD31C1 /* ARJewelryEntity.swift */; };
 		29954FF334924F2020398526 /* SubscriptionStatusPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1EE303A6B667FF74AE12B8A /* SubscriptionStatusPersistenceTests.swift */; };
 		2A9E7A8E98ECC52976E3DB17 /* BoutiqueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04F4C15B5251438E384029EA /* BoutiqueView.swift */; };
 		2C12F7C9F01FEDDC24661C67 /* SkinToneAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E929EA1D7EB9648292F3F40 /* SkinToneAnalyzer.swift */; };
 		2C883A550EDB1BDF68066F34 /* SmokeNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DAB0F363349B4131F7A21E /* SmokeNavigationUITests.swift */; };
 		2DCF40C9CEB64014953E2900 /* BodyContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E9CACBB6476D9F4A3EDCA9A /* BodyContext.swift */; };
 		2E8E74227C556AE27831C677 /* GamingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26AFDAB4907CBB893363665 /* GamingService.swift */; };
-		2EA589397CEC5B57F4F51A88 /* ARTryOnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26C824526432FF21FE01897E /* ARTryOnView.swift */; };
 		2EFC8D9B6F48AA3B7D2625D0 /* UnlimitedAccessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6C3E1384B55DA293E239415 /* UnlimitedAccessTests.swift */; };
 		2F9E356CA5D9A5443C53E822 /* CinematicOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E068BDD5ABFAF65DF3479D7 /* CinematicOnboardingView.swift */; };
 		2FEFA3E84ED32431CCD3D75E /* LevelUpCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2847F204B44D2690059BB6F2 /* LevelUpCelebrationView.swift */; };
@@ -144,7 +141,6 @@
 		BB31EA01476863D5A7B065BB /* QuestCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1681175FCE343041B380E4 /* QuestCard.swift */; };
 		BB709493EE5F942DDB12951E /* OutfitViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A804B19B6D514E4AAA251B0 /* OutfitViewModel.swift */; };
 		BC2CB013FA3B6B96F0E8DD2D /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0E561E184822766247FAE8 /* CommunityView.swift */; };
-		BC4C8F241EAFD2F41AAB3A83 /* ARPermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAD56AFFCEF6DBF6D897301 /* ARPermissionView.swift */; };
 		BD807160226FAA69A1F906C7 /* LocationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B87516589B152C91E577AB8 /* LocationService.swift */; };
 		BFC4AA1D04CF974999367CEE /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = FF27597211A514B24CA714FA /* Localizable.xcstrings */; };
 		C3508F436435D447546F4D17 /* XPToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25A0374F044E41F67A0D8695 /* XPToastView.swift */; };
@@ -261,7 +257,6 @@
 		230CFC7FD0E997C4F8690732 /* TryOnViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnViewModel.swift; sourceTree = "<group>"; };
 		25600DD0EE790F6D2EE6A84A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		25A0374F044E41F67A0D8695 /* XPToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPToastView.swift; sourceTree = "<group>"; };
-		26C824526432FF21FE01897E /* ARTryOnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARTryOnView.swift; sourceTree = "<group>"; };
 		2797740709B3E3F532A7CF12 /* BudgetPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetPickerSheet.swift; sourceTree = "<group>"; };
 		28367E988B477ECD85E6C3F6 /* SaveLookSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SaveLookSheet.swift; sourceTree = "<group>"; };
 		2847F204B44D2690059BB6F2 /* LevelUpCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelUpCelebrationView.swift; sourceTree = "<group>"; };
@@ -303,7 +298,6 @@
 		5604F885CA393003A36695A5 /* CatalogBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogBrowserView.swift; sourceTree = "<group>"; };
 		5785FE32CEDF97FBBDF269D5 /* WeatherBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherBadge.swift; sourceTree = "<group>"; };
 		59C36792B256A55B9623CB96 /* UnlimitedAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnlimitedAccess.swift; sourceTree = "<group>"; };
-		5BA4FDB9B0F58EB6205D1AC4 /* ARTryOnWrapperView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARTryOnWrapperView.swift; sourceTree = "<group>"; };
 		5CAE29CC20FE8DB5356B76B8 /* BodyModelPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BodyModelPickerSheet.swift; sourceTree = "<group>"; };
 		5D6C664BB999A229B7C634F8 /* RevenueCatService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevenueCatService.swift; sourceTree = "<group>"; };
 		5F0D7E4E09630582B0F860CE /* WeddingShareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeddingShareView.swift; sourceTree = "<group>"; };
@@ -358,7 +352,6 @@
 		99143A22E836F4818B4341E7 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		9AFE4A3CB0107E57EA1485DA /* QuickTryOnView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickTryOnView.swift; sourceTree = "<group>"; };
 		9B8126890C07EED73D84B5E3 /* LookSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookSnapshot.swift; sourceTree = "<group>"; };
-		9EED9A3F4D8427EAC9CD31C1 /* ARJewelryEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARJewelryEntity.swift; sourceTree = "<group>"; };
 		9F6F751FA23FADC539A199CA /* CatalogBrowserMiniView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogBrowserMiniView.swift; sourceTree = "<group>"; };
 		A191A5884C53A34C88BC1F4F /* EarringsPoseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarringsPoseView.swift; sourceTree = "<group>"; };
 		A3ACE7E91BE45BD8648615BF /* PartnerBrand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PartnerBrand.swift; sourceTree = "<group>"; };
@@ -367,7 +360,6 @@
 		A9C8C3832683DA27CFF8F3A7 /* FrameRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameRenderer.swift; sourceTree = "<group>"; };
 		AAFA1D640710C5C54B22EAFD /* .gitkeep */ = {isa = PBXFileReference; path = .gitkeep; sourceTree = "<group>"; };
 		AB7C5983ADD8C79024835555 /* ScreenshotUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotUITests.swift; sourceTree = "<group>"; };
-		ACAD56AFFCEF6DBF6D897301 /* ARPermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARPermissionView.swift; sourceTree = "<group>"; };
 		AF935755777D3730E1865089 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		B0419BF2BAB2EB0C58E1F009 /* SubjectCutoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubjectCutoutTests.swift; sourceTree = "<group>"; };
 		B133B9C49A9B14B1472F706B /* LookDuJourViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LookDuJourViewModel.swift; sourceTree = "<group>"; };
@@ -532,7 +524,6 @@
 		2698EFAED11328766E346B1B /* Features */ = {
 			isa = PBXGroup;
 			children = (
-				3DBA30CA48313BDD96B90E4D /* ARTryOn */,
 				C915945A9D8878DE22DB9CC0 /* Auth */,
 				04FD298B405BA19622DF9A66 /* Backgrounds */,
 				ED7170B211AA7D5BC2492B59 /* Boutique */,
@@ -574,17 +565,6 @@
 				B6DC11CA462833E21DA9A4AD /* SkinToneProfile.swift */,
 			);
 			path = SkinTone;
-			sourceTree = "<group>";
-		};
-		3DBA30CA48313BDD96B90E4D /* ARTryOn */ = {
-			isa = PBXGroup;
-			children = (
-				9EED9A3F4D8427EAC9CD31C1 /* ARJewelryEntity.swift */,
-				ACAD56AFFCEF6DBF6D897301 /* ARPermissionView.swift */,
-				26C824526432FF21FE01897E /* ARTryOnView.swift */,
-				5BA4FDB9B0F58EB6205D1AC4 /* ARTryOnWrapperView.swift */,
-			);
-			path = ARTryOn;
 			sourceTree = "<group>";
 		};
 		43B4FAECDB15DB0441C6E9AA /* Testing */ = {
@@ -824,7 +804,6 @@
 				7532558ABE2D88BC517197B0 /* AppIntents */,
 				E600EB1B099337A8EB749935 /* Design */,
 				69705ECB4528B2DFE35524D3 /* Models */,
-				CEC4D95E5275B83807F7A826 /* Network */,
 				E427E90784CF32F23ECC26F5 /* Services */,
 				43B4FAECDB15DB0441C6E9AA /* Testing */,
 			);
@@ -837,13 +816,6 @@
 				1075A0C3EA6739DAC4CF74F2 /* GenerationSignInSheet.swift */,
 			);
 			path = Auth;
-			sourceTree = "<group>";
-		};
-		CEC4D95E5275B83807F7A826 /* Network */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Network;
 			sourceTree = "<group>";
 		};
 		CF6939474EA1963D1A16310F /* StoneTherapy */ = {
@@ -1135,10 +1107,6 @@
 			files = (
 				6474ECD4BC30FFEDC3D4AECF /* AIConsentGate.swift in Sources */,
 				C8B5438545874F38A66A300F /* AIConsentModal.swift in Sources */,
-				28DB832AEA2B6596AA2A0D59 /* ARJewelryEntity.swift in Sources */,
-				BC4C8F241EAFD2F41AAB3A83 /* ARPermissionView.swift in Sources */,
-				2EA589397CEC5B57F4F51A88 /* ARTryOnView.swift in Sources */,
-				1FE1A57867B802BEF8C6AFB3 /* ARTryOnWrapperView.swift in Sources */,
 				9DD3315B3190C162882B94CA /* AddWardrobeItemSheet.swift in Sources */,
 				5C2FC0C04063E3FB66374BA1 /* AppLaunchEnvironment.swift in Sources */,
 				8E0DFA088E7254D5E983424B /* AppState.swift in Sources */,
@@ -1428,7 +1396,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10023;
+				CURRENT_PROJECT_VERSION = 10025;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = SPLML3CN76;
 				ENABLE_PREVIEWS = YES;
@@ -1530,7 +1498,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 10023;
+				CURRENT_PROJECT_VERSION = 10025;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = SPLML3CN76;
 				ENABLE_NS_ASSERTIONS = NO;

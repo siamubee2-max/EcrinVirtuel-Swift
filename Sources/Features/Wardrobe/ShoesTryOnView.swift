@@ -11,9 +11,6 @@ struct ShoesTryOnView: View {
     @State private var showPhotoPicker = false
     @State private var selectedShoe: FashionItem?
     @State private var showPaywall = false
-    @State private var useARMode = true   // AR live par défaut (LiDAR, gratuit, précis)
-    @State private var showARView = false
-    @State private var resultImage: UIImage?
 
     // Shoes from wardrobe (loaded from storage)
     @State private var wardrobeVM = WardrobeViewModel()
@@ -35,17 +32,7 @@ struct ShoesTryOnView: View {
                             .padding(.top, EcrinSpacing.md)
                     }
 
-                    // ── Sélecteur de mode ─────────────────────────────────
-                    modePicker
-                        .padding(.horizontal, EcrinSpacing.lg)
-
-                    if useARMode {
-                        // Mode AR — ARKit LiDAR temps réel (GRATUIT, précis)
-                        arModeSection
-                    } else {
-                        // Mode Photo — Gemini IA spécialisé shoes
-                        photoModeSection
-                    }
+                    photoModeSection
 
                     // Sélecteur chaussures
                     VStack(alignment: .leading, spacing: EcrinSpacing.md) {
@@ -101,108 +88,6 @@ struct ShoesTryOnView: View {
         }
     }
 
-    // MARK: - Mode Picker (AR vs Photo)
-
-    private var modePicker: some View {
-        GlassCard(cornerRadius: 16) {
-            HStack(spacing: 0) {
-                ModeButton(
-                    title: "AR en direct",
-                    icon: "arkit",
-                    subtitle: "LiDAR · Temps réel · Gratuit",
-                    isSelected: useARMode,
-                    badge: "PRÉCIS"
-                ) { withAnimation(EcrinAnimation.springSnap) { useARMode = true } }
-
-                Rectangle()
-                    .fill(EcrinColor.glassStroke)
-                    .frame(width: 0.5)
-
-                ModeButton(
-                    title: "Sur photo",
-                    icon: "photo.badge.plus",
-                    subtitle: "Gemini IA · Spécialisé shoes",
-                    isSelected: !useARMode,
-                    badge: nil
-                ) { withAnimation(EcrinAnimation.springSnap) { useARMode = false } }
-            }
-        }
-    }
-
-    // MARK: - AR Mode Section
-
-    private var arModeSection: some View {
-        VStack(spacing: EcrinSpacing.md) {
-            GlassCard(cornerRadius: 20) {
-                VStack(spacing: EcrinSpacing.md) {
-                    Image(systemName: "arkit")
-                        .font(.system(size: 36, weight: .thin))
-                        .foregroundStyle(EcrinColor.gold)
-
-                    VStack(spacing: 6) {
-                        Text(L10n.WardrobeUI.realtimeArTryOn)
-                            .font(EcrinFont.cardTitle)
-                            .foregroundStyle(EcrinColor.textPrimary)
-                        Text(L10n.WardrobeUI.arkitLidarInfo)
-                            .font(EcrinFont.caption)
-                            .foregroundStyle(EcrinColor.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .lineSpacing(4)
-                    }
-
-                    // Avantages
-                    HStack(spacing: EcrinSpacing.lg) {
-                        ARFeatureChip(icon: "bolt.fill", text: "60 fps")
-                        ARFeatureChip(icon: "location.fill", text: "±2mm")
-                        ARFeatureChip(icon: "eurosign.circle", text: "Gratuit")
-                    }
-                }
-                .padding(EcrinSpacing.lg)
-            }
-            .padding(.horizontal, EcrinSpacing.lg)
-
-            if let shoe = selectedShoe ?? preselectedItem {
-                GoldButton(title: "Lancer l'AR avec \(shoe.name)") {
-                    showARView = true
-                }
-                .padding(.horizontal, EcrinSpacing.lg)
-            } else {
-                // Sélecteur chaussure compact
-                VStack(alignment: .leading, spacing: EcrinSpacing.sm) {
-                    Text(L10n.WardrobeUI.chooseShoeFirst)
-                        .font(EcrinFont.label).kerning(2)
-                        .foregroundStyle(EcrinColor.textMuted)
-                        .padding(.horizontal, EcrinSpacing.lg)
-                    shoesScroll
-                }
-                if selectedShoe != nil {
-                    GoldButton(title: L10n.WardrobeUI.launchAr) { showARView = true }
-                        .padding(.horizontal, EcrinSpacing.lg)
-                }
-            }
-        }
-        .fullScreenCover(isPresented: $showARView) {
-            if let shoe = selectedShoe ?? preselectedItem {
-                ARTryOnWrapperView(
-                    jewelry: JewelryItem(
-                        id: shoe.id,
-                        name: shoe.name,
-                        category: .ring,
-                        imageURL: shoe.imageURL,
-                        icon: shoe.category.icon,
-                        material: shoe.material ?? "",
-                        prompt: shoe.tryOnPrompt
-                    ),
-                    onDismiss: { showARView = false },
-                    onCapture: { image in
-                        resultImage = image
-                        showARView = false
-                    }
-                )
-            }
-        }
-    }
-
     // MARK: - Photo Mode Section (Gemini IA)
 
     private var photoModeSection: some View {
@@ -234,21 +119,6 @@ struct ShoesTryOnView: View {
                 footPhotoZone
                 footTips.padding(.horizontal, EcrinSpacing.lg)
             }
-
-            // Sélecteur chaussures
-            VStack(alignment: .leading, spacing: EcrinSpacing.md) {
-                sectionLabel(L10n.WardrobeUI.chooseShoe, icon: "shoe.fill")
-                    .padding(.horizontal, EcrinSpacing.lg)
-                if shoesItems.isEmpty {
-                    emptyShoesCTA.padding(.horizontal, EcrinSpacing.lg)
-                } else {
-                    shoesScroll
-                }
-            }
-
-            ctaButton
-                .padding(.horizontal, EcrinSpacing.lg)
-                .padding(.bottom, EcrinSpacing.xxl)
         }
     }
 
@@ -604,76 +474,6 @@ final class ShoesTryOnViewModel: ObservableObject {
         } catch {
             CreditsManager.shared.remaining += 1
             errorMessage = error.localizedDescription
-        }
-    }
-}
-
-// MARK: - Mode Button (AR vs Photo)
-
-private struct ModeButton: View {
-    let title: String
-    let icon: String
-    let subtitle: String
-    let isSelected: Bool
-    let badge: String?
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 6) {
-                HStack(spacing: 6) {
-                    Image(systemName: icon)
-                        .font(.system(size: 14, weight: .light))
-                        .foregroundStyle(isSelected ? EcrinColor.gold : EcrinColor.textSecondary)
-                    Text(title)
-                        .font(EcrinFont.caption)
-                        .foregroundStyle(isSelected ? EcrinColor.textPrimary : EcrinColor.textSecondary)
-                    if let badge {
-                        Text(badge)
-                            .font(.system(size: 7, weight: .semibold))
-                            .kerning(1)
-                            .foregroundStyle(EcrinColor.background)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(EcrinColor.gold)
-                            .clipShape(Capsule())
-                    }
-                }
-                Text(subtitle)
-                    .font(.system(size: 10))
-                    .foregroundStyle(EcrinColor.textMuted)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, EcrinSpacing.md)
-            .background(isSelected ? EcrinColor.gold.opacity(0.08) : Color.clear)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - AR Feature Chip
-
-private struct ARFeatureChip: View {
-    let icon: String
-    let text: String
-
-    var body: some View {
-        VStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 12, weight: .light))
-                .foregroundStyle(EcrinColor.gold)
-            Text(text)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(EcrinColor.textSecondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, EcrinSpacing.sm)
-        .background(EcrinColor.glassFill)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(EcrinColor.glassStroke, lineWidth: 0.5)
         }
     }
 }

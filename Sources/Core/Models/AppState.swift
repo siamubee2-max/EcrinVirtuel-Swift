@@ -105,7 +105,7 @@ final class AppState {
     var lastBodyContext: BodyContext?
 
     /// Bijoux sélectionnés depuis un MoodBoard pour essayage AR.
-    /// MoodBoardResultView y écrit puis se dismissit ; MoodBoardGalleryView l'observe et ouvre ARTryOnWrapperView.
+    /// MoodBoardResultView y écrit puis se dismissit ; MoodBoardGalleryView l'observe et ouvre l'essayage IA (TryOnView).
     var pendingMoodBoardJewelry: [JewelryItem]?
 
     /// Genre vestimentaire pour le Look du Jour (UserDefaults + Supabase Phase 5).

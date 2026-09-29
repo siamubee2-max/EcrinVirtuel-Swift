@@ -15,7 +15,7 @@ settings:
     IPHONEOS_DEPLOYMENT_TARGET: "18.0"
     TARGETED_DEVICE_FAMILY: "1"
     MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "10024"
+    CURRENT_PROJECT_VERSION: "10025"
 
 packages:
   RevenueCat:
@@ -41,7 +41,7 @@ targets:
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
         NSPhotoLibraryUsageDescription: "L'Écrin Virtuel utilise vos photos pour l'essayage virtuel de bijoux."
-        NSCameraUsageDescription: "L'Écrin Virtuel utilise la caméra pour l'essayage virtuel de bijoux en temps réel."
+        NSCameraUsageDescription: "L'Écrin Virtuel utilise la caméra pour prendre la photo de votre essayage virtuel."
         NSLocationWhenInUseUsageDescription: "L'Écrin Virtuel utilise votre position pour vous proposer un look adapté à la météo de votre ville."
         CFBundleDisplayName: "L'Écrin"
         CFBundleShortVersionString: "$(MARKETING_VERSION)"

@@ -7,8 +7,7 @@ struct MoodBoardGalleryView: View {
     @State private var store                = MoodBoardStore.shared
     @State private var showGenerator        = false
     @State private var selectedBoard: MoodBoard?
-    @State private var showARTryOn          = false
-    @State private var arTryOnJewelry: JewelryItem?
+    @State private var tryOnJewelry: JewelryItem?
     @State private var headerVisible        = false
 
     private var boards: [MoodBoard] { store.boards }
@@ -45,11 +44,11 @@ struct MoodBoardGalleryView: View {
         }
         .onAppear { headerVisible = true }
         // React to "Essayer ces bijoux": MoodBoardResultView writes pendingMoodBoardJewelry
-        // into AppState then dismisses. The gallery picks it up here and opens AR try-on.
+        // into AppState then dismisses. The gallery picks it up here and opens the AI try-on
+        // with the first jewel preselected.
         .onChange(of: appState.pendingMoodBoardJewelry) { _, pending in
             guard let jewelry = pending?.first else { return }
-            arTryOnJewelry = jewelry
-            showARTryOn = true
+            tryOnJewelry = jewelry
         }
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showGenerator) {
@@ -64,16 +63,23 @@ struct MoodBoardGalleryView: View {
         .fullScreenCover(item: $selectedBoard) { board in
             MoodBoardResultView(board: board)
         }
-        .fullScreenCover(isPresented: $showARTryOn, onDismiss: {
+        .fullScreenCover(item: $tryOnJewelry, onDismiss: {
             appState.pendingMoodBoardJewelry = nil
-            arTryOnJewelry = nil
-        }) {
-            if let jewelry = arTryOnJewelry {
-                ARTryOnWrapperView(
-                    jewelry: jewelry,
-                    onDismiss: { showARTryOn = false },
-                    onCapture: { _ in showARTryOn = false }
-                )
+        }) { jewelry in
+            NavigationStack {
+                TryOnView(preselectedJewelry: jewelry)
+                    .environment(ClothingCatalogService.shared)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                tryOnJewelry = nil
+                            } label: {
+                                Image(systemName: "xmark")
+                                    .foregroundStyle(EcrinColor.gold)
+                            }
+                            .accessibilityLabel("Fermer")
+                        }
+                    }
             }
         }
     }
