@@ -124,3 +124,26 @@ Chaque image clé est animée séparément en clip de 4 à 8 s (image → vidéo
 **Voix** : la voix ElevenLabs de Lou est bloquée tant que le compte n'est pas payant. Deux solutions :
 - générer la voix française directement dans le modèle vidéo avec audio natif (Seedance 2 ou Veo 3.1) ;
 - enregistrer une voix humaine et la synchroniser au montage.
+
+---
+
+## Clips générés (OpenArt · Veo 3.1 fast · 1080 × 1920 · audio natif FR)
+
+| Plan | Durée | Réplique | Clip |
+|---|---|---|---|
+| 1 Accroche | 4 s | « Salut ! Moi c'est Lou. » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938016836_64e7331d.mp4) |
+| 2 Confidence | 6 s | « Je vais te faire une confidence : je suis une influenceuse virtuelle… et j'adore ça ! » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938030772_a0473557.mp4) |
+| 3 Cabine | 6 s | « Parce que moi aussi, j'essaie tout sans jamais entrer en cabine. » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938030837_4bc0b346.mp4) |
+| 4 App | 6 s | « Mon terrain de jeu, c'est L'Écrin Virtuel. Une photo de toi… » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938013051_74024641.mp4) |
+| 5 Transformation | 6 s | « Et tu essaies un collier, une robe, une montre… une couleur que tu n'as jamais osé porter ! » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938145947_0b21fe15.mp4) |
+| 6 Artisans | 6 s | « Ici, je te montre les pépites de l'app et les créateurs que j'adore. » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938156982_b8b709f7.mp4) |
+| 7 Défi | 6 s | « Et surtout… je vais te pousser à oser. On essaie ? » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938222304_121df330.mp4) |
+| 8 Carton final | 6 s | « Abonne-toi, et ose. C'est gratuit d'essayer. » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938227918_e0d27afa.mp4) |
+
+Durée brute : 46 s. Les clips sont aussi dans le projet OpenArt « Lou — L'Écrin Virtuel ».
+
+### À vérifier au visionnage, avant le montage
+- **Voix** : Veo génère la voix plan par plan, le timbre peut donc varier d'un clip à l'autre. Si l'écart s'entend, régénérer le plan concerné ou couper l'audio et poser une voix off unique.
+- **Plan 4** : remplacer l'écran du téléphone par une vraie capture de l'app.
+- **Plan 8** : vérifier l'orthographe du texte incrusté et poser le vrai badge App Store.
+- **Musique** : chaque clip a sa propre musique générée. Au montage, baisser l'audio des clips et poser une piste musicale unique sous l'ensemble.
