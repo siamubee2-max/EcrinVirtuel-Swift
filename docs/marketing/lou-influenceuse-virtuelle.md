@@ -75,3 +75,11 @@
 - **Voix** : ElevenLabs « Solène » (`1A1lOhlOFIlPyxQ8NgiG`), en français. ⚠️ Le compte ElevenLabs gratuit a été suspendu pour « activité inhabituelle » (proxy) : il faut un forfait payant (Starter ou Creator) pour générer la voix et le lipsync.
 - **Vidéo parlante** : lipsync de la voix sur le portrait, dans le même flow ElevenLabs. Ou bien HeyGen « photo avatar », qui demande un abonnement HeyGen payant (le compte actuel est en Free).
 - **Captures de l'app** : intercaler de vraies captures et de vrais essayages de l'Écrin (dossier `docs/appstore/screenshots-framed`) entre les plans de Lou.
+
+## Planche de continuité du personnage
+
+Planche de référence unique (4:5, 3712 × 4608) générée sur OpenArt avec Nano Banana Pro, à partir de `lou/lou-portrait-v1.png`. Elle contient : profil, turnaround en pied, visage (face, profil, trois-quarts), 8 expressions, 6 poses, détails de tenue, palette avec codes HEX, liste « ne pas changer ».
+
+→ [Planche de continuité de Lou](https://cdn.openart.ai/openart-ai/production/2026-10/create-image/109255546573456727983/image_1791656882356_32088e31_1791656883783_d54bd506.png) (projet OpenArt « Lou — L'Écrin Virtuel »)
+
+La tenue de référence est désormais complète : chemise en lin ivoire, pantalon large en lin sable, sandales plates en cuir fauve. Bijoux : trois chaînes dorées, dont une avec pendentif améthyste, petites créoles dorées, bagues à pierres naturelles, montre-bracelet dorée. Palette : ivoire `#EDE6DA`, sable `#CDB89A`, châtain `#6B4630`, caramel `#B9875A`, or `#C9A24B`, améthyste `#6E4C8C`.
