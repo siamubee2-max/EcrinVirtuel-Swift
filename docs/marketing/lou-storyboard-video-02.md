@@ -76,3 +76,19 @@
 - **Images clés** : OpenArt Nano Banana 2, avec en références le portrait de Lou et sa planche de continuité.
 - **Clips** : OpenArt Veo 3.1 fast, image → vidéo, 1080p, audio natif en français.
 - **Montage** : baisser l'audio des clips et poser une piste musicale unique. Remplacer les écrans des plans 3 et 4 par de vraies captures. Ajouter le carton final.
+
+---
+
+## Images clés et clips générés (OpenArt · Nano Banana 2 → Veo 3.1 fast · 1080 × 1920 · audio natif FR)
+
+| Plan | Durée | Image clé | Clip |
+|---|---|---|---|
+| 1 L'accroche | 4 s | [png](https://cdn.openart.ai/openart-ai/production/2026-10/create-image/109255546573456727983/image_1791657087230_096de752_1791657087967_bc4dc066.png) | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1791657217462_8c8ae03d.mp4) |
+| 2 L'aveu | 6 s | [png](https://cdn.openart.ai/openart-ai/production/2026-10/create-image/109255546573456727983/image_1791657091609_e53c49f0_1791657091823_13823d30.png) | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1791657250556_8d1307ec.mp4) |
+| 3 L'essayage | 6 s | [png](https://cdn.openart.ai/openart-ai/production/2026-10/create-image/109255546573456727983/image_1791657096906_29c70417_1791657097441_180ad43c.png) | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1791657231876_4fafd39a.mp4) |
+| 4 Le suspense | 6 s | [png](https://cdn.openart.ai/openart-ai/production/2026-10/create-image/109255546573456727983/image_1791657096194_77a37cd3_1791657096835_892d52fc.png) | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1791657237793_85c8267d.mp4) |
+| 5 La révélation | 6 s | [png](https://cdn.openart.ai/openart-ai/production/2026-10/create-image/109255546573456727983/image_1791657097575_0c99b0da_1791657098088_7f412646.png) | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1791657399384_fd4451f7.mp4) |
+| 6 Le secret | 6 s | [png](https://cdn.openart.ai/openart-ai/production/2026-10/create-image/109255546573456727983/image_1791657104001_9111f475_1791657105439_44a84170.png) | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1791657402457_f7d6eb2d.mp4) |
+| 7 L'appel à l'action | 8 s | [png](https://cdn.openart.ai/openart-ai/production/2026-10/create-image/109255546573456727983/image_1791657104075_e0629290_1791657104827_e4255e6f.png) | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1791657397498_c3d88c6b.mp4) |
+
+Durée brute : 42 s, plus le carton final d'1 s à ajouter au montage. Mêmes points de contrôle que la vidéo 1 : régularité de la voix d'un plan à l'autre, vraies captures d'écran aux plans 3 et 4, piste musicale unique.
