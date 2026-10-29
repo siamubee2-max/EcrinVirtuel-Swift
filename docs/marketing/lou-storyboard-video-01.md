@@ -147,3 +147,15 @@ Durée brute : 46 s. Les clips sont aussi dans le projet OpenArt « Lou — L'É
 - **Plan 4** : remplacer l'écran du téléphone par une vraie capture de l'app.
 - **Plan 8** : vérifier l'orthographe du texte incrusté et poser le vrai badge App Store.
 - **Musique** : chaque clip a sa propre musique générée. Au montage, baisser l'audio des clips et poser une piste musicale unique sous l'ensemble.
+
+---
+
+## Version voix MIMI : synchro labiale fal (en cours)
+
+Chaîne : réplique V1 MIMI (ElevenLabs, fichiers dans `lou/voix-mimi/`) + image clé → `fal-ai/infinitalk` (480p) → `fal-ai/video-upscaler` (×2). Workflows n8n « Lou - fal lipsync (sync) ».
+
+| Plan | 480p | Upscalé ×2 |
+|---|---|---|
+| 5 Transformation | [mp4](https://v3b.fal.media/files/b/0ab04f27/C5TSc5MYT6bdrJyb3I2TG_iNjCytf7.mp4) | [mp4](https://v3b.fal.media/files/b/0ab04f84/l5H4e-g8nmXDs7iAnomV__FkF7kNLJ.mp4) |
+
+Limite : `fal-ai/infinitalk` exige par défaut un audio d'au moins 5,8 s. Seule la réplique du plan 5 atteint cette durée ; les autres plans demanderont un nombre d'images réduit.
