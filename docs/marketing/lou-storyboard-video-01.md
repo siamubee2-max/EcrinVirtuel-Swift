@@ -135,9 +135,6 @@ Chaque image clé est animée séparément en clip de 4 à 8 s (image → vidéo
 | 2 Confidence | 6 s | « Je vais te faire une confidence : je suis une influenceuse virtuelle… et j'adore ça ! » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938030772_a0473557.mp4) |
 | 3 Cabine | 6 s | « Parce que moi aussi, j'essaie tout sans jamais entrer en cabine. » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938030837_4bc0b346.mp4) |
 | 4 App | 6 s | « Mon terrain de jeu, c'est L'Écrin Virtuel. Une photo de toi… » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938013051_74024641.mp4) |
-| 1 Accroche (audio allongé à 2 s, 49 images) | [mp4](https://v3b.fal.media/files/b/0ab05752/oWw06AOGObhrB3wQsBeqR_VFCRs7Vy.mp4) | [mp4](https://v3b.fal.media/files/b/0ab05c8b/1EynU1GoRoiZM1p1bU-77_iT5nF6hN.mp4) |
-| 2 Confidence | [mp4](https://v3b.fal.media/files/b/0ab05cbd/T7Ua4bcS-rTMNR9s3HxsO_fenvCjsx.mp4) | [mp4](https://v3b.fal.media/files/b/0ab05cc3/yneFrgDzpLLQ4oxwB8cb9_KXibG2N3.mp4) |
-| 3 Cabine | [mp4](https://v3b.fal.media/files/b/0ab05cc0/79SPoBexEkTCuufodooqX_YSXkxPTT.mp4) | [mp4](https://v3b.fal.media/files/b/0ab05cc5/hx2YzMW5pNJgUDoCV3XC5_XQkf8HhI.mp4) |
 | 5 Transformation | 6 s | « Et tu essaies un collier, une robe, une montre… une couleur que tu n'as jamais osé porter ! » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938145947_0b21fe15.mp4) |
 | 6 Artisans | 6 s | « Ici, je te montre les pépites de l'app et les créateurs que j'adore. » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938156982_b8b709f7.mp4) |
 | 7 Défi | 6 s | « Et surtout… je vais te pousser à oser. On essaie ? » | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1790938222304_121df330.mp4) |
@@ -159,6 +156,9 @@ Chaîne : réplique V1 MIMI (ElevenLabs, fichiers dans `lou/voix-mimi/`) + image
 
 | Plan | 480p | Upscalé ×2 |
 |---|---|---|
+| 1 Accroche (audio allongé à 2 s, 49 images) | [mp4](https://v3b.fal.media/files/b/0ab05752/oWw06AOGObhrB3wQsBeqR_VFCRs7Vy.mp4) | [mp4](https://v3b.fal.media/files/b/0ab05c8b/1EynU1GoRoiZM1p1bU-77_iT5nF6hN.mp4) |
+| 2 Confidence | [mp4](https://v3b.fal.media/files/b/0ab05cbd/T7Ua4bcS-rTMNR9s3HxsO_fenvCjsx.mp4) | [mp4](https://v3b.fal.media/files/b/0ab05cc3/yneFrgDzpLLQ4oxwB8cb9_KXibG2N3.mp4) |
+| 3 Cabine | [mp4](https://v3b.fal.media/files/b/0ab05cc0/79SPoBexEkTCuufodooqX_YSXkxPTT.mp4) | [mp4](https://v3b.fal.media/files/b/0ab05cc5/hx2YzMW5pNJgUDoCV3XC5_XQkf8HhI.mp4) |
 | 5 Transformation | [mp4](https://v3b.fal.media/files/b/0ab04f27/C5TSc5MYT6bdrJyb3I2TG_iNjCytf7.mp4) | [mp4](https://v3b.fal.media/files/b/0ab04f84/l5H4e-g8nmXDs7iAnomV__FkF7kNLJ.mp4) |
 
 Réglage : `num_frames` = le plus grand nombre de la forme 4k+1 qui tient dans la durée de l'audio à 25 images/s (minimum 41, soit 1,64 s ; défaut 145, soit 5,8 s). Les répliques de moins de 1,64 s sont allongées de silence (`*-pad.mp3`).
