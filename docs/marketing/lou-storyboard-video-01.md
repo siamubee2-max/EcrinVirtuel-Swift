@@ -150,7 +150,7 @@ Durée brute : 46 s. Les clips sont aussi dans le projet OpenArt « Lou — L'É
 
 ---
 
-## Version voix MIMI : synchro labiale fal (en cours)
+## Version voix MIMI : synchro labiale fal
 
 Chaîne : réplique V1 MIMI (ElevenLabs, fichiers dans `lou/voix-mimi/`) + image clé → `fal-ai/infinitalk` (480p) → `fal-ai/video-upscaler` (×2). Workflows n8n « Lou - fal lipsync (sync) ».
 
@@ -162,5 +162,7 @@ Chaîne : réplique V1 MIMI (ElevenLabs, fichiers dans `lou/voix-mimi/`) + image
 | 4 App | [mp4](https://v3b.fal.media/files/b/0ab07976/d4QVIf5d4TupgHiKBDNol_B0v0FZOR.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0797a/R1_TT_SfzpfANrTMw2AgL_MUOGvx5u.mp4) |
 | 5 Transformation | [mp4](https://v3b.fal.media/files/b/0ab04f27/C5TSc5MYT6bdrJyb3I2TG_iNjCytf7.mp4) | [mp4](https://v3b.fal.media/files/b/0ab04f84/l5H4e-g8nmXDs7iAnomV__FkF7kNLJ.mp4) |
 | 6 Artisans | [mp4](https://v3b.fal.media/files/b/0ab0795f/oTFC0OYt5A14T--hVkE9G_m8SN73ZX.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07965/G7wTlFh9Yr-7s9JaeEppO_t1eEn6M1.mp4) |
+| 7 Défi | [mp4](https://v3b.fal.media/files/b/0ab07a01/sntVyuYKn7HPw5rRxym3j_ueudQtDK.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07a05/r5Yq3qSDr_dA-6ho72Zq1_PF7TCYyU.mp4) |
+| 8 Carton final | [mp4](https://v3b.fal.media/files/b/0ab07a0b/S5o5Nwqur4M-BR7ezRgye_M6CU97IH.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07a0d/bDKIrF-jrBASgCqlQtgPk_AXb325lN.mp4) |
 
 Réglage : `num_frames` = le plus grand nombre de la forme 4k+1 qui tient dans la durée de l'audio à 25 images/s (minimum 41, soit 1,64 s ; défaut 145, soit 5,8 s). Les répliques de moins de 1,64 s sont allongées de silence (`*-pad.mp3`).
