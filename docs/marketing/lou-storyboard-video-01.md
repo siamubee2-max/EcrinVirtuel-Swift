@@ -159,6 +159,8 @@ Chaîne : réplique V1 MIMI (ElevenLabs, fichiers dans `lou/voix-mimi/`) + image
 | 1 Accroche (audio allongé à 2 s, 49 images) | [mp4](https://v3b.fal.media/files/b/0ab05752/oWw06AOGObhrB3wQsBeqR_VFCRs7Vy.mp4) | [mp4](https://v3b.fal.media/files/b/0ab05c8b/1EynU1GoRoiZM1p1bU-77_iT5nF6hN.mp4) |
 | 2 Confidence | [mp4](https://v3b.fal.media/files/b/0ab05cbd/T7Ua4bcS-rTMNR9s3HxsO_fenvCjsx.mp4) | [mp4](https://v3b.fal.media/files/b/0ab05cc3/yneFrgDzpLLQ4oxwB8cb9_KXibG2N3.mp4) |
 | 3 Cabine | [mp4](https://v3b.fal.media/files/b/0ab05cc0/79SPoBexEkTCuufodooqX_YSXkxPTT.mp4) | [mp4](https://v3b.fal.media/files/b/0ab05cc5/hx2YzMW5pNJgUDoCV3XC5_XQkf8HhI.mp4) |
+| 4 App | [mp4](https://v3b.fal.media/files/b/0ab07976/d4QVIf5d4TupgHiKBDNol_B0v0FZOR.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0797a/R1_TT_SfzpfANrTMw2AgL_MUOGvx5u.mp4) |
 | 5 Transformation | [mp4](https://v3b.fal.media/files/b/0ab04f27/C5TSc5MYT6bdrJyb3I2TG_iNjCytf7.mp4) | [mp4](https://v3b.fal.media/files/b/0ab04f84/l5H4e-g8nmXDs7iAnomV__FkF7kNLJ.mp4) |
+| 6 Artisans | [mp4](https://v3b.fal.media/files/b/0ab0795f/oTFC0OYt5A14T--hVkE9G_m8SN73ZX.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07965/G7wTlFh9Yr-7s9JaeEppO_t1eEn6M1.mp4) |
 
 Réglage : `num_frames` = le plus grand nombre de la forme 4k+1 qui tient dans la durée de l'audio à 25 images/s (minimum 41, soit 1,64 s ; défaut 145, soit 5,8 s). Les répliques de moins de 1,64 s sont allongées de silence (`*-pad.mp3`).
