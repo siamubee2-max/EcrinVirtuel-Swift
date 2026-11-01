@@ -95,7 +95,7 @@ Durée brute : 42 s, plus le carton final d'1 s à ajouter au montage. Mêmes po
 
 ---
 
-## Version voix MIMI : synchro labiale fal (en cours)
+## Version voix MIMI : synchro labiale fal
 
 Même chaîne que la vidéo 1 : réplique V1 MIMI (ElevenLabs, `lou/voix-mimi/v2-p*.mp3`) + image clé → `fal-ai/infinitalk` (480p) → `fal-ai/video-upscaler` (×2), via le workflow n8n « Lou - fal lipsync + upscale x2 ».
 
@@ -107,3 +107,6 @@ Même chaîne que la vidéo 1 : réplique V1 MIMI (ElevenLabs, `lou/voix-mimi/v2
 | 4 Le suspense | [mp4](https://v3b.fal.media/files/b/0ab0b456/_1MXWrKTqDx0xzzlBAjfa_6IPauXeO.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0b462/8PqJ-82tHoHeWqM9P68S4_oR5dbOme.mp4) |
 | 5 La révélation | [mp4](https://v3b.fal.media/files/b/0ab0b46d/Rhx1BeXxVYHihsG9G4JWY_XRNcUlQf.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0b46f/luUjLjK1DAQHHxB070riw_8Gj4bsKd.mp4) |
 | 6 Le secret | [mp4](https://v3b.fal.media/files/b/0ab0b4df/5dSVN6SUadxs0SGG0be6t_tlYqZ9rw.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0b4e6/o3lOR3JDIeM5nrPcxO1XZ_kE4LWeta.mp4) |
+| 7 L'appel à l'action | [mp4](https://v3b.fal.media/files/b/0ab0b4f3/cbEvD8MIVQ7IQMCVjfxFJ_luWa9eFH.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0b505/Q1ZW2qPEGLScWqY_Y87Xn_aapOPFZp.mp4) |
+
+`num_frames` : 49 · 125 · 109 · 49 · 53 · 121 · 137. Les plans 6 et 7 ont dû descendre d'un cran (125 → 121, 141 → 137) : fal mesure l'audio quelques centièmes plus court qu'ElevenLabs (4,97 s au lieu de 5,02 s, 5,62 s au lieu de 5,67 s).

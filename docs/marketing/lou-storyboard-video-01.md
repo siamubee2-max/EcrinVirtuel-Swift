@@ -165,4 +165,4 @@ Chaîne : réplique V1 MIMI (ElevenLabs, fichiers dans `lou/voix-mimi/`) + image
 | 7 Défi | [mp4](https://v3b.fal.media/files/b/0ab07a01/sntVyuYKn7HPw5rRxym3j_ueudQtDK.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07a05/r5Yq3qSDr_dA-6ho72Zq1_PF7TCYyU.mp4) |
 | 8 Carton final | [mp4](https://v3b.fal.media/files/b/0ab07a0b/S5o5Nwqur4M-BR7ezRgye_M6CU97IH.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07a0d/bDKIrF-jrBASgCqlQtgPk_AXb325lN.mp4) |
 
-Réglage : `num_frames` = le plus grand nombre de la forme 4k+1 qui tient dans la durée de l'audio à 25 images/s (minimum 41, soit 1,64 s ; défaut 145, soit 5,8 s). Les répliques de moins de 1,64 s sont allongées de silence (`*-pad.mp3`).
+Réglage : `num_frames` = le plus grand nombre de la forme 4k+1 qui tient dans la durée de l'audio à 25 images/s, avec une marge de 0,1 s car fal mesure l'audio un peu plus court qu'ElevenLabs (minimum 41, soit 1,64 s ; défaut 145, soit 5,8 s). Les répliques de moins de 1,64 s sont allongées de silence (`*-pad.mp3`).
