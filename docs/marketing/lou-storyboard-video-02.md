@@ -92,3 +92,14 @@
 | 7 L'appel à l'action | 8 s | [png](https://cdn.openart.ai/openart-ai/production/2026-10/create-image/109255546573456727983/image_1791657104075_e0629290_1791657104827_e4255e6f.png) | [mp4](https://cdn.openart.ai/openart-ai/production/2026-10/create-video/109255546573456727983/sample_0_1791657397498_c3d88c6b.mp4) |
 
 Durée brute : 42 s, plus le carton final d'1 s à ajouter au montage. Mêmes points de contrôle que la vidéo 1 : régularité de la voix d'un plan à l'autre, vraies captures d'écran aux plans 3 et 4, piste musicale unique.
+
+---
+
+## Version voix MIMI : synchro labiale fal (en cours)
+
+Même chaîne que la vidéo 1 : réplique V1 MIMI (ElevenLabs, `lou/voix-mimi/v2-p*.mp3`) + image clé → `fal-ai/infinitalk` (480p) → `fal-ai/video-upscaler` (×2), via le workflow n8n « Lou - fal lipsync + upscale x2 ».
+
+| Plan | 480p | Upscalé ×2 |
+|---|---|---|
+| 1 L'accroche (audio allongé à 2 s, 49 images) | [mp4](https://v3b.fal.media/files/b/0ab07a44/UxyiiMJ7hKW4vUhMOeT9p_w4qPA17i.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07a49/1MfIpXm8ep6zx3mnYo5qX_TfGoQ7Rs.mp4) |
+| 2 L'aveu | [mp4](https://v3b.fal.media/files/b/0ab07a84/Eda7DYzbs2F9v2Ir4R8nv_vtiA344K.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07a8d/6X9ATAWa5Xmnva_NxpTfz_zSEUejPN.mp4) |
