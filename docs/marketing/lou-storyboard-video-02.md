@@ -105,3 +105,4 @@ Même chaîne que la vidéo 1 : réplique V1 MIMI (ElevenLabs, `lou/voix-mimi/v2
 | 2 L'aveu | [mp4](https://v3b.fal.media/files/b/0ab07a84/Eda7DYzbs2F9v2Ir4R8nv_vtiA344K.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07a8d/6X9ATAWa5Xmnva_NxpTfz_zSEUejPN.mp4) |
 | 3 L'essayage | [mp4](https://v3b.fal.media/files/b/0ab0b44f/ZJcZBfInQHvraTiaP96sR_Gt6nlUWH.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0b460/g_-of8BObocG4yf6JAlip_Oz4wEU41.mp4) |
 | 4 Le suspense | [mp4](https://v3b.fal.media/files/b/0ab0b456/_1MXWrKTqDx0xzzlBAjfa_6IPauXeO.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0b462/8PqJ-82tHoHeWqM9P68S4_oR5dbOme.mp4) |
+| 5 La révélation | [mp4](https://v3b.fal.media/files/b/0ab0b46d/Rhx1BeXxVYHihsG9G4JWY_XRNcUlQf.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0b46f/luUjLjK1DAQHHxB070riw_8Gj4bsKd.mp4) |
