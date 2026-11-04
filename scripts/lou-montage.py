@@ -6,10 +6,13 @@ local path) and its burned-in caption, plus the end card text. The script:
 
   1. downloads every clip (cached in --work);
   2. normalises each one to 1080x1920, 25 fps, AAC 48 kHz stereo;
-  3. burns the caption (keywords between ** ** in gold #C9A24B), the
+  3. erases any text baked into the source frames ("erase": [[x, y, w, h], ...]
+     in source pixels, interpolated from the surrounding pixels) or crops it
+     out ("crop": [x, y, w, h]), then burns the caption (keywords between ** ** in gold #C9A24B), the
      "Personnage IA" label (top left, whole video) via libass;
   4. builds the ivory end card with the AI disclosure;
-  5. concatenates everything into a single H.264 MP4.
+  5. concatenates everything into a single H.264 MP4, loudness-normalised
+     to -14 LUFS.
 
 Needs ffmpeg with libass. Usage:
   python3 scripts/lou-montage.py docs/marketing/lou/montage-video-01.json out.mp4
@@ -73,6 +76,14 @@ def duration(path):
     return float(out.stdout.strip())
 
 
+def cleanup_chain(shot):
+    """Filters run on the source frames before normalisation."""
+    steps = [f"delogo=x={x}:y={y}:w={w}:h={h}" for x, y, w, h in shot.get("erase", [])]
+    if shot.get("crop"):
+        steps.append("crop={2}:{3}:{0}:{1}".format(*shot["crop"]))
+    return "".join(f"{step}," for step in steps)
+
+
 def fetch(src, dest):
     if dest.exists() and dest.stat().st_size > 0:
         return dest
@@ -106,11 +117,12 @@ def main():
         ass = work / f"shot{i}.ass"
         events = [f"Dialogue: 0,{ts(0)},{ts(length)},Label,,0,0,0,,Personnage IA"]
         if shot.get("caption"):
-            events.append(f"Dialogue: 1,{ts(0)},{ts(length)},Caption,,0,0,0,,{caption(shot['caption'])}")
+            margin_v = shot.get("caption_margin_v", 0)  # 0 = the style's default
+            events.append(f"Dialogue: 1,{ts(0)},{ts(length)},Caption,,0,0,{margin_v},,{caption(shot['caption'])}")
         ass.write_text(ASS_HEADER + "\n".join(events) + "\n")
         part = work / f"part{i}.mp4"
         run(["ffmpeg", "-y", "-i", str(raw), "-t", f"{length:.3f}",
-             "-vf", f"{vf_norm},ass={ass}",
+             "-vf", f"{cleanup_chain(shot)}{vf_norm},ass={ass}",
              "-af", "aresample=48000,aformat=channel_layouts=stereo",
              "-c:v", "libx264", "-preset", "medium", "-crf", "18",
              "-c:a", "aac", "-b:a", "192k", "-ar", "48000", str(part)])
@@ -137,7 +149,8 @@ def main():
     concat = work / "concat.txt"
     concat.write_text("".join(f"file '{p}'\n" for p in parts))
     run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat),
-         "-c", "copy", "-movflags", "+faststart", str(out)])
+         "-c:v", "copy", "-af", "loudnorm=I=-14:TP=-1.5:LRA=11",  # social-media loudness
+         "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-movflags", "+faststart", str(out)])
     print(f"{out}  {duration(out):.2f} s")
 
 

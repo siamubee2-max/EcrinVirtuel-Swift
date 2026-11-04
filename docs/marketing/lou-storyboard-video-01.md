@@ -166,3 +166,27 @@ Chaîne : réplique V1 MIMI (ElevenLabs, fichiers dans `lou/voix-mimi/`) + image
 | 8 Carton final | [mp4](https://v3b.fal.media/files/b/0ab07a0b/S5o5Nwqur4M-BR7ezRgye_M6CU97IH.mp4) | [mp4](https://v3b.fal.media/files/b/0ab07a0d/bDKIrF-jrBASgCqlQtgPk_AXb325lN.mp4) |
 
 Réglage : `num_frames` = le plus grand nombre de la forme 4k+1 qui tient dans la durée de l'audio à 25 images/s, avec une marge de 0,1 s car fal mesure l'audio un peu plus court qu'ElevenLabs (minimum 41, soit 1,64 s ; défaut 145, soit 5,8 s). Les répliques de moins de 1,64 s sont allongées de silence (`*-pad.mp3`).
+
+---
+
+## Montage
+
+→ [`lou/videos/lou-video-01.mp4`](lou/videos/lou-video-01.mp4) : 31,5 s, 1080 × 1920, 25 i/s, voix MIMI, son normalisé à −14 LUFS.
+
+Assemblé avec `scripts/lou-montage.py` à partir de [`lou/montage-video-01.json`](lou/montage-video-01.json) :
+- les 8 plans upscalés ;
+- sous-titres blancs, mots-clés en doré ;
+- « Personnage IA » en haut à gauche ;
+- carton final ivoire de 2,5 s.
+
+Pour le relancer : `python3 scripts/lou-montage.py docs/marketing/lou/montage-video-01.json sortie.mp4`.
+
+Retouches de texte incrusté dans les images clés :
+- plan 1 : « STORYBOARD KEYFRAME 1 — HOOK » et « [Salut !] » effacés ;
+- plan 4 : recadré pour sortir le texte anglais « My playground is… / Shot on Sony A1 ».
+
+Reste à faire dans CapCut :
+- piste musicale ;
+- vraie capture de l'app sur l'écran du téléphone au plan 4 (déformé par l'animation) ;
+- badge App Store officiel.
+
