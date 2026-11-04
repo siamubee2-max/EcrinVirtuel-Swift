@@ -1,0 +1,61 @@
+{
+  "title": "Lou — Vidéo 02 « J'aurais jamais osé : le rouge »",
+  "accent": "#C8102E",
+  "shots": [
+    {
+      "src": "https://v3b.fal.media/files/b/0ab07a49/1MfIpXm8ep6zx3mnYo5qX_TfGoQ7Rs.mp4",
+      "caption": "LE ROUGE"
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab07a8d/6X9ATAWa5Xmnva_NxpTfz_zSEUejPN.mp4",
+      "caption": "10 ans de\n« c'est **pas pour moi** »",
+      "crop": [
+        120,
+        390,
+        716,
+        1274
+      ]
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab0b460/g_-of8BObocG4yf6JAlip_Oz4wEU41.mp4",
+      "caption": "1 photo · 1 **robe**"
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab0b462/8PqJ-82tHoHeWqM9P68S4_oR5dbOme.mp4",
+      "caption": "attends…",
+      "erase": [
+        [
+          214,
+          1454,
+          468,
+          72
+        ]
+      ]
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab0b46f/luUjLjK1DAQHHxB070riw_8Gj4bsKd.mp4",
+      "caption": "canon.",
+      "crop": [
+        37,
+        0,
+        820,
+        1458
+      ]
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab0b4e6/o3lOR3JDIeM5nrPcxO1XZ_kE4LWeta.mp4",
+      "caption": "**0** cabine · **0** vendeuse\n**0** regret"
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab0b505/Q1ZW2qPEGLScWqY_Y87Xn_aapOPFZp.mp4",
+      "caption": "Ta couleur **interdite** ?\nJe la teste pour toi"
+    }
+  ],
+  "end_card": {
+    "length": 2.5,
+    "brand": "L'Écrin Virtuel",
+    "tagline": "Ose. C'est gratuit d'essayer.",
+    "store": "Disponible sur l'App Store",
+    "disclosure": "Lou est un personnage créé par IA"
+  }
+}

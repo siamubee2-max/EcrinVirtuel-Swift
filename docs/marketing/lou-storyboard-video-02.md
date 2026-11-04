@@ -110,3 +110,26 @@ Même chaîne que la vidéo 1 : réplique V1 MIMI (ElevenLabs, `lou/voix-mimi/v2
 | 7 L'appel à l'action | [mp4](https://v3b.fal.media/files/b/0ab0b4f3/cbEvD8MIVQ7IQMCVjfxFJ_luWa9eFH.mp4) | [mp4](https://v3b.fal.media/files/b/0ab0b505/Q1ZW2qPEGLScWqY_Y87Xn_aapOPFZp.mp4) |
 
 `num_frames` : 49 · 125 · 109 · 49 · 53 · 121 · 137. Les plans 6 et 7 ont dû descendre d'un cran (125 → 121, 141 → 137) : fal mesure l'audio quelques centièmes plus court qu'ElevenLabs (4,97 s au lieu de 5,02 s, 5,62 s au lieu de 5,67 s).
+
+---
+
+## Montage
+
+→ [`lou/videos/lou-video-02.mp4`](lou/videos/lou-video-02.mp4) : 28,2 s, 1080 × 1920, 25 i/s, voix MIMI, son normalisé à −14 LUFS.
+
+Assemblé avec `scripts/lou-montage.py` à partir de [`lou/montage-video-02.json`](lou/montage-video-02.json) :
+- les 7 plans upscalés ;
+- sous-titres blancs, mots-clés en rouge (#C8102E) ;
+- « Personnage IA » en haut à gauche ;
+- carton final ivoire de 2,5 s.
+
+Les sous-titres des plans 1 et 5 restent blancs : du rouge sur la robe rouge serait illisible.
+
+Retouches de texte incrusté dans les images clés :
+- plan 2 : recadré pour sortir « For ten years I've told myself… » ;
+- plan 4 : « And… wait. Look at this. » effacé ;
+- plan 5 : recadré pour sortir un texte illisible en bas de l'image (les pieds sont un peu coupés).
+
+Reste à faire dans CapCut :
+- piste musicale, avec la coupure d'une seconde sur « attends… » ;
+- vraies captures de l'app sur les écrans des plans 3 et 4.

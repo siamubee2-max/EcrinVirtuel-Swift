@@ -8,7 +8,8 @@ local path) and its burned-in caption, plus the end card text. The script:
   2. normalises each one to 1080x1920, 25 fps, AAC 48 kHz stereo;
   3. erases any text baked into the source frames ("erase": [[x, y, w, h], ...]
      in source pixels, interpolated from the surrounding pixels) or crops it
-     out ("crop": [x, y, w, h]), then burns the caption (keywords between ** ** in gold #C9A24B), the
+     out ("crop": [x, y, w, h]), then burns the caption (keywords between
+     ** ** in gold #C9A24B, or the plan's "accent" colour) and the
      "Personnage IA" label (top left, whole video) via libass;
   4. builds the ivory end card with the AI disclosure;
   5. concatenates everything into a single H.264 MP4, loudness-normalised
@@ -58,10 +59,16 @@ def ts(seconds):
     return f"{cs // 360000}:{cs // 6000 % 60:02d}:{cs // 100 % 60:02d}.{cs % 100:02d}"
 
 
-def caption(text):
-    """'**gold** words' -> ASS override tags; '\\n' -> line break."""
+def ass_colour(hex_rgb):
+    """'#RRGGBB' -> ASS '&H00BBGGRR&'."""
+    r, g, b = hex_rgb[1:3], hex_rgb[3:5], hex_rgb[5:7]
+    return f"&H00{b}{g}{r}&".upper()
+
+
+def caption(text, accent=GOLD):
+    """'**accent** words' -> ASS override tags; '\\n' -> line break."""
     text = text.replace("\n", "\\N")
-    return re.sub(r"\*\*(.+?)\*\*", lambda m: f"{{\\c{GOLD}}}{m.group(1)}{{\\c{WHITE}}}", text)
+    return re.sub(r"\*\*(.+?)\*\*", lambda m: f"{{\\c{accent}}}{m.group(1)}{{\\c{WHITE}}}", text)
 
 
 def run(cmd):
@@ -107,6 +114,7 @@ def main():
     work = Path(args.work or out.with_suffix("")).resolve()
     work.mkdir(parents=True, exist_ok=True)
 
+    accent = ass_colour(plan["accent"]) if plan.get("accent") else GOLD  # caption keywords
     vf_norm = (f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
                f"fps={FPS},setsar=1,format=yuv420p")
     parts = []
@@ -118,7 +126,7 @@ def main():
         events = [f"Dialogue: 0,{ts(0)},{ts(length)},Label,,0,0,0,,Personnage IA"]
         if shot.get("caption"):
             margin_v = shot.get("caption_margin_v", 0)  # 0 = the style's default
-            events.append(f"Dialogue: 1,{ts(0)},{ts(length)},Caption,,0,0,{margin_v},,{caption(shot['caption'])}")
+            events.append(f"Dialogue: 1,{ts(0)},{ts(length)},Caption,,0,0,{margin_v},,{caption(shot['caption'], accent)}")
         ass.write_text(ASS_HEADER + "\n".join(events) + "\n")
         part = work / f"part{i}.mp4"
         run(["ffmpeg", "-y", "-i", str(raw), "-t", f"{length:.3f}",
