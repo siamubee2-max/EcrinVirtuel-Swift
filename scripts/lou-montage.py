@@ -11,6 +11,9 @@ local path) and its burned-in caption, plus the end card text. The script:
      out ("crop": [x, y, w, h]), then burns the caption (keywords between
      ** ** in gold #C9A24B, or the plan's "accent" colour) and the
      "Personnage IA" label (top left, whole video) via libass;
+     an optional "overlay" {"image": path-or-url, "height": 820, "x": "right"|px,
+     "y": 300, "from": 0.5, "to": 3.0} puts a picture (e.g. a real app screenshot)
+     over the shot between two instants, under the captions;
   4. builds the ivory end card with the AI disclosure;
   5. concatenates everything into a single H.264 MP4, loudness-normalised
      to -14 LUFS.
@@ -129,11 +132,24 @@ def main():
             events.append(f"Dialogue: 1,{ts(0)},{ts(length)},Caption,,0,0,{margin_v},,{caption(shot['caption'], accent)}")
         ass.write_text(ASS_HEADER + "\n".join(events) + "\n")
         part = work / f"part{i}.mp4"
-        run(["ffmpeg", "-y", "-i", str(raw), "-t", f"{length:.3f}",
-             "-vf", f"{cleanup_chain(shot)}{vf_norm},ass={ass}",
-             "-af", "aresample=48000,aformat=channel_layouts=stereo",
-             "-c:v", "libx264", "-preset", "medium", "-crf", "18",
-             "-c:a", "aac", "-b:a", "192k", "-ar", "48000", str(part)])
+        enc = ["-c:v", "libx264", "-preset", "medium", "-crf", "18",
+               "-c:a", "aac", "-b:a", "192k", "-ar", "48000"]
+        ov = shot.get("overlay")
+        if ov:
+            img = fetch(ov["image"], work / f"shot{i}-overlay{Path(ov['image'].split('?')[0]).suffix}")
+            x = f"W-w-{ov.get('margin', 36)}" if ov.get("x", "right") == "right" else str(ov["x"])
+            t0, t1 = ov.get("from", 0), min(ov.get("to", length), length)
+            graph = (f"[0:v]{cleanup_chain(shot)}{vf_norm}[base];"
+                     f"[1:v]scale=-2:{ov.get('height', 820)},format=rgba[ov];"
+                     f"[base][ov]overlay=x={x}:y={ov.get('y', 300)}:"
+                     f"enable='between(t,{t0},{t1})':eof_action=repeat,ass={ass}[v]")
+            run(["ffmpeg", "-y", "-i", str(raw), "-loop", "1", "-i", str(img), "-t", f"{length:.3f}",
+                 "-filter_complex", graph, "-map", "[v]", "-map", "0:a",
+                 "-af", "aresample=48000,aformat=channel_layouts=stereo", *enc, str(part)])
+        else:
+            run(["ffmpeg", "-y", "-i", str(raw), "-t", f"{length:.3f}",
+                 "-vf", f"{cleanup_chain(shot)}{vf_norm},ass={ass}",
+                 "-af", "aresample=48000,aformat=channel_layouts=stereo", *enc, str(part)])
         parts.append(part)
 
     card = plan.get("end_card")

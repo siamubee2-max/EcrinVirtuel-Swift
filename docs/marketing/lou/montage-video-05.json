@@ -1,0 +1,30 @@
+{
+  "title": "Lou — Vidéo 05 « Je mets quoi ? »",
+  "shots": [
+    {
+      "src": "https://v3b.fal.media/files/b/0ab16216/7r0ZVsax2mCpdWkmUrqFG_DPnWEqPA.mp4",
+      "caption": "je mets **quoi** ?"
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab1622e/JDODdelN17nPahTSt4KJU_Jxuf6NGm.mp4",
+      "caption": "la météo **décide**",
+      "overlay": {"image": "docs/appstore/screenshots-framed/05-lookdujour-framed.png", "height": 900, "x": "right", "y": 260, "from": 1.2}
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab16244/DDwAveLKbyuvYzoW4idrq_OMJpRiYk.mp4",
+      "caption": "ma garde-robe **virtuelle**",
+      "overlay": {"image": "docs/appstore/screenshots-framed/02-garderobe-framed.png", "height": 900, "x": "right", "y": 260, "from": 1.0}
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab16248/_6mD-9xUg-LE8wpPvO-ji_sPNrFOtk.mp4",
+      "caption": "1 appui = le **look**"
+    }
+  ],
+  "end_card": {
+    "length": 2.5,
+    "brand": "L'Écrin Virtuel",
+    "tagline": "Ose. C'est gratuit d'essayer.",
+    "store": "Disponible sur l'App Store",
+    "disclosure": "Lou est un personnage créé par IA"
+  }
+}
