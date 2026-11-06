@@ -1,6 +1,6 @@
 """Lou carousels, 'éditorial' style: full-bleed photos, magazine typography, no paper/tape.
 
-Renders carrousels 01 to 07 into docs/marketing/lou/carrousel-0X/edito/ from the
+Renders carrousels 01 to 09 into docs/marketing/lou/carrousel-0X/edito/ from the
 photos already in each carousel folder. Needs Pillow, the Cormorant fonts in
 docs/marketing/lou/fonts/ and Inter (system font).
 
@@ -16,6 +16,7 @@ IVORY = (246, 240, 230)
 INK = (20, 18, 17)
 GOLD = (201, 162, 75)
 F = REPO / "fonts"
+SHOTS = REPO.parent.parent / "appstore" / "screenshots-framed"
 SHOT = REPO.parent.parent / "appstore" / "screenshots-framed" / "01-essayage-framed.png"
 INTER = Path("/usr/share/fonts/opentype/inter")
 
@@ -144,11 +145,11 @@ def cover(path, total, kicker, title, sub, colors, out):
     c.convert("RGB").save(out, quality=94)
 
 
-def secret(n, total, kicker, label, title, body, punch, out):
+def secret(n, total, kicker, label, title, body, punch, out, shot_path=None, sig="L'Écrin Virtuel"):
     """Ink slide: copy on the left, a real App Store screenshot of the app on the right."""
     c = Image.new("RGB", (W, H), INK)
     c = Image.blend(c, Image.merge("RGB", [Image.effect_noise((W, H), 20).convert("L")] * 3), 0.04).convert("RGBA")
-    shot = Image.open(SHOT).convert("RGBA")
+    shot = Image.open(shot_path or SHOT).convert("RGBA")
     sh = 1040
     shot = shot.resize((int(shot.width * sh / shot.height), sh), Image.LANCZOS)
     c.alpha_composite(shot, (W - 50 - shot.width, 160))
@@ -168,7 +169,7 @@ def secret(n, total, kicker, label, title, body, punch, out):
     for line in punch:
         d.text((x, y), line, font=SERIF(52), fill=IVORY)
         y += 64
-    d.text((x, y + 50), "L'Écrin Virtuel", font=SERIF_I(50), fill=GOLD)
+    d.text((x, y + 50), sig, font=SERIF_I(50), fill=GOLD)
     chrome(c, n, total, kicker)
     c.convert("RGB").save(out, quality=94)
 
@@ -343,8 +344,50 @@ def c07(out):
            "Essaie de nouvelles bagues sur ta main.", out / "06-ose.jpg", pill="Enregistre ce post pour ton prochain stack")
 
 
+def c08(out):
+    P = REPO / "carrousel-08" / "photos"
+    k = "LE GUIDE DE LOU · GARDE-ROBE"
+    cover(P / "a-cover.jpg", 6, k, "Pas que\ndes bijoux", "Sac, lunettes, ceinture, écharpe… j'essaie tout.", None, out / "01-couverture.jpg")
+    content(P / "b-accessoires.jpg", 2, 6, k, "TOUS LES ACCESSOIRES", "Tout un dressing",
+            "Bijoux, vêtements, chaussures, et aussi sac, lunettes, ceinture, chapeau, écharpe, gants. Tout s'essaie.",
+            None, out / "02-accessoires.jpg")
+    secret(3, 6, k, "MA GARDE-ROBE VIRTUELLE", "Numérise,\ncompose,\nessaie.",
+           "Ajoute tes pièces, classe-les, et retrouve tout au même endroit.",
+           ["Bijoux.", "Vêtements.", "Chaussures.", "Accessoires."], out / "03-garde-robe.jpg",
+           shot_path=SHOTS / "02-garderobe-framed.png", sig="L'Écrin Virtuel")
+    content(REPO / "carrousel-04" / "photos" / "vert-cobalt.jpg", 4, 6, k, "DES LOOKS DIFFÉRENTS", "Mélange tout",
+            "Haut, bas, chaussures, accessoires : compose ta tenue et vois-la sur ta photo avant de choisir.",
+            None, out / "04-looks.jpg")
+    textslide(5, 6, k, "COMMENT ÇA MARCHE", "En 3 gestes.",
+              ["Ajoute tes pièces à ta garde-robe.", "Compose un look, avec tes bijoux et tes accessoires.",
+               "Essaie-le sur ta photo, et décide."], out / "05-comment.jpg")
+    ending([P / "a-cover.jpg", P / "b-accessoires.jpg", REPO / "carrousel-04" / "photos" / "vert-cobalt.jpg"], 6, k,
+           "Ose tout essayer.", "Ta garde-robe, version virtuelle.", out / "06-ose.jpg",
+           pill="Dis-moi : tu essaies quoi en premier ?")
+
+
+def c09(out):
+    P = REPO / "carrousel-09" / "photos"
+    k = "LE GUIDE DE LOU · MÉTÉO"
+    cover(P / "a-pluie.jpg", 6, k, "Je mets quoi\nselon la météo ?", "Pluie, soleil, froid : mes 3 looks.", None,
+          out / "01-couverture.jpg")
+    content(REPO / "carrousel-08" / "photos" / "a-cover.jpg", 2, 6, k, "PLUIE", "Le trench",
+            "Trench ceinturé, sac en cuir qui ferme, un foulard pour la couleur. Les bijoux restent fins.", None,
+            out / "02-pluie.jpg")
+    content(P / "b-soleil.jpg", 3, 6, k, "SOLEIL", "Robe légère & lunettes",
+            "Pièces fluides, couleurs claires, chapeau et lunettes. Un bracelet fin suffit.", None, out / "03-soleil.jpg")
+    content(P / "c-froid.jpg", 4, 6, k, "FROID", "Manteau & écharpe",
+            "On superpose et on mise sur les accessoires chauds : l'écharpe, les gants et le sac font le look.", None, out / "04-froid.jpg")
+    secret(5, 6, k, "L'APP LE FAIT POUR TOI", "Ton look\ndu jour.",
+           "L'app regarde la météo de ta ville et te propose une tenue, en puisant d'abord dans ta garde-robe.",
+           ["Tu appuies sur", "«\u00a0Essayer\u00a0».", "Tu vois le résultat."], out / "05-look-du-jour.jpg",
+           shot_path=SHOTS / "05-lookdujour-framed.png")
+    ending([P / "b-soleil.jpg", P / "c-froid.jpg", P / "a-pluie.jpg"], 6, k, "Quel temps chez toi ?",
+           "Ta tenue du jour, en 1 appui.", out / "06-ose.jpg", pill="Enregistre pour tes jours de pluie")
+
+
 if __name__ == "__main__":
-    jobs = {"01": c01, "02": c02, "03": c03, "04": c04, "05": c05, "06": c06, "07": c07}
+    jobs = {"01": c01, "02": c02, "03": c03, "04": c04, "05": c05, "06": c06, "07": c07, "08": c08, "09": c09}
     for num in sys.argv[1:] or jobs:
         name, fn = f"carrousel-{num}", jobs[num]
         o = REPO / name / "edito"
