@@ -46,6 +46,7 @@ Les enchaînements sont voulus :
 
 | Contenu | Pour quoi faire |
 |---|---|
+| **Vidéo 06 « Messieurs, je mets quoi ? »** | À poster 1 à 2 jours après la vidéo 04 (J10) ou en semaine 3 : même public messieurs, fonction garde-robe et météo |
 | Punchline 07 Cadeau | Une date cadeau (Noël, Saint-Valentin) |
 | Punchline 23 Dressing dans ma poche | Un deuxième passage sur la garde-robe, si le carrousel 08 marche bien |
 | Punchlines 06 Cabine, 09 Attends, 10 Zéro euro | Remplacer une punchline qui n'accroche pas |
