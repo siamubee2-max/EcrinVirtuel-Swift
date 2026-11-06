@@ -1,0 +1,11 @@
+{
+  "hook": "Il pleut ?\nMon appli a déjà\nchoisi ma **tenue.**",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-09/photos/a-pluie.jpg",
+      "length": 7.0
+    }
+  ]
+}

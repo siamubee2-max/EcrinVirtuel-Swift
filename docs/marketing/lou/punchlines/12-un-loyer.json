@@ -1,0 +1,24 @@
+{
+  "hook": "Ce collier coûte un loyer.\nJe l'ai porté quand même.",
+  "hook_until": 3.4,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab07a05/r5Yq3qSDr_dA-6ho72Zq1_PF7TCYyU.mp4",
+      "length": 3.4,
+      "caption": "…et surtout, te pousser à **oser.**\nOn essaie ?"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-01/photos/c-mains.jpg",
+      "length": 1.2
+    }
+  ],
+  "cta": {
+    "length": 2.4,
+    "background": "docs/marketing/lou/carrousel-02/photos/d-ecrin.jpg",
+    "lines": [
+      "Porte-le avant de l'acheter",
+      "**Essaie gratuitement**",
+      "L'Écrin Virtuel · App Store"
+    ]
+  }
+}
