@@ -1,0 +1,26 @@
+# Carrousel 03 — « Spécial messieurs »
+
+Six visuels Instagram de 1080 × 1350 (4:5), à publier dans l'ordre. Même style « carnet » que les carrousels 01 et 02 : photos façon pellicule argentique, tirages, papier crème, écriture manuscrite. Aucune mention IA sur les visuels.
+
+| # | Fichier | Contenu |
+|---|---|---|
+| 1 | `01-couverture.jpg` | « Spécial messieurs — ce carnet-là, c'est pour vous ». Lou tient les deux montres, avec « classique ou audacieuse ? » sur le tirage |
+| 2 | `02-la-montre.jpg` | Poignet d'homme et montre à cadran vert : « Arrêtez de deviner. 1 photo de votre poignet, et vous voyez les deux. » |
+| 3 | `03-la-chemise.jpg` | La chemise bleu cobalt : « celle que vous n'avez jamais osé porter. Spoiler : elle vous va. » |
+| 4 | `04-comment.jpg` | Comment faire, avec une vraie capture de l'app : « Pas de vendeur. Pas de cabine. Pas de risque. » |
+| 5 | `05-pour-elle.jpg` | Le paquet cadeau : « Et le cadeau pour elle ? », à essayer sur sa photo avec son accord |
+| 6 | `06-osez.jpg` | L'Écrin Virtuel, « Allez, osez. C'est gratuit d'essayer. », App Store |
+
+## Légende
+
+> Messieurs, ce carnet est pour vous ⌚ Montre classique ou audacieuse ? Chemise bleu cobalt ? Cadeau pour elle ? Arrêtez de deviner : essayez avant d'acheter. Zéro vendeur, zéro risque.
+>
+> Lou est un personnage créé par IA.
+>
+> #LÉcrinVirtuel #CarnetDeLou #ModeHomme #Montre #StyleHomme #IdéeCadeau #IA
+
+À la publication, active l'étiquette IA d'Instagram (Paramètres avancés → « Ajouter une étiquette IA »).
+
+## Fabrication
+
+Les photos viennent de fal `nano-banana-2/edit` en 2K, au format 4:5, avec en référence le portrait de Lou et sa planche de continuité. Exception : la photo du poignet d'homme a été générée par `nano-banana-2`, sans référence, car la référence de Lou bloquait la génération. Les originaux sont dans `photos/`.
