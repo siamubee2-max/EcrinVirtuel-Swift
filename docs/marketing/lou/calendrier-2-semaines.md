@@ -1,8 +1,8 @@
 # Calendrier de publication de Lou : 2 semaines, 2 posts par jour
 
-Stock disponible : 33 contenus.
+Stock disponible : 39 contenus.
 - 4 vidéos longues (`videos/`) ;
-- 20 punchlines de 7 s (`punchlines/`) ;
+- 26 punchlines de 7 s (`punchlines/`) ;
 - 7 carrousels (`carrousel-01` à `09`), chacun en version « carnet » et en version « éditorial » (`edito/`).
 
 C'est de quoi tenir 14 jours à 2 posts par jour, plus une réserve.
@@ -36,7 +36,7 @@ Les carrousels passent sur Instagram. Sur TikTok, publie-les en **mode photo** :
 | Réserve | Carrousel 06 Or ou argent ? | Carrousel 07 Le stack de bagues parfait |
 | Réserve | Carrousel 08 Pas que des bijoux (garde-robe virtuelle) | Carrousel 09 Je mets quoi selon la météo ? (look du jour) |
 
-**Les deux fonctions à ne pas oublier.** Les carrousels 08 et 09 sont les seuls qui montrent la garde-robe virtuelle et le look du jour selon la météo. Si ce sont les fonctions que tu veux pousser, avance-les : mets le 09 en J2 et le 08 en J4 à la place des carrousels 01 et 04.
+**Les deux fonctions à ne pas oublier.** Les carrousels 08 et 09 sont les seuls qui montrent la garde-robe virtuelle et le look du jour selon la météo. Les punchlines 21 à 26 en parlent aussi (midi, une par jour, en alternance avec les autres). Si ce sont les fonctions que tu veux pousser, avance-les : mets le 09 en J2 et le 08 en J4 à la place des carrousels 01 et 04.
 
 **Style des carrousels.** Choisis un style et garde-le sur tout le fil, pour que le profil reste cohérent : la version éditorial (`edito/`) ou la version carnet. Les carrousels 06 à 09 n'existent qu'en éditorial.
 

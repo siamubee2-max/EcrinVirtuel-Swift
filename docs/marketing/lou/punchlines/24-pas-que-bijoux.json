@@ -1,0 +1,12 @@
+{
+  "hook": "Sac, lunettes, ceinture…\nJe n'achète plus un accessoire\nsans l'avoir **essayé.**",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-08/photos/a-cover.jpg",
+      "length": 7.0
+    }
+  ],
+  "hook_margin_v": 1150
+}

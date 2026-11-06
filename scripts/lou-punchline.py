@@ -13,6 +13,7 @@ The plan is a JSON file:
       # in source pixels, to get rid of text baked into the frames
     ],
     "hook_style": "box" | "overlay",             # overlay: white line mid-screen, no box
+    "hook_margin_v": 1150,                       # overlay only: distance from the top, to keep faces clear
     "signature": "L'Écrin Virtuel · ...",         # optional small line, last 2.5 s
     "cta": {                                     # optional
       "length": 2.3,
@@ -142,7 +143,7 @@ def main():
     run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat), "-c", "copy", str(raw)])
 
     if plan.get("hook_style") == "overlay":  # big white line over the photo, whole video
-        hook = f"Dialogue: 2,{ts(0)},{ts(plan.get('hook_until', total))},Overlay,,0,0,0,,{ass_text(plan['hook'])}"
+        hook = f"Dialogue: 2,{ts(0)},{ts(plan.get('hook_until', total))},Overlay,,0,0,{plan.get('hook_margin_v', 0)},,{ass_text(plan['hook'])}"
     else:
         hook = f"Dialogue: 2,{ts(0)},{ts(plan.get('hook_until', 2.2))},Hook,,0,0,0,,{ass_text(plan['hook'], BLACK)}"
     events = [hook]

@@ -1,0 +1,12 @@
+{
+  "hook": "Chaque matin, je ne me demande plus\n« je mets quoi ? ».\n\nMon appli le sait **déjà.**",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-09/photos/c-froid.jpg",
+      "length": 7.0
+    }
+  ],
+  "hook_margin_v": 1150
+}

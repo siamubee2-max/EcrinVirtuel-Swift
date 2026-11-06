@@ -1,6 +1,6 @@
 # Punchlines de Lou : vidéos de 7 secondes
 
-Vingt vidéos verticales de 1080 × 1920, de 6,9 à 7 s, son normalisé à −14 LUFS. Chacune suit la même structure :
+Vingt-six vidéos verticales de 1080 × 1920, de 6,9 à 7 s, son normalisé à −14 LUFS. Chacune suit la même structure :
 1. **une accroche** en gros texte « natif TikTok » (noir sur bloc blanc, en haut), dès la première image ;
 2. **une punchline** dite par Lou avec la voix MIMI, sous-titrée pour les 80 % qui regardent sans le son ;
 3. **un appel à l'action** de 2 à 3 s sur fond flou (« Essaie gratuitement », L'Écrin Virtuel, App Store), avec un léger effet d'apparition.
@@ -88,3 +88,16 @@ python3 scripts/lou-punchline.py docs/marketing/lou/punchlines/01-le-rouge.json 
 ```
 
 Chaque plan JSON indique l'accroche, les segments (clip ou image, durée, sous-titre, recadrage) et l'appel à l'action. Les vidéos 05 à 12 réutilisent uniquement des plans déjà animés, sans nouvelle génération. Le seul plan créé exprès est la réaction de la vidéo 04 : la réplique MIMI « Attends… pourquoi personne m'a dit qu'on pouvait faire ça ?! », synchronisée sur l'image clé `v3/v3-p4.png`.
+
+### Garde-robe et look du jour (21 à 26)
+
+Six autres vidéos du même format (7 s, zoom lent, signature finale) qui montrent ce que l'app fait en dehors des bijoux : la garde-robe virtuelle et la tenue du jour selon la météo. Les phrases sont vérifiées dans le code de l'app. Sur 22, 24, 25 et 26, le texte est placé plus bas (`hook_margin_v`) pour ne pas couvrir le visage de Lou.
+
+| Fichier | Phrase |
+|---|---|
+| `21-il-pleut.mp4` | « Il pleut ? Mon appli a déjà choisi ma tenue. » |
+| `22-je-mets-quoi.mp4` | « Chaque matin, je ne me demande plus « je mets quoi ? ». Mon appli le sait déjà. » |
+| `23-dressing-poche.mp4` | « Mon dressing tient dans ma poche. Et je peux tout essayer. » |
+| `24-pas-que-bijoux.mp4` | « Sac, lunettes, ceinture… Je n'achète plus un accessoire sans l'avoir essayé. » |
+| `25-soleil.mp4` | « Soleil dehors. Mon appli me propose ma tenue. Moi, je choisis juste le café. » |
+| `26-armoire.mp4` | « Avant, je vidais l'armoire chaque matin. Maintenant, j'appuie sur « Essayer ». » |
