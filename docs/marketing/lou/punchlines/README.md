@@ -1,6 +1,6 @@
 # Punchlines de Lou : vidéos de 7 secondes
 
-Quatre vidéos verticales de 1080 × 1920, de 6,9 à 7 s, son normalisé à −14 LUFS. Chacune suit la même structure :
+Huit vidéos verticales de 1080 × 1920, de 6,9 à 7 s, son normalisé à −14 LUFS. Chacune suit la même structure :
 1. **une accroche** en gros texte « natif TikTok » (noir sur bloc blanc, en haut), dès la première image ;
 2. **une punchline** dite par Lou avec la voix MIMI, sous-titrée pour les 80 % qui regardent sans le son ;
 3. **un appel à l'action** de 2 à 3 s sur fond flou (« Essaie gratuitement », L'Écrin Virtuel, App Store), avec un léger effet d'apparition.
@@ -13,6 +13,10 @@ Elles sont faites pour tourner en boucle.
 | `02-bague-3000.mp4` | Gros plan bijou + interdit levé | « Une bague à 3 000 €… sans entrer en boutique » | « Zéro vendeur. Zéro pression. Essaie gratuitement » |
 | `03-messieurs.mp4` | Question de choix (commentaires) | « Messieurs : classique ou audacieuse ? » | « Réponds en commentaire. Essaie les deux, gratuit » |
 | `04-reaction.mp4` | Réaction « je n'en reviens pas » + démo de l'app | « Personne ne m'avait dit ça… » | « Essaie n'importe quel bijou. Gratuit · lien en bio » |
+| `05-erreur.mp4` | Accroche « l'erreur que tout le monde fait » | « L'erreur n°1 : acheter sans avoir essayé » | « Essaie avant d'acheter. C'est gratuit » |
+| `06-cabine.mp4` | POV relatable | « POV : tu détestes les cabines d'essayage » | « Essaie depuis ton canapé. Gratuit sur l'App Store » |
+| `07-cadeau.mp4` | Cible hommes + bénéfice concret | « Messieurs, le cadeau qu'elle va VRAIMENT aimer » | « Zéro erreur de cadeau. Essaie gratuitement » |
+| `08-couleur-interdite.mp4` | Appel à commenter (question ouverte) | « Dis-moi ta couleur interdite. Je la teste pour toi. » | « Réponds en commentaire. Ose. C'est gratuit. » |
 
 ## Ce qui marche en ce moment (vidIQ, 6 novembre 2026)
 
@@ -47,7 +51,7 @@ Source : recherche de vidéos « outliers » Instagram et TikTok depuis le 1er a
 - **Activer l'étiquette IA** de la plateforme. Il n'y a pas de mention « Personnage IA » à l'image.
 - **Ajouter à la légende** : « Lou est un personnage créé par IA. »
 - **Épingler un commentaire** avec le lien de l'App Store.
-- **Publier les 4 vidéos** à deux ou trois jours d'intervalle, puis relancer en publicité (Spark Ads / boost) celle qui retient le mieux à 3 s.
+- **Publier les 8 vidéos** à deux ou trois jours d'intervalle, puis relancer en publicité (Spark Ads / boost) celle qui retient le mieux à 3 s.
 
 ## Refaire ou décliner
 
@@ -55,4 +59,4 @@ Source : recherche de vidéos « outliers » Instagram et TikTok depuis le 1er a
 python3 scripts/lou-punchline.py docs/marketing/lou/punchlines/01-le-rouge.json sortie.mp4
 ```
 
-Chaque plan JSON indique l'accroche, les segments (clip ou image, durée, sous-titre, recadrage) et l'appel à l'action. Le seul nouveau plan est la réaction de la vidéo 04 : la réplique MIMI « Attends… pourquoi personne m'a dit qu'on pouvait faire ça ?! », synchronisée sur l'image clé `v3/v3-p4.png`.
+Chaque plan JSON indique l'accroche, les segments (clip ou image, durée, sous-titre, recadrage) et l'appel à l'action. Les vidéos 05 à 08 réutilisent uniquement des plans déjà animés, sans nouvelle génération. Le seul plan créé exprès est la réaction de la vidéo 04 : la réplique MIMI « Attends… pourquoi personne m'a dit qu'on pouvait faire ça ?! », synchronisée sur l'image clé `v3/v3-p4.png`.

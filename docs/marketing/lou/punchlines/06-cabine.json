@@ -1,0 +1,20 @@
+{
+  "hook": "POV : tu détestes\nles cabines d'essayage",
+  "hook_until": 2.6,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab0b4e6/o3lOR3JDIeM5nrPcxO1XZ_kE4LWeta.mp4",
+      "length": 4.84,
+      "caption": "Pas de cabine, pas de vendeuse,\n**pas de regret.**"
+    }
+  ],
+  "cta": {
+    "length": 2.1,
+    "background": "docs/marketing/lou/carrousel-01/photos/d-cafe.jpg",
+    "lines": [
+      "Essaie depuis ton canapé",
+      "**Gratuit sur l'App Store**",
+      "L'Écrin Virtuel"
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "hook": "Messieurs, le cadeau\nqu'elle va VRAIMENT aimer",
+  "hook_until": 2.8,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab1587a/rHafJYDscVYie2OBFiPH8_a80DtvDf.mp4",
+      "length": 3.88,
+      "caption": "Essayez-le **sur sa photo**\navant d'acheter."
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-03/photos/d-cadeau.jpg",
+      "length": 1.2
+    }
+  ],
+  "cta": {
+    "length": 1.9,
+    "background": "docs/marketing/lou/carrousel-02/photos/d-ecrin.jpg",
+    "lines": [
+      "Zéro erreur de cadeau",
+      "**Essaie gratuitement**",
+      "L'Écrin Virtuel · App Store"
+    ]
+  }
+}
