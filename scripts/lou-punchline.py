@@ -9,7 +9,8 @@ The plan is a JSON file:
     "segments": [                                # played back to back
       {"clip": "<url or path>", "start": 0, "length": 1.9, "caption": "Le rouge."},
       {"image": "<url or path>", "length": 1.3, "zoom": true}
-      # a clip may also take "crop": [x, y, w, h] in source pixels
+      # a clip may also take "crop": [x, y, w, h] and "erase": [[x, y, w, h], ...]
+      # in source pixels, to get rid of text baked into the frames
     ],
     "cta": {
       "length": 2.3,
@@ -105,7 +106,8 @@ def main():
         length = seg["length"]
         if "clip" in seg:
             src = fetch(seg["clip"], work)
-            crop = "crop={2}:{3}:{0}:{1},".format(*seg["crop"]) if seg.get("crop") else ""  # cut baked-in text
+            crop = "".join(f"delogo=x={x}:y={y}:w={w}:h={h}," for x, y, w, h in seg.get("erase", []))
+            crop += "crop={2}:{3}:{0}:{1},".format(*seg["crop"]) if seg.get("crop") else ""  # cut baked-in text
             run(["ffmpeg", "-y", "-ss", str(seg.get("start", 0)), "-i", str(src), "-t", f"{length}",
                  "-vf", crop + NORM, "-af", "aresample=48000,aformat=channel_layouts=stereo", *ENC, str(part)])
         else:  # still image, slow push-in

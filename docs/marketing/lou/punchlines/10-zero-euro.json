@@ -1,0 +1,25 @@
+{
+  "hook": "Essayer une bague à 3 000 €\nm'a coûté… 0 €",
+  "hook_until": 3.08,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab14571/UA0TouQhE4Yu7LzbcS7E1_r7wStu0l.mp4",
+      "length": 3.08,
+      "caption": "Sans pression, et sans vendeur\nqui me regarde **de travers.**"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-02/photos/c-main.jpg",
+      "length": 1.5,
+      "caption": "**0 €.** Juste 1 photo."
+    }
+  ],
+  "cta": {
+    "length": 2.4,
+    "background": "docs/marketing/lou/carrousel-02/photos/a-bague.jpg",
+    "lines": [
+      "Le luxe d'essayer",
+      "**Gratuit sur l'App Store**",
+      "L'Écrin Virtuel"
+    ]
+  }
+}

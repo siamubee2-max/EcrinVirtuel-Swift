@@ -1,0 +1,25 @@
+{
+  "hook": "Messieurs,\narrêtez le bleu marine.",
+  "hook_until": 2.6,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab15863/LEDsICHDt3QVB8cy7bYrV_n80AMjAX.mp4",
+      "length": 3.4,
+      "caption": "La chemise **colorée** que vous\nn'avez jamais portée…"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-03/photos/c-chemise.jpg",
+      "length": 1.3,
+      "caption": "Spoiler : **elle vous va.**"
+    }
+  ],
+  "cta": {
+    "length": 2.3,
+    "background": "docs/marketing/lou/carrousel-03/photos/c-chemise.jpg",
+    "lines": [
+      "Essayez-la sur vous",
+      "**Gratuit, en 1 photo**",
+      "L'Écrin Virtuel · App Store"
+    ]
+  }
+}

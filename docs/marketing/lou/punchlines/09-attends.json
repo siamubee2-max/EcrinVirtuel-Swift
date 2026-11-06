@@ -1,0 +1,33 @@
+{
+  "hook": "Je n'avais JAMAIS osé…",
+  "hook_until": 1.9,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab0b462/8PqJ-82tHoHeWqM9P68S4_oR5dbOme.mp4",
+      "length": 1.96,
+      "erase": [
+        [
+          214,
+          1454,
+          468,
+          72
+        ]
+      ],
+      "caption": "Et… attends.\n**Regarde ça.**"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-01/photos/b-rouge.jpg",
+      "length": 2.3,
+      "caption": "**Le rouge.** Enfin."
+    }
+  ],
+  "cta": {
+    "length": 2.7,
+    "background": "docs/marketing/lou/carrousel-01/photos/b-rouge.jpg",
+    "lines": [
+      "Et toi, tu n'oses pas quoi ?",
+      "**Essaie-le gratuitement**",
+      "L'Écrin Virtuel · App Store"
+    ]
+  }
+}
