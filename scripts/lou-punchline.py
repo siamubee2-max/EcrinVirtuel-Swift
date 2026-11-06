@@ -12,7 +12,9 @@ The plan is a JSON file:
       # a clip may also take "crop": [x, y, w, h] and "erase": [[x, y, w, h], ...]
       # in source pixels, to get rid of text baked into the frames
     ],
-    "cta": {
+    "hook_style": "box" | "overlay",             # overlay: white line mid-screen, no box
+    "signature": "L'Écrin Virtuel · ...",         # optional small line, last 2.5 s
+    "cta": {                                     # optional
       "length": 2.3,
       "background": "<url or path of a still>",  # blurred and darkened
       "lines": ["Ta couleur interdite ?", "**Essaie-la gratuitement**", "L'Écrin Virtuel · App Store"]
@@ -50,6 +52,8 @@ Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour,
 Style: Hook,Inter ExtraBold,66,{BLACK},{BLACK},{WHITE},{WHITE},1,0,0,0,100,100,0,0,3,14,0,8,90,90,300,1
 Style: Caption,Inter ExtraBold,62,{WHITE},{WHITE},&H00000000,&H64000000,1,0,0,0,100,100,0,0,1,4,3,2,80,80,360,1
 Style: CTA,Inter ExtraBold,76,{WHITE},{WHITE},&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,3,2,5,80,80,0,1
+Style: Overlay,Inter ExtraBold,66,{WHITE},{WHITE},&H50000000,&H78000000,1,0,0,0,100,100,0,0,1,3,5,8,90,90,520,1
+Style: Signature,Inter SemiBold,38,{WHITE},{WHITE},&H00000000,&H96000000,0,0,0,0,100,100,0,0,1,0,4,2,80,80,170,1
 Style: CTASmall,Inter SemiBold,46,{WHITE},{WHITE},&H00000000,&H80000000,0,0,0,0,100,100,0,0,1,2,2,5,80,80,0,1
 
 [Events]
@@ -113,33 +117,41 @@ def main():
         else:  # still image, slow push-in
             src = fetch(seg["image"], work)
             frames = int(length * FPS)
+            dim = ",eq=brightness=-0.10:contrast=1.04" if plan.get("hook_style") == "overlay" else ""  # text legibility
             zoom = (f"zoompan=z='1+0.08*on/{frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
                     f":d={frames}:s={W}x{H}:fps={FPS}" if seg.get("zoom", True) else f"fps={FPS}")
             run(["ffmpeg", "-y", "-loop", "1", "-i", str(src), "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
                  "-t", f"{length}", "-vf", f"scale={W * 2}:{H * 2}:force_original_aspect_ratio=increase,"
-                 f"crop={W * 2}:{H * 2},{zoom},setsar=1", *ENC, "-shortest", str(part)])
+                 f"crop={W * 2}:{H * 2},{zoom},setsar=1{dim}", *ENC, "-shortest", str(part)])
         parts.append((part, t, length, seg.get("caption")))
         t += length
 
-    cta = plan["cta"]
-    bg = fetch(cta["background"], work)
-    cta_part = work / "cta.mp4"
-    run(["ffmpeg", "-y", "-loop", "1", "-i", str(bg), "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
-         "-t", f"{cta['length']}", "-vf", f"{NORM},boxblur=24:2,eq=brightness=-0.22:saturation=0.8",
-         *ENC, "-shortest", str(cta_part)])
-    parts.append((cta_part, t, cta["length"], None))
-    total = t + cta["length"]
+    cta = plan.get("cta")  # text-on-image posts end on the photo, with the "signature" line instead
+    if cta:
+        bg = fetch(cta["background"], work)
+        cta_part = work / "cta.mp4"
+        run(["ffmpeg", "-y", "-loop", "1", "-i", str(bg), "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo",
+             "-t", f"{cta['length']}", "-vf", f"{NORM},boxblur=24:2,eq=brightness=-0.22:saturation=0.8",
+             *ENC, "-shortest", str(cta_part)])
+        parts.append((cta_part, t, cta["length"], None))
+    total = t + (cta["length"] if cta else 0)
 
     concat = work / "concat.txt"
     concat.write_text("".join(f"file '{p}'\n" for p, *_ in parts))
     raw = work / "raw.mp4"
     run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat), "-c", "copy", str(raw)])
 
-    events = [f"Dialogue: 2,{ts(0)},{ts(plan.get('hook_until', 2.2))},Hook,,0,0,0,,{ass_text(plan['hook'], BLACK)}"]
+    if plan.get("hook_style") == "overlay":  # big white line over the photo, whole video
+        hook = f"Dialogue: 2,{ts(0)},{ts(plan.get('hook_until', total))},Overlay,,0,0,0,,{ass_text(plan['hook'])}"
+    else:
+        hook = f"Dialogue: 2,{ts(0)},{ts(plan.get('hook_until', 2.2))},Hook,,0,0,0,,{ass_text(plan['hook'], BLACK)}"
+    events = [hook]
+    if plan.get("signature"):
+        events.append(f"Dialogue: 2,{ts(max(0, total - 2.5))},{ts(total)},Signature,,0,0,0,,{ass_text(plan['signature'])}")
     for _, start, length, caption in parts:
         if caption:
             events.append(f"Dialogue: 1,{ts(start)},{ts(start + length)},Caption,,0,0,0,,{ass_text(caption)}")
-    lines = cta["lines"]
+    lines = cta["lines"] if cta else []
     y0 = H / 2 - (len(lines) - 1) * 70
     for k, line in enumerate(lines):
         style = "CTASmall" if k == len(lines) - 1 else "CTA"

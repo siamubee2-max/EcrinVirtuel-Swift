@@ -1,0 +1,11 @@
+{
+  "hook": "Arrête d'acheter des bijoux\nque tu ne portes **jamais.**\n\nEssaie-les d'abord.",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-01/photos/c-mains.jpg",
+      "length": 7.0
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "hook": "Avoir le budget,\nmais essayer d'abord.\n\nC'est ça, **le vrai luxe.**",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-02/photos/a-bague.jpg",
+      "length": 7.0
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "hook": "Dans chaque groupe d'amies,\nil y a celle qui essaie tout\n**avant d'acheter.**\n\nC'est moi.",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-01/photos/a-sol.jpg",
+      "length": 7.0
+    }
+  ]
+}

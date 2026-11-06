@@ -1,0 +1,11 @@
+{
+  "hook": "Messieurs, elle ne veut pas\n« un cadeau ».\n\nElle veut que **vous l'ayez choisi.**",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-03/photos/d-cadeau.jpg",
+      "length": 7.0
+    }
+  ]
+}
