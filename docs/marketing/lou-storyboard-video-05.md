@@ -86,4 +86,21 @@ Même chaîne que les vidéos 3 et 4 :
 
 Le premier essai du plan 4 a été refusé par le filtre de contenu de fal (rien n'a été facturé). Le prompt a été simplifié, sans le pouce levé.
 
-Reste à faire : voix MIMI, synchro labiale et upscale, montage, puis les vraies captures de l'app aux plans 2 et 3.
+## Synchro labiale : ce qui a marché
+
+| Plan | Outil | Résultat |
+|---|---|---|
+| 1 à 4 | fal `infinitalk` (480p) puis `video-upscaler` ×2 | Bons, 1080 × 1920 |
+| 5 et 6 | fal `infinitalk` | Trois essais : deux dépassements de délai (20 min), puis une vidéo de bruit coloré, sans visage |
+| 5 et 6 | Kie `infinitalk/from-audio` | Deux essais, « ConnectException: Operation timed out », 0 crédit |
+| 5 et 6 | **Kie `kling/ai-avatar-standard`** | **Réussi en 2 à 2,5 min, 36 crédits (plan 5) et 21 crédits (plan 6), 720 × 1280** |
+
+Les plans 5 et 6 sont donc en 720p, mis à l'échelle en 1080 × 1920 au montage, alors que les plans 1 à 4 sont upscalés. La différence est discrète sur mobile. Si besoin, on peut passer les plans 5 et 6 dans `fal-ai/video-upscaler`.
+
+## Montage
+
+→ [`lou/videos/lou-video-05.mp4`](lou/videos/lou-video-05.mp4) : 22,6 s, 1080 × 1920, voix MIMI, son normalisé à −14 LUFS, avec les vraies captures de l'app incrustées aux plans 2 et 3 (option `overlay` de `scripts/lou-montage.py`).
+
+Reste à faire à la publication :
+- un son tendance sous la voix ;
+- l'étiquette IA d'Instagram, plus la ligne « Lou est un personnage créé par IA. » dans la légende.
