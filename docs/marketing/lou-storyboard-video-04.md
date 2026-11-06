@@ -69,3 +69,24 @@ Même chaîne que la vidéo 3 :
 - **Montage** : `scripts/lou-montage.py` avec `lou/montage-video-04.json`.
 
 Le portrait d'artisan, « Les mains derrière », attend un créateur partenaire qui a donné son accord écrit.
+
+---
+
+## Plans générés (voix MIMI, synchro labiale fal, upscalés ×2)
+
+| Plan | Image clé | Upscalé ×2 |
+|---|---|---|
+| 1 L'interpellation | [png](lou/v4/v4-p1.png) | [mp4](https://v3b.fal.media/files/b/0ab15832/6uIZHq25ABGx1SjOi4eJT_uznNjMaI.mp4) |
+| 2 Le dilemme | [png](lou/v4/v4-p2.png) | [mp4](https://v3b.fal.media/files/b/0ab1583a/shUAHKo0sCgul-qPF60Vz_z5jFJAyr.mp4) |
+| 3 La solution | [png](lou/v4/v4-p3.png) | [mp4](https://v3b.fal.media/files/b/0ab1585b/iXguoL1AnuMmJKIO8ynMz_0dNWQAuE.mp4) |
+| 4 La chemise | [png](lou/v4/v4-p4.png) | [mp4](https://v3b.fal.media/files/b/0ab15863/LEDsICHDt3QVB8cy7bYrV_n80AMjAX.mp4) |
+| 5 Le cadeau | [png](lou/v4/v4-p5.png) | [mp4](https://v3b.fal.media/files/b/0ab1587a/rHafJYDscVYie2OBFiPH8_a80DtvDf.mp4) |
+| 6 Le défi | [png](lou/v4/v4-p6.png) | [mp4](https://v3b.fal.media/files/b/0ab1587e/AgZ5sFgedaJmQBbexsnO4_XoGVXXxe.mp4) |
+
+## Montage
+
+→ [`lou/videos/lou-video-04.mp4`](lou/videos/lou-video-04.mp4) : 20,7 s, 1080 × 1920, voix MIMI, son normalisé à −14 LUFS. Aucune retouche nécessaire.
+
+Reste à faire dans CapCut :
+- piste musicale ;
+- vraie capture de l'app sur l'écran du téléphone au plan 3.
