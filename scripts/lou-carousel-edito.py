@@ -1,6 +1,6 @@
 """Lou carousels, 'éditorial' style: full-bleed photos, magazine typography, no paper/tape.
 
-Renders carrousels 01 to 05 into docs/marketing/lou/carrousel-0X/edito/ from the
+Renders carrousels 01 to 07 into docs/marketing/lou/carrousel-0X/edito/ from the
 photos already in each carousel folder. Needs Pillow, the Cormorant fonts in
 docs/marketing/lou/fonts/ and Inter (system font).
 
@@ -128,8 +128,11 @@ def cover(path, total, kicker, title, sub, colors, out):
     c = bleed(path)
     shade(c, 420, strength=245, top=200)
     d = ImageDraw.Draw(c)
-    tf = SERIF_I(136)
     lines = title.split("\n")
+    size = 136
+    while max(SERIF_I(size).getlength(l) for l in lines) > W - 120:
+        size -= 4
+    tf = SERIF_I(size)
     y = H - 300 - len(lines) * 126
     for i, line in enumerate(lines):
         d.text((56, y + i * 126), line, font=tf, fill=IVORY)
@@ -166,6 +169,28 @@ def secret(n, total, kicker, label, title, body, punch, out):
         d.text((x, y), line, font=SERIF(52), fill=IVORY)
         y += 64
     d.text((x, y + 50), "L'Écrin Virtuel", font=SERIF_I(50), fill=GOLD)
+    chrome(c, n, total, kicker)
+    c.convert("RGB").save(out, quality=94)
+
+
+def textslide(n, total, kicker, label, title, lines, out):
+    """Ink slide with copy only, for a step that has no photo (a test, a rule)."""
+    c = Image.new("RGB", (W, H), INK)
+    c = Image.blend(c, Image.merge("RGB", [Image.effect_noise((W, H), 20).convert("L")] * 3), 0.04).convert("RGBA")
+    d = ImageDraw.Draw(c)
+    tracked(d, (64, 300), label, SEMI(22), GOLD, spacing=6)
+    y = 350
+    for line in title.split("\n"):
+        d.text((60, y), line, font=SERIF_I(104), fill=IVORY)
+        y += 108
+    d.line([(64, y + 40), (164, y + 40)], fill=GOLD, width=3)
+    y += 100
+    for k, para in enumerate(lines):
+        d.text((64, y - 6), f"{k + 1}", font=SERIF_I(72), fill=GOLD)
+        for line in wrap(para, MED(38), W - 230):
+            d.text((160, y + 14), line, font=MED(38), fill=(232, 226, 216))
+            y += 54
+        y += 64
     chrome(c, n, total, kicker)
     c.convert("RGB").save(out, quality=94)
 
@@ -283,8 +308,43 @@ def c05(out):
            "Et toi, quel décolleté ?", "Essaie le bon collier sur ta photo.", out / "06-ose.jpg")
 
 
+def c06(out):
+    P = REPO / "carrousel-06" / "photos"
+    k = "LE GUIDE DE LOU · OR OU ARGENT"
+    gold, silver = (212, 175, 55), (192, 192, 200)
+    cover(P / "a-poignets.jpg", 6, k, "Or ou argent ?", "Le test qui prend 10 secondes.", [gold, silver], out / "01-couverture.jpg")
+    textslide(2, 6, k, "LE TEST", "Regarde\nton poignet.",
+              ["Mets-toi près d'une fenêtre, à la lumière du jour.",
+               "Tourne ton poignet et observe la couleur de tes veines.",
+               "Vertes, bleues, ou impossible à dire ? Glisse pour le verdict."], out / "02-le-test.jpg")
+    content(P / "b-or.jpg", 3, 6, k, "VEINES PLUTÔT VERTES", "L'or est ton allié",
+            "Sous-ton chaud : l'or jaune et l'or rose réchauffent ton teint.", [gold, (222, 160, 140)], out / "03-or.jpg")
+    content(P / "c-argent.jpg", 4, 6, k, "VEINES PLUTÔT BLEUES", "Vive l'argent",
+            "Sous-ton froid : l'argent, l'or blanc et le platine illuminent ton teint.", [silver, (235, 235, 240)],
+            out / "04-argent.jpg")
+    content(P / "d-mix.jpg", 5, 6, k, "IMPOSSIBLE À DIRE ?", "Mélange les deux",
+            "Sous-ton neutre : tout te va. Et le mix or + argent, c'est très tendance.", [gold, silver],
+            out / "05-mix.jpg")
+    ending([P / "b-or.jpg", P / "c-argent.jpg", P / "d-mix.jpg"], 6, k, "Toi, c'est lequel ?",
+           "Teste les deux sur ta photo.", out / "06-ose.jpg", pill="Dis-moi en commentaire : or ou argent ?")
+
+
+def c07(out):
+    P = REPO / "carrousel-07" / "photos"
+    k = "LE GUIDE DE LOU · BAGUES"
+    cover(P / "a-stack.jpg", 6, k, "Le stack\nde bagues parfait", "4 règles, zéro faute de goût.", None, out / "01-couverture.jpg")
+    rows = [("b-metal", "Un métal dominant", "Choisis l'or ou l'argent comme base. L'autre ne vient qu'en touche."),
+            ("c-largeurs", "Varie les largeurs", "Un jonc fin, un anneau large, une bague à pierre : c'est le contraste qui fait tout."),
+            ("d-respire", "Laisse respirer", "Garde au moins un doigt nu par main. Le vide met les bagues en valeur."),
+            ("e-piece", "Une seule pièce forte", "Une grosse bague par main, pas plus. C'est la star, les autres l'escortent.")]
+    for i, (f, t, tip) in enumerate(rows):
+        content(P / f"{f}.jpg", i + 2, 6, k, f"RÈGLE N°{i + 1}", t, tip, None, out / f"0{i + 2}-{f[2:]}.jpg")
+    ending([P / "b-metal.jpg", P / "c-largeurs.jpg", P / "e-piece.jpg"], 6, k, "Montre-moi ton stack !",
+           "Essaie de nouvelles bagues sur ta main.", out / "06-ose.jpg", pill="Enregistre ce post pour ton prochain stack")
+
+
 if __name__ == "__main__":
-    jobs = {"01": c01, "02": c02, "03": c03, "04": c04, "05": c05}
+    jobs = {"01": c01, "02": c02, "03": c03, "04": c04, "05": c05, "06": c06, "07": c07}
     for num in sys.argv[1:] or jobs:
         name, fn = f"carrousel-{num}", jobs[num]
         o = REPO / name / "edito"
