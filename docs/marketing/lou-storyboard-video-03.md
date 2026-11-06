@@ -75,3 +75,29 @@
 - **Voix** : V1 MIMI (ElevenLabs), une réplique par plan, dans `lou/voix-mimi/v3-p*.mp3`.
 - **Animation** : `fal-ai/infinitalk` (480p), puis `fal-ai/video-upscaler` (×2).
 - **Montage** : `scripts/lou-montage.py` avec `lou/montage-video-03.json`.
+
+---
+
+## Plans générés (voix MIMI, synchro labiale fal, upscalés ×2)
+
+| Plan | Image clé | 480p | Upscalé ×2 |
+|---|---|---|---|
+| 1 La question | [png](lou/v3/v3-p1.png) | [mp4](https://v3b.fal.media/files/b/0ab14427/_c_w2qK7LzYaFC9nnLZgF_F2C6r3ZZ.mp4) | [mp4](https://v3b.fal.media/files/b/0ab1443d/60uLZ5P_jCcOLL5acpbCb_sVtOHabb.mp4) |
+| 2 L'aveu | [png](lou/v3/v3-p2.png) | [mp4](https://v3b.fal.media/files/b/0ab14431/DAx7aG3U3rjxbrY5fV9c0_L4kOvJwF.mp4) | [mp4](https://v3b.fal.media/files/b/0ab1443e/NFvTLvcWL-UQHkeXo59m2_KjyxedzQ.mp4) |
+| 3 L'essayage | [png](lou/v3/v3-p3.png) | [mp4](https://v3b.fal.media/files/b/0ab14446/t5MRJYI9qAJ3uAWjwZqLR_AdlhhuB5.mp4) | [mp4](https://v3b.fal.media/files/b/0ab1444c/nnyJSo4vt-c-eCVabFvne_r08dBi6v.mp4) |
+| 4 La révélation | [png](lou/v3/v3-p4.png) | [mp4](https://v3b.fal.media/files/b/0ab14552/HFhL-ixzKFO_3We7MNigy_ykfG5Cuy.mp4) | [mp4](https://v3b.fal.media/files/b/0ab14564/ff4F4VrI95itf1He0l5x5_okbBnd3f.mp4) |
+| 5 Sans pression | [png](lou/v3/v3-p5.png) | [mp4](https://v3b.fal.media/files/b/0ab1455d/rRgNOetMmtJNODWhX6l8v_6J2uektI.mp4) | [mp4](https://v3b.fal.media/files/b/0ab14571/UA0TouQhE4Yu7LzbcS7E1_r7wStu0l.mp4) |
+| 6 L'idée cadeau | [png](lou/v3/v3-p6.png) | [mp4](https://v3b.fal.media/files/b/0ab14567/Yfjz7vUHlR7dnpZWqroRo_ufOlkkE1.mp4) | [mp4](https://v3b.fal.media/files/b/0ab14573/OwpNaKYpOxd2es3f3liKy_rUMh72lv.mp4) |
+| 7 Spécial messieurs | [png](lou/v3/v3-p7.png) | [mp4](https://v3b.fal.media/files/b/0ab1457b/F6DlLspXPTGHBryxTglLe_lWSm9Pmk.mp4) | [mp4](https://v3b.fal.media/files/b/0ab14581/BtcCZtz5-lFDI7zmkMMBQ_XHzM4YlK.mp4) |
+
+Au plan 7, le clin d'œil prévu est devenu un sourcil levé, les yeux ouverts : un œil fermé figé sur toute la durée du plan rend mal avec la synchro labiale.
+
+## Montage
+
+→ [`lou/videos/lou-video-03.mp4`](lou/videos/lou-video-03.mp4) : 26,3 s, 1080 × 1920, voix MIMI, son normalisé à −14 LUFS.
+
+Aucune retouche n'a été nécessaire : les images clés ne contiennent aucun texte incrusté.
+
+Reste à faire dans CapCut :
+- piste musicale, avec le « ding » au plan 4 ;
+- vraie capture de l'app sur l'écran du téléphone au plan 3.
