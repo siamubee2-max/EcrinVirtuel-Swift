@@ -14,13 +14,20 @@ Le parti pris : un carnet artisanal plutôt qu'un rendu « IA ». Concrètement 
 | 3 | `03-faits-main.jpg` | Pierres brutes et or fin : « derrière chaque bijou, il y a des mains » |
 | 4 | `04-mon-secret.jpg` | Le secret : une vraie capture de l'app (`docs/appstore/screenshots-framed/01-essayage-framed.png`) |
 | 5 | `05-et-toi.jpg` | L'appel au commentaire : « c'est quoi la couleur que tu n'as jamais osé porter ? » |
-| 6 | `06-ose.jpg` | L'Écrin Virtuel, « Ose. C'est gratuit d'essayer. », App Store et mention IA |
+| 6 | `06-ose.jpg` | L'Écrin Virtuel, « Ose. C'est gratuit d'essayer. », App Store |
 
-La mention « Personnage IA » figure sur chaque visuel. La slide 6 précise aussi que Lou est un personnage créé par IA.
+Aucune mention IA sur les visuels (choix du 6 novembre 2026). L'information passe donc par trois autres canaux, à ne pas oublier :
+- **à la publication**, activer l'étiquette « Informations sur l'IA » d'Instagram (Paramètres avancés → « Ajouter une étiquette IA ») ;
+- **dans la légende**, la dernière ligne ci-dessous ;
+- **dans la bio** de @lou.ecrin, la mention « personnage IA ».
+
+C'est ce qu'exigent l'article 50 du règlement européen sur l'IA, pour un personnage synthétique réaliste, et les règles de Meta.
 
 ## Légende
 
 > Mon carnet de la semaine 📓 Le rouge (enfin), des pierres brutes, et un petit secret pour tout essayer sans cabine. Et toi, c'est quoi la couleur que tu n'as jamais osé porter ? Dis-le-moi en commentaire, je la teste pour toi 🤍
+>
+> Lou est un personnage créé par IA.
 >
 > #LÉcrinVirtuel #CarnetDeLou #FaitMain #BijouxArtisanaux #PierresNaturelles #OseTonStyle #IA
 
