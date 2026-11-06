@@ -1,11 +1,12 @@
 """Lou carousels, 'éditorial' style: full-bleed photos, magazine typography, no paper/tape.
 
-Renders carrousel-04 and carrousel-05 into docs/marketing/lou/carrousel-0X/edito/ from the
+Renders carrousels 01 to 05 into docs/marketing/lou/carrousel-0X/edito/ from the
 photos already in each carousel folder. Needs Pillow, the Cormorant fonts in
 docs/marketing/lou/fonts/ and Inter (system font).
 
-Usage: python3 scripts/lou-carousel-edito.py
+Usage: python3 scripts/lou-carousel-edito.py [01 02 ...]   (default: all)
 """
+import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps
 
@@ -15,6 +16,7 @@ IVORY = (246, 240, 230)
 INK = (20, 18, 17)
 GOLD = (201, 162, 75)
 F = REPO / "fonts"
+SHOT = REPO.parent.parent / "appstore" / "screenshots-framed" / "01-essayage-framed.png"
 INTER = Path("/usr/share/fonts/opentype/inter")
 
 SERIF_I = lambda s: ImageFont.truetype(str(F / "Cormorant-MediumItalic.ttf"), s)
@@ -111,7 +113,10 @@ def content(path, n, total, kicker, label, title, tip, colors, out, ph=960):
     tracked(d, (64, ph - 40), label, SEMI(22), GOLD, spacing=6)
     if colors:
         chips(c, W - 64 - len(colors) * 104 + 12, ph - 50, colors)
-    d.text((60, ph - 10), title, font=SERIF_I(100), fill=IVORY)
+    size = 100
+    while SERIF_I(size).getlength(title) > W - 128:
+        size -= 4
+    d.text((60, ph - 10 + (100 - size) // 2), title, font=SERIF_I(size), fill=IVORY)
     d.line([(64, ph + 120), (164, ph + 120)], fill=GOLD, width=3)
     for i, line in enumerate(wrap(tip, MED(31), W - 128)):
         d.text((64, ph + 146 + i * 44), line, font=MED(31), fill=(232, 226, 216))
@@ -136,7 +141,36 @@ def cover(path, total, kicker, title, sub, colors, out):
     c.convert("RGB").save(out, quality=94)
 
 
-def ending(paths, total, kicker, title, line, out):
+def secret(n, total, kicker, label, title, body, punch, out):
+    """Ink slide: copy on the left, a real App Store screenshot of the app on the right."""
+    c = Image.new("RGB", (W, H), INK)
+    c = Image.blend(c, Image.merge("RGB", [Image.effect_noise((W, H), 20).convert("L")] * 3), 0.04).convert("RGBA")
+    shot = Image.open(SHOT).convert("RGBA")
+    sh = 1040
+    shot = shot.resize((int(shot.width * sh / shot.height), sh), Image.LANCZOS)
+    c.alpha_composite(shot, (W - 50 - shot.width, 160))
+    d = ImageDraw.Draw(c)
+    x, col = 64, W - 64 - shot.width - 80
+    tracked(d, (x, 250), label, SEMI(22), GOLD, spacing=6)
+    y = 300
+    for line in title.split("\n"):
+        d.text((x - 4, y), line, font=SERIF_I(86), fill=IVORY)
+        y += 92
+    d.line([(x, y + 34), (x + 100, y + 34)], fill=GOLD, width=3)
+    y += 70
+    for line in wrap(body, MED(31), col):
+        d.text((x, y), line, font=MED(31), fill=(232, 226, 216))
+        y += 44
+    y += 60
+    for line in punch:
+        d.text((x, y), line, font=SERIF(52), fill=IVORY)
+        y += 64
+    d.text((x, y + 50), "L'Écrin Virtuel", font=SERIF_I(50), fill=GOLD)
+    chrome(c, n, total, kicker)
+    c.convert("RGB").save(out, quality=94)
+
+
+def ending(paths, total, kicker, title, line, out, pill="Enregistre ce post pour ta prochaine tenue"):
     c = Image.new("RGB", (W, H), INK)
     c = Image.blend(c, Image.merge("RGB", [Image.effect_noise((W, H), 20).convert("L")] * 3), 0.04).convert("RGBA")
     tw, th, gap = 300, 375, 26
@@ -150,8 +184,9 @@ def ending(paths, total, kicker, title, line, out):
     d.line([(W / 2 - 50, 880), (W / 2 + 50, 880)], fill=GOLD, width=2)
     d.text((W / 2, 945), "L'Écrin Virtuel", font=SERIF(64), fill=IVORY, anchor="mm")
     tracked(d, (W / 2, 1000), "GRATUIT SUR L'APP STORE", SEMI(22), (200, 192, 180), spacing=6, anchor="m")
-    d.rounded_rectangle([W / 2 - 300, 1130, W / 2 + 300, 1210], radius=40, outline=GOLD, width=2)
-    d.text((W / 2, 1170), "Enregistre ce post pour ta prochaine tenue", font=MED(27), fill=IVORY, anchor="mm")
+    half = MED(27).getlength(pill) / 2 + 50
+    d.rounded_rectangle([W / 2 - half, 1130, W / 2 + half, 1210], radius=40, outline=GOLD, width=2)
+    d.text((W / 2, 1170), pill, font=MED(27), fill=IVORY, anchor="mm")
     chrome(c, total, total, kicker)
     c.convert("RGB").save(out, quality=94)
 
@@ -162,6 +197,58 @@ def sheet(folder, dest):
     for i, t in enumerate(thumbs):
         s.paste(t, (10 + (i % 3) * 370, 10 + (i // 3) * 460))
     s.save(dest, quality=88)
+
+
+def c01(out):
+    P = REPO / "carrousel-01" / "photos"
+    k = "LOU · CETTE SEMAINE"
+    cover(P / "a-sol.jpg", 6, k, "Ce que j'ai\nosé essayer", "Cette semaine, en vrai.", None, out / "01-couverture.jpg")
+    content(P / "b-rouge.jpg", 2, 6, k, "OSÉ N°1", "Le rouge, enfin.",
+            "Dix ans que je me disais «\u00a0c'est pas pour moi\u00a0». Verdict\u00a0? Canon.", [(196, 30, 45)], out / "02-le-rouge.jpg")
+    content(P / "c-mains.jpg", 3, 6, k, "LES BIJOUX", "Faits main",
+            "Des pierres brutes, de l'or fin. Derrière chaque bijou, il y a des mains.", None, out / "03-faits-main.jpg")
+    secret(4, 6, k, "MON SECRET", "1 photo,\net j'essaie tout.", "La robe, la bague, la couleur interdite.",
+           ["Sans cabine.", "Sans vendeuse.", "Sans regret."], out / "04-mon-secret.jpg")
+    content(P / "d-cafe.jpg", 5, 6, k, "À TOI", "Et toi ?",
+            "C'est quoi la couleur que tu n'as jamais osé porter ? Dis-le-moi en commentaire, je la teste pour toi.",
+            None, out / "05-et-toi.jpg")
+    ending([P / "a-sol.jpg", P / "b-rouge.jpg", P / "d-cafe.jpg"], 6, k, "Ose.", "C'est gratuit d'essayer.",
+           out / "06-ose.jpg", pill="Dis-moi ta couleur en commentaire")
+
+
+def c02(out):
+    P = REPO / "carrousel-02" / "photos"
+    k = "LOU · LA BAGUE À 3 000 €"
+    cover(P / "a-bague.jpg", 6, k, "La bague\nà 3 000 €", "Je l'ai essayée… sans entrer en boutique.", None,
+          out / "01-couverture.jpg")
+    content(P / "b-vitrine.jpg", 2, 6, k, "LE MALAISE", "En boutique ?",
+            "J'ose même pas pousser la porte. Le regard du vendeur, le prix qu'on n'ose pas demander… Tu connais\u00a0?",
+            None, out / "02-la-vitrine.jpg")
+    content(P / "c-main.jpg", 3, 6, k, "LE VERDICT", "Ça me va ?",
+            "Ça me va pas ? Au moins, maintenant, je sais.", None, out / "03-je-sais.jpg")
+    secret(4, 6, k, "LE SECRET", "1 photo,\net je sais.",
+           "Le bijou de mes rêves sur ma main, et je vois tout de suite si c'est «\u00a0moi\u00a0».",
+           ["Zéro pression.", "Zéro vendeur.", "Zéro regret."], out / "04-le-secret.jpg")
+    content(P / "d-ecrin.jpg", 5, 6, k, "MESSIEURS", "Prenez des notes.",
+            "Essayez-le sur sa photo avant d'offrir (avec son accord, évidemment).", None, out / "05-messieurs.jpg")
+    ending([P / "a-bague.jpg", P / "c-main.jpg", P / "d-ecrin.jpg"], 6, k, "Ose.", "C'est gratuit d'essayer.",
+           out / "06-ose.jpg", pill="Envoie ce post à qui doit le voir")
+
+
+def c03(out):
+    P = REPO / "carrousel-03" / "photos"
+    k = "LOU · SPÉCIAL MESSIEURS"
+    cover(P / "a-montres.jpg", 6, k, "Spécial\nmessieurs", "Celui-là, c'est pour vous.", None, out / "01-couverture.jpg")
+    content(P / "b-poignet.jpg", 2, 6, k, "LA MONTRE", "Classique ou audacieuse ?",
+            "Arrêtez de deviner. 1 photo de votre poignet, et vous voyez les deux.", None, out / "02-la-montre.jpg")
+    content(P / "c-chemise.jpg", 3, 6, k, "LA CHEMISE", "Bleu cobalt",
+            "Celle que vous n'avez jamais osé porter. Spoiler\u00a0: elle vous va.", [(30, 70, 170)], out / "03-la-chemise.jpg")
+    secret(4, 6, k, "COMMENT ?", "1 photo\nde vous.", "Et vous essayez la montre, la chemise, la chevalière.",
+           ["Pas de vendeur.", "Pas de cabine.", "Pas de risque."], out / "04-comment.jpg")
+    content(P / "d-cadeau.jpg", 5, 6, k, "POUR ELLE", "Et le cadeau ?",
+            "Essayez-le sur sa photo avant d'offrir (avec son accord, évidemment).", None, out / "05-pour-elle.jpg")
+    ending([P / "a-montres.jpg", P / "b-poignet.jpg", P / "c-chemise.jpg"], 6, k, "Allez, osez.",
+           "C'est gratuit d'essayer.", out / "06-osez.jpg", pill="Envoyez ce post à un ami qui hésite")
 
 
 def c04(out):
@@ -197,7 +284,9 @@ def c05(out):
 
 
 if __name__ == "__main__":
-    for name, fn in (("carrousel-04", c04), ("carrousel-05", c05)):
+    jobs = {"01": c01, "02": c02, "03": c03, "04": c04, "05": c05}
+    for num in sys.argv[1:] or jobs:
+        name, fn = f"carrousel-{num}", jobs[num]
         o = REPO / name / "edito"
         o.mkdir(parents=True, exist_ok=True)
         fn(o)

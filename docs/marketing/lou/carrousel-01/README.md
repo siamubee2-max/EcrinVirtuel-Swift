@@ -23,6 +23,16 @@ Aucune mention IA sur les visuels (choix du 6 novembre 2026). L'information pass
 
 C'est ce qu'exigent l'article 50 du règlement européen sur l'IA, pour un personnage synthétique réaliste, et les règles de Meta.
 
+## Version « éditorial » (`edito/`)
+
+Les mêmes six slides existent aussi en style magazine, dans le dossier `edito/` ([planche](edito/planche.jpg)) :
+- la couverture est une photo plein cadre ;
+- les slides de contenu ont la photo en haut et le texte sur un bandeau encre ;
+- la slide 4 montre la capture de l'app sur fond encre ;
+- la dernière slide est sur fond encre.
+
+Il n'y a aucune mention d'IA sur les visuels. Pour les régénérer : `python3 scripts/lou-carousel-edito.py 01 02 03`.
+
 ## Légende
 
 > Mon carnet de la semaine 📓 Le rouge (enfin), des pierres brutes, et un petit secret pour tout essayer sans cabine. Et toi, c'est quoi la couleur que tu n'as jamais osé porter ? Dis-le-moi en commentaire, je la teste pour toi 🤍

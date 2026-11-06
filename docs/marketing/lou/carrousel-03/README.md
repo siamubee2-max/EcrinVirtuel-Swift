@@ -11,6 +11,16 @@ Six visuels Instagram de 1080 × 1350 (4:5), à publier dans l'ordre. Même styl
 | 5 | `05-pour-elle.jpg` | Le paquet cadeau : « Et le cadeau pour elle ? », à essayer sur sa photo avec son accord |
 | 6 | `06-osez.jpg` | L'Écrin Virtuel, « Allez, osez. C'est gratuit d'essayer. », App Store |
 
+## Version « éditorial » (`edito/`)
+
+Les mêmes six slides existent aussi en style magazine, dans le dossier `edito/` ([planche](edito/planche.jpg)) :
+- la couverture est une photo plein cadre ;
+- les slides de contenu ont la photo en haut et le texte sur un bandeau encre ;
+- la slide 4 montre la capture de l'app sur fond encre ;
+- la dernière slide est sur fond encre.
+
+Il n'y a aucune mention d'IA sur les visuels. Pour les régénérer : `python3 scripts/lou-carousel-edito.py 01 02 03`.
+
 ## Légende
 
 > Messieurs, ce carnet est pour vous ⌚ Montre classique ou audacieuse ? Chemise bleu cobalt ? Cadeau pour elle ? Arrêtez de deviner : essayez avant d'acheter. Zéro vendeur, zéro risque.

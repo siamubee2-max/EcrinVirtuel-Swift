@@ -21,7 +21,7 @@ Les mêmes six slides existent dans un second style, plus magazine que carnet, d
 - les étiquettes sont en capitales espacées, avec un filet doré ;
 - la dernière slide est sur fond encre.
 
-Il n'y a aucune mention d'IA sur les visuels. Pour les régénérer : `python3 scripts/lou-carousel-edito.py`.
+Il n'y a aucune mention d'IA sur les visuels. Pour les régénérer : `python3 scripts/lou-carousel-edito.py 04`.
 
 ## Légende
 

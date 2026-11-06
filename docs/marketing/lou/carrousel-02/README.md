@@ -11,6 +11,16 @@ Six visuels Instagram de 1080 × 1350 (4:5), à publier dans l'ordre. Même styl
 | 5 | `05-messieurs.jpg` | L'écrin cadeau : « Messieurs, prenez des notes », à essayer sur sa photo avec son accord |
 | 6 | `06-ose.jpg` | L'Écrin Virtuel, « Ose. C'est gratuit d'essayer. », App Store |
 
+## Version « éditorial » (`edito/`)
+
+Les mêmes six slides existent aussi en style magazine, dans le dossier `edito/` ([planche](edito/planche.jpg)) :
+- la couverture est une photo plein cadre ;
+- les slides de contenu ont la photo en haut et le texte sur un bandeau encre ;
+- la slide 4 montre la capture de l'app sur fond encre ;
+- la dernière slide est sur fond encre.
+
+Il n'y a aucune mention d'IA sur les visuels. Pour les régénérer : `python3 scripts/lou-carousel-edito.py 01 02 03`.
+
 ## Légende
 
 > T'as déjà essayé une bague à 3 000 € ? 💍 Moi, jamais en boutique… alors je l'ai essayée chez moi. Zéro pression, zéro vendeur. Et messieurs : vous pouvez faire pareil avant d'offrir 😉
