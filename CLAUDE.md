@@ -76,6 +76,12 @@ les prix « dès » sont des paliers minimum, pas un tarif comparable à un autr
 Si le moins cher n'a pas le modèle exact, le dire à l'utilisateur au lieu de changer de rendu en silence.
 Les clés ne se lisent, ni ne s'impriment, ni ne se commitent jamais.
 
+**BUDGET SERRÉ : aucune génération payante sans accord explicite.** Avant tout appel qui consomme de l'argent
+(fal, Kie, OpenRouter, Higgsfield, ElevenLabs, HeyGen, n8n qui les appelle), annoncer le coût estimé, le nombre
+d'appels et les relances possibles, puis attendre le « oui » de l'utilisateur. Pas de relance « pour essayer »
+sans accord : une relance se paie aussi. Préférer un seul essai court avant de lancer un lot, et ne jamais
+lancer plusieurs variantes en parallèle. La tâche quotidienne de prix ne génère rien : elle lit seulement des prix.
+
 ## Conventions
 
 - Logging: `os.Logger` (subsystem `com.ecrin.jewelry`, category per feature). No `print()` in production code.
