@@ -83,6 +83,17 @@ def kie_price(table, name):
     return ({"usd": float(m.group(1)), "per": m.group(2), "from": text.startswith("from")}, None) if m else (None, text)
 
 
+def openrouter_discount(model_id):
+    """OpenRouter shows promotions (e.g. "Price 50% off from $0.01 /second") on the model page only."""
+    try:
+        html = get(f"https://openrouter.ai/{model_id}")
+    except Exception:  # noqa: BLE001
+        return 0.0
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", re.sub(r"<script.*?</script>|<style.*?</style>", " ", html, flags=re.S)))
+    m = re.search(r"Price (\d+)% off", text)
+    return int(m.group(1)) / 100 if m else 0.0
+
+
 def openrouter_video(models, mid):
     for m in models:
         if m["id"] == mid:
@@ -118,7 +129,10 @@ def run():
             if p is None:
                 rows.append(("openrouter.ai", None, f"{uc['openrouter_video']} absent"))
             elif per_s is not None:
-                rows.append(("openrouter.ai", per_s, f"{per_s} $ / seconde ({uc['openrouter_video']})"))
+                d = openrouter_discount(uc["openrouter_video"])
+                net = per_s * (1 - d)
+                rows.append(("openrouter.ai", net, f"{net:.4f} $ / seconde ({uc['openrouter_video']}"
+                             + (f", remise {int(d * 100)} % déjà appliquée" if d else ", pas de remise") + ")"))
             elif "video_tokens" in p and usd and usd.get("tok_usd"):
                 est = usd["usd"] * float(p["video_tokens"]) / usd["tok_usd"]  # fal tokens/s x OpenRouter $/token
                 rows.append(("openrouter.ai", est, f"≈ {est:.3f} $ / seconde (720p, ESTIMATION : {p['video_tokens']} $/token x tokens/s déduits de fal)"))
@@ -138,7 +152,29 @@ def run():
         lines.append("| Fournisseur | Prix relevé |\n|---|---|")
         lines += [f"| {p} | {c} |" for p, _, c in rows]
         lines.append(f"\n**Moins cher d'après les prix lisibles : {best}** (réglages à confirmer avant de lancer)" + (f"  \n_{uc['note']}_" if uc.get("note") else "") + "\n")
+    lines.append(_heygen_video_section(or_video))
     return "\n".join(lines)
+
+
+def _heygen_video_section(or_video):
+    """HeyGen Video is promoted at 50 % on OpenRouter (page only; the API lists the full price).
+    The long-duration and some other SKUs are exempt from the discount (isDiscountExempt)."""
+    mid = "heygen/heygen-video-1"
+    p = openrouter_video(or_video, mid)
+    if not p:
+        return ""
+    d = openrouter_discount(mid)
+    out = [f"### Promotion OpenRouter : {mid} (vidéo générale, sans synchro labiale)\n",
+           f"Remise affichée sur la page : {int(d * 100)} %. Prix par seconde (plein tarif → remisé) :\n",
+           "| Résolution | Plein tarif | Remisé |", "|---|---|---|"]
+    for res in ("480p", "768p", "1080p", "2K"):
+        v = p.get(f"duration_seconds_{res.lower()}")
+        if v:
+            out.append(f"| {res} | {float(v):.3f} $ | {float(v) * (1 - d):.3f} $ |")
+    out.append("\n_Les tarifs « longue durée » et « références » ne sont pas tous remisés (page : isDiscountExempt). "
+               "Ce modèle n'a pas d'étape de synchro labiale : il ne remplace pas Kling Avatar. "
+               "Remise lue sur la page web, à confirmer sur la facture du premier essai._\n")
+    return "\n".join(out)
 
 
 def main():
