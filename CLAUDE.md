@@ -65,6 +65,17 @@ compare its printed grid against the ASC product pages by hand.
 - **Weather attribution**: Open-Meteo credit shown in `LookDuJourCard` (data source disclosure).
 - **DEV skip-login** in `LoginView` is `#if DEBUG` only (stripped from Release).
 
+## Génération d'images et de vidéos : choisir le fournisseur le moins cher
+
+Avant CHAQUE génération d'image ou de vidéo (contenus de Lou), lire le relevé du jour
+`docs/marketing/prix-fournisseurs/AAAA-MM-JJ.md`. S'il n'existe pas encore, le produire :
+`python3 scripts/provider-prices.py`. Il compare fal.ai, kie.ai et openrouter.ai (lecture
+automatique) ; higgsfield.ai se lit via le connecteur Higgsfield (`models_explore`, crédits).
+Utiliser le fournisseur le moins cher POUR LE MÊME MODÈLE et les mêmes réglages (résolution, durée) :
+les prix « dès » sont des paliers minimum, pas un tarif comparable à un autre réglage.
+Si le moins cher n'a pas le modèle exact, le dire à l'utilisateur au lieu de changer de rendu en silence.
+Les clés ne se lisent, ni ne s'impriment, ni ne se commitent jamais.
+
 ## Conventions
 
 - Logging: `os.Logger` (subsystem `com.ecrin.jewelry`, category per feature). No `print()` in production code.
