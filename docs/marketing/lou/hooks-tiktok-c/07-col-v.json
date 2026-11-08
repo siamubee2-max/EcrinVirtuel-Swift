@@ -1,0 +1,20 @@
+{
+  "hook": "Col V ?\nSuis le **V.**",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 3.5,
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/hooks-tiktok-c/assets/colV-gros-plan.jpg",
+      "length": 3.0,
+      "zoom": true
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-05/photos/colV-pendentif.jpg",
+      "length": 5.0,
+      "zoom": true,
+      "caption": "Ton col, c'est lequel ?"
+    }
+  ]
+}

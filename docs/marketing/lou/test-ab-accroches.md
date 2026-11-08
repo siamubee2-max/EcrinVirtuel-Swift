@@ -41,3 +41,26 @@
 | 05 | | | | | | | |
 
 Les 5 premières paires suffisent pour lire une tendance. Les 5 autres servent ensuite à confirmer.
+
+## Test C : la première image
+
+Dans `hooks-tiktok-c/`, le **texte d'accroche est celui de la version A** et seule la **première image** change (durée, légendes de fin et légende TikTok identiques). Compare **C à A** : si le visionnage moyen monte, c'est l'image qui compte. Si c'est B qui bat A, le texte compte.
+
+| # | Première image de A | Première image de C |
+|---|---|---|
+| 01 | bague au doigt (c-main) | gros plan du solitaire (a-bague) |
+| 02 | col rond : sautoir | col V : pendentif |
+| 03 | robe rouge portée (b-rouge) | chemisier rouge et jupe rose (carrousel 04) |
+| 04 | Lou en tenue de pluie (a-pluie) | Lou sur le canapé, pluie à la fenêtre, téléphone en main (image clé vidéo 06) |
+| 05 | or (b-or) | argent (c-argent) |
+| 06 | chemise bleu cobalt (carrousel 03) | chemise bleu cobalt avec la ceinture, dans la penderie (image clé vidéo 06) |
+| 07 | photo entière, visage et pendentif | gros plan sur le décolleté et le pendentif, 3 s, puis la photo entière |
+| 08 | sac et accessoires à plat (b-accessoires) | couverture du carrousel 08 (a-cover) |
+| 09 | rouge + rose | émeraude + cobalt |
+| 10 | pluie | soleil |
+
+**Protocole :** le même que pour A/B : une paire à la fois, le lendemain à la même heure, rien d'autre ne change, 48 h avant de lire les chiffres, décision sur au moins 3 paires. Ne teste pas B et C sur la même accroche en même temps : fais d'abord A contre B, puis A contre C.
+
+**Ordre conseillé :** si ton visionnage moyen reste sous 3 s quel que soit le texte, teste d'abord C (l'image), parce que c'est ce qui arrête le pouce en premier.
+
+Les images clés des vidéos 05 et 06 (accroches 4 et 6) ont une résolution plus élevée que les anciennes photos : elles sont plus nettes en plein écran.

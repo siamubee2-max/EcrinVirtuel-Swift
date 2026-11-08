@@ -1,0 +1,20 @@
+{
+  "hook": "Le **rouge**\nque je n'ai jamais osé.",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 3.0,
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-04/photos/rouge-rose.jpg",
+      "length": 4.5,
+      "zoom": true
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-01/photos/c-mains.jpg",
+      "length": 3.5,
+      "zoom": true,
+      "caption": "Tu oserais ?"
+    }
+  ]
+}

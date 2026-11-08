@@ -1,0 +1,27 @@
+{
+  "hook": "Quel **collier**\npour quel col ?",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 3.0,
+  "signature": "Ton col, c'est lequel ? En commentaire",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-05/photos/colV-pendentif.jpg",
+      "length": 2.7,
+      "zoom": true,
+      "caption": "Col V : un pendentif"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-05/photos/rond-sautoir.jpg",
+      "length": 2.7,
+      "zoom": true,
+      "caption": "Col rond : un sautoir"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-05/photos/bustier-ras.jpg",
+      "length": 2.6,
+      "zoom": true,
+      "caption": "Épaules nues : un ras-du-cou"
+    }
+  ]
+}
