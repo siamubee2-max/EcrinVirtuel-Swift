@@ -7,7 +7,7 @@ Un post par jour ouvré, du lundi au vendredi. Le ton est celui d'une marque qui
 - **Lien :** ne mets pas le lien de l'App Store dans le texte, LinkedIn réduit la portée. Mets-le dans le **premier commentaire**.
 - **Hashtags :** 3 ou 4, en fin de post.
 - **Mention IA :** garde la ligne « Lou est un personnage créé par IA. » dans chaque post où Lou apparaît.
-- **Carrousels :** LinkedIn demande un **PDF** pour un carrousel. Les visuels existent en images (`edito/`) : à assembler en PDF avant de publier.
+- **Carrousels :** LinkedIn demande un **PDF** pour un carrousel. Les PDF sont prêts : `carrousel-02/carrousel-02-linkedin.pdf` et `carrousel-09/carrousel-09-linkedin.pdf` (6 pages chacun).
 - **Premières heures :** réponds aux commentaires dans l'heure.
 
 ---

@@ -77,6 +77,7 @@ Higgsfield (Intone) n'a pas été utilisé : la clé API n'a pas été fournie.
 
 - **Images clés** : `lou/v6/v6-p1..p6.png` (et versions 720 × 1280 `-720.jpg`). Le plan 5 (lunettes) a été refusé deux fois par le filtre de fal (gestes avec les lunettes), puis accepté avec un prompt plus simple.
 - **Synchro labiale** : Kie `kling/ai-avatar-standard`. Kling a incrusté de faux sous-titres illisibles sur les plans 5 et 6 : trois essais pour le plan 6 et le plan 5, le dernier plan 6 est propre. Sur le plan 5, un petit texte restait sur le chemisier : effacé au montage (option `erase`).
+- **Plan 5, flou restant** : l'effacement laisse un léger flou sur les cheveux, à droite de la légende (la légende est remontée pour couvrir le reste). Visible de près. Le supprimer demanderait de regénérer le plan (environ 31 crédits Kie) : à décider selon le budget.
 - **Montage** : [`lou/videos/lou-video-06.mp4`](lou/videos/lou-video-06.mp4), 23,6 s, 1080 × 1920. Capture de la garde-robe incrustée au plan 3.
 - **Pas de capture au plan 2** : la seule capture « Look du jour » est réglée sur « Femme ». À ajouter quand une capture avec « Homme » sera faite sur le simulateur.
 - **À la publication** : son tendance, étiquette IA d'Instagram, ligne « Lou est un personnage créé par IA. » dans la légende.
