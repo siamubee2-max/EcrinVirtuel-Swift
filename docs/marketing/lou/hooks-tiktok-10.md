@@ -25,7 +25,7 @@ Lou est un personnage créé par IA.
 
 ## 2. Avant / après le collier
 
-- **Texte à l'écran (0 à 2 s) :** « Ma photo. La même avec le **collier.** »
+- **Texte à l'écran (0 à 2 s) :** « Quel **collier** pour quel col ? » (réécrit au montage : je n'ai pas de photo « avant » de Lou sans collier)
 - **Voix MIMI (facultative) :** « Ma photo. Et la même, avec le collier. »
 - **Première image :** Écran partagé : capture de l'essayage (../../appstore/screenshots-framed/01-essayage-framed.png) à gauche, carrousel-05/photos/colV-pendentif.jpg à droite
 - **Second plan (2 à 6 s) :** carrousel-05/photos/bustier-ras.jpg (autre collier)
@@ -100,7 +100,7 @@ Lou est un personnage créé par IA.
 
 ## 7. Le collier qui ne va pas
 
-- **Texte à l'écran (0 à 2 s) :** « Ce collier ne va **pas** avec un col V. »
+- **Texte à l'écran (0 à 2 s) :** « Col V ? Suis le **V.** » (réécrit au montage : seule l'affirmation positive du carrousel 05 est montrée)
 - **Voix MIMI (facultative) :** « Ce collier ne va pas avec un col V. Celui-là, si. »
 - **Première image :** carrousel-05/photos/rond-sautoir.jpg (le mauvais choix)
 - **Second plan (2 à 6 s) :** carrousel-05/photos/colV-pendentif.jpg (le bon choix)
@@ -157,3 +157,22 @@ Pluie, soleil, froid : 3 tenues choisies par mon appli 🌦️ Laquelle tu prend
 Lou est un personnage créé par IA.
 #LÉcrinVirtuel #LookDuJour #Météo #IA
 ```
+
+## Vidéos montées (8 s, sans voix)
+
+Montées avec `scripts/lou-punchline.py`, à partir des plans `hooks-tiktok/NN-nom.json`. Gratuit, aucune génération. Les textes à l'écran de deux accroches diffèrent du tableau ci-dessus (2 et 7, voir les notes).
+
+| # | Fichier |
+|---|---|
+| 1 | `hooks-tiktok/01-bague-3000.mp4` |
+| 2 | `hooks-tiktok/02-quel-collier.mp4` |
+| 3 | `hooks-tiktok/03-le-rouge.mp4` |
+| 4 | `hooks-tiktok/04-il-pleut.mp4` (proche de la punchline 21) |
+| 5 | `hooks-tiktok/05-or-ou-argent.mp4` |
+| 6 | `hooks-tiktok/06-messieurs-chemise.mp4` |
+| 7 | `hooks-tiktok/07-col-v.mp4` |
+| 8 | `hooks-tiktok/08-le-sac.mp4` |
+| 9 | `hooks-tiktok/09-couleur-interdite.mp4` |
+| 10 | `hooks-tiktok/10-trois-tenues.mp4` |
+
+Le texte d'accroche reste sur l'image environ 3 s, puis les légendes prennent le relais. Sur quelques photos (2, 5, 7, 9) il passe près du menton ; si ça gêne, on peut le descendre avec `hook_margin_v` dans le plan JSON et remonter la vidéo.

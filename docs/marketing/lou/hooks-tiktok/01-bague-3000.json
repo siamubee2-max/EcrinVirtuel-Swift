@@ -1,0 +1,20 @@
+{
+  "hook": "Cette bague à **3 000 €**\nest sur ma main.",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 3.0,
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-02/photos/c-main.jpg",
+      "length": 3.5,
+      "zoom": true
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-02/photos/a-bague.jpg",
+      "length": 4.5,
+      "zoom": true,
+      "caption": "Tu la porterais ?"
+    }
+  ]
+}
