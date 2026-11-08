@@ -1,0 +1,26 @@
+{
+  "hook": "**Or** ou **argent ?**\nRegarde ma peau.",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 2.5,
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-06/photos/c-argent.jpg",
+      "length": 2.25,
+      "zoom": true,
+      "caption": "Argent"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-06/photos/b-or.jpg",
+      "length": 2.25,
+      "zoom": true,
+      "caption": "Or"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-06/photos/d-mix.jpg",
+      "length": 1.5,
+      "zoom": true,
+      "caption": "Les deux ?"
+    }
+  ]
+}
