@@ -7,7 +7,7 @@ Stock disponible : 40 contenus.
 
 Le planning en consomme 28 : les 5 vidéos, les 9 carrousels et 14 punchlines. Il reste 12 punchlines en réserve.
 
-Les légendes et hashtags de chaque post sont dans [`publication-14-jours.md`](publication-14-jours.md) (version Instagram) et [`publication-tiktok-14-jours.md`](publication-tiktok-14-jours.md) (version TikTok courte) ; les stories sont dans [`publication-stories-14-jours.md`](publication-stories-14-jours.md).
+Les légendes et hashtags de chaque post sont dans [`publication-14-jours.md`](publication-14-jours.md) (version Instagram) et [`publication-tiktok-14-jours.md`](publication-tiktok-14-jours.md) (version TikTok courte) ; les stories sont dans [`publication-stories-14-jours.md`](publication-stories-14-jours.md), et la semaine LinkedIn dans [`publication-linkedin-semaine.md`](publication-linkedin-semaine.md).
 
 ## Horaires
 
