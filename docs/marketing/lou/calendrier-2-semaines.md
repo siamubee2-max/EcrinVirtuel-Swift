@@ -7,6 +7,8 @@ Stock disponible : 40 contenus.
 
 Le planning en consomme 28 : les 5 vidéos, les 9 carrousels et 14 punchlines. Il reste 12 punchlines en réserve.
 
+Les légendes et hashtags de chaque post sont dans [`publication-14-jours.md`](publication-14-jours.md).
+
 ## Horaires
 
 - **Midi (12 h 30)** : une punchline, format court et léger. C'est la pause déjeuner, le scroll est rapide. Elle sert aussi de **bande-annonce** : elle annonce le sujet du contenu du soir.
