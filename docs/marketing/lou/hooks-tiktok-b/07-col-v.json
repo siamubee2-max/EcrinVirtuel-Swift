@@ -1,0 +1,15 @@
+{
+  "hook": "Le **pendentif**\nqui suit ton col V.",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 3.5,
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-05/photos/colV-pendentif.jpg",
+      "length": 8.0,
+      "zoom": true,
+      "caption": "Ton col, c'est lequel ?"
+    }
+  ]
+}
