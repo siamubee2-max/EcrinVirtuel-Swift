@@ -24,7 +24,7 @@ Les analyses de TikTok et d'Instagram montrent que les gens décrochent à la 1�
 
 À publier à la place des versions longues pour tester : un seul changement (l'ouverture), puis comparer le **visionnage moyen** (objectif : plus de 6 s). Les versions longues restent disponibles.
 
-Les 10 accroches TikTok prêtes à tourner (texte, images, légende) sont dans [`hooks-tiktok-10.md`](hooks-tiktok-10.md).
+Les 10 accroches TikTok prêtes à tourner (texte, images, légende) sont dans [`hooks-tiktok-10.md`](hooks-tiktok-10.md), et leur version stories Instagram (6 s, zones de sécurité, stickers) dans [`stories-hooks-10.md`](stories-hooks-10.md).
 
 ## Horaires
 
