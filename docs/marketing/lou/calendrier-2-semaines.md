@@ -24,6 +24,8 @@ Les analyses de TikTok et d'Instagram montrent que les gens décrochent à la 1�
 
 À publier à la place des versions longues pour tester : un seul changement (l'ouverture), puis comparer le **visionnage moyen** (objectif : plus de 6 s). Les versions longues restent disponibles.
 
+Les 10 accroches TikTok prêtes à tourner (texte, images, légende) sont dans [`hooks-tiktok-10.md`](hooks-tiktok-10.md).
+
 ## Horaires
 
 - **Midi (12 h 30)** : une punchline, format court et léger. C'est la pause déjeuner, le scroll est rapide. Elle sert aussi de **bande-annonce** : elle annonce le sujet du contenu du soir.
