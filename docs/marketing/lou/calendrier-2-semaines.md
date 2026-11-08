@@ -9,6 +9,21 @@ Le planning en consomme 28 : les 5 vidéos, les 9 carrousels et 14 punchlines. I
 
 Les légendes et hashtags de chaque post sont dans [`publication-14-jours.md`](publication-14-jours.md) (version Instagram) et [`publication-tiktok-14-jours.md`](publication-tiktok-14-jours.md) (version TikTok courte) ; les stories sont dans [`publication-stories-14-jours.md`](publication-stories-14-jours.md), et la semaine LinkedIn dans [`publication-linkedin-semaine.md`](publication-linkedin-semaine.md).
 
+## Versions « accroche » des vidéos
+
+Les analyses de TikTok et d'Instagram montrent que les gens décrochent à la 1ʳᵉ ou 2ᵉ seconde (visionnage moyen de 2,4 à 5,2 s). Chaque vidéo longue a donc une **version accroche** de 9 à 11 s, remontée à partir des mêmes clips : on ouvre sur le plan « résultat » avec un texte d'accroche, puis un plan d'explication, puis le carton final (2 s). Rien n'a été regénéré.
+
+| Vidéo | Fichier | Durée | Ouvre sur |
+|---|---|---|---|
+| 01 | `videos/lou-video-01-hook.mp4` | 11,2 s | Lou en robe rouge, collier, montre |
+| 02 | `videos/lou-video-02-hook.mp4` | 9,0 s | La robe rouge en pied |
+| 03 | `videos/lou-video-03-hook.mp4` | 9,9 s | La bague au doigt |
+| 04 | `videos/lou-video-04-hook.mp4` | 9,1 s | Les deux montres en main |
+| 05 | `videos/lou-video-05-hook.mp4` | 8,8 s | Le trench, puis la vraie capture « Look du jour » |
+| 06 | `videos/lou-video-06-hook.mp4` | 10,8 s | La veste devant le miroir |
+
+À publier à la place des versions longues pour tester : un seul changement (l'ouverture), puis comparer le **visionnage moyen** (objectif : plus de 6 s). Les versions longues restent disponibles.
+
 ## Horaires
 
 - **Midi (12 h 30)** : une punchline, format court et léger. C'est la pause déjeuner, le scroll est rapide. Elle sert aussi de **bande-annonce** : elle annonce le sujet du contenu du soir.

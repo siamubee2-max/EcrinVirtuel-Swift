@@ -1,0 +1,20 @@
+{
+  "title": "Lou — Vidéo 03 « Le bijou à 3 000 € » (version accroche)",
+  "shots": [
+    {
+      "src": "https://v3b.fal.media/files/b/0ab14564/ff4F4VrI95itf1He0l5x5_okbBnd3f.mp4",
+      "caption": "Cette bague à **3 000 €** est sur ma main."
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab14581/BtcCZtz5-lFDI7zmkMMBQ_XHzM4YlK.mp4",
+      "caption": "Messieurs,\n**prenez des notes**"
+    }
+  ],
+  "end_card": {
+    "length": 2.0,
+    "brand": "L'Écrin Virtuel",
+    "tagline": "Ose. C'est gratuit d'essayer.",
+    "store": "Disponible sur l'App Store",
+    "disclosure": "Lou est un personnage créé par IA"
+  }
+}
