@@ -1,0 +1,19 @@
+{
+  "hook": "Sac, lunettes, ceinture :\n**j'essaie** avant.",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 2.5,
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-08/photos/b-accessoires.jpg",
+      "length": 3.38,
+      "zoom": true
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-08/photos/a-cover.jpg",
+      "length": 2.62,
+      "zoom": true,
+      "caption": "Et toi ?"
+    }
+  ]
+}

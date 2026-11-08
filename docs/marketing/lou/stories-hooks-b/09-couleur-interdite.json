@@ -1,0 +1,26 @@
+{
+  "hook": "Dis-moi ta couleur **interdite.**\nJe la teste.",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 2.5,
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-04/photos/rouge-rose.jpg",
+      "length": 2.03,
+      "zoom": true,
+      "caption": "Rouge + rose"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-04/photos/violet-gris.jpg",
+      "length": 2.03,
+      "zoom": true,
+      "caption": "Violet + gris"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-04/photos/vert-cobalt.jpg",
+      "length": 1.95,
+      "zoom": true,
+      "caption": "Émeraude + cobalt"
+    }
+  ]
+}

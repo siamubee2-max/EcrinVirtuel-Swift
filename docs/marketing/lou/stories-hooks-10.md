@@ -27,3 +27,17 @@ Une vidéo de **6 s** par accroche, dans `stories-hooks/`. Même photos et même
 3. **Le lendemain :** réponds en story aux réponses de la boîte à questions. Les meilleures réponses nourrissent la semaine suivante (par exemple « Ta couleur interdite ? »).
 
 Les stories durent 24 h. Elles ne remplacent pas la publication du Reel : elles servent à faire réagir les abonnés et à envoyer vers l'App Store.
+
+## Variantes B (test A/B)
+
+Les versions B sont dans `stories-hooks-b/` : mêmes photos, même durée (6 s), mêmes zones de sécurité et mêmes stickers que la version A. **Seul le texte d'accroche change**, avec les mêmes formulations que les variantes B de TikTok (voir `test-ab-accroches.md`).
+
+**Protocole :** poste A un jour et B le lendemain à la même heure, avec **le même sticker**, sans rien changer d'autre. Alterne qui passe en premier.
+
+**À relever dans les statistiques de la story (Instagram, « Voir les statistiques »)**, au bout de 24 h :
+- **Sorties** : combien de personnes quittent la story. C'est l'équivalent de l'abandon : moins il y en a, mieux c'est.
+- **Passages à la story suivante** (taps en avant) : trop nombreux, c'est un signe de lassitude.
+- **Réponses au sticker** (votes, réponses à la question).
+- **Portée** : le nombre de comptes touchés.
+
+**Comment décider :** comme pour TikTok, un seul résultat ne prouve rien. Compare sur **au moins 3 paires**, et regarde d'abord les **sorties** et les **réponses au sticker**. Avec un petit compte, les chiffres sont faibles : ne conclus pas sur 10 personnes de différence.
