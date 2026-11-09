@@ -1,0 +1,21 @@
+{
+  "title": "Lou — Quelle boucle te ressemble ? (version virale)",
+  "shots": [
+    {"src": "docs/marketing/lou/boucles/clips/s1.mp4", "caption": ""},
+    {"src": "docs/marketing/lou/boucles/clips/s2.mp4", "caption": "le même **visage**"},
+    {"src": "docs/marketing/lou/boucles/clips/s3.mp4", "caption": "les **puces** : discrète"},
+    {"src": "docs/marketing/lou/boucles/clips/s4.mp4", "caption": "les **créoles** XXL : assumée"},
+    {"src": "docs/marketing/lou/boucles/clips/s5.mp4", "caption": "les **perles** : romantique"},
+    {"src": "docs/marketing/lou/boucles/clips/s6.mp4", "caption": "les **géométriques**"},
+    {"src": "docs/marketing/lou/boucles/clips/s7.mp4", "caption": "l'**intouchable**"},
+    {"src": "docs/marketing/lou/boucles/clips/s8.mp4", "caption": "**laquelle** te ressemble ?"},
+    {"src": "docs/marketing/lou/boucles/clips/s9.mp4", "caption": "essaie-les sur **ta photo**"}
+  ],
+  "end_card": {
+    "length": 2.0,
+    "brand": "L'Écrin Virtuel",
+    "tagline": "Ose. C'est gratuit d'essayer.",
+    "store": "Disponible sur l'App Store",
+    "disclosure": "Lou est un personnage créé par IA"
+  }
+}
