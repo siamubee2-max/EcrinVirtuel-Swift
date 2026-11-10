@@ -47,7 +47,7 @@ const PACK_CREDITS: Record<string, number> = {
   // l'utilisatrice reçoit réellement, l'app ne fait que les afficher.
   "ecrin_credits_spark":    10,   //  2,99 € -> 0,299 €/crédit
   "ecrin_credits_eclat":    40,   // 10,99 € -> 0,275 €/crédit  (était 70 à 16,99 €)
-  "ecrin_credits_diamant": 140,   // 29,99 € -> 0,214 €/crédit  (était 150)
+  "ecrin_credits_diamant": 150,   // 29,99 € -> 0,200 €/crédit  (140 du 31/08 au 10/11/2026 ; ASC annonce 150)
   // Retiré de la vente : à 7,99 € pour 30 crédits (0,266 €/cr) il se plaçait
   // entre Essentiel et Éclat et cassait la décroissance du prix unitaire.
   // La correspondance reste pour créditer un achat encore en vol.

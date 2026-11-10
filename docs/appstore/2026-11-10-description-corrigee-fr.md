@@ -12,7 +12,7 @@ Relevé sur la fiche publique (`https://apps.apple.com/fr/app/id6760768389`) le 
 | Premium — 9,99 €/mois | 14,99 €/mois (affiché « Signature ») |
 | Elite : « Essayages illimités » | 100 crédits par mois (`revenuecat-webhook`) |
 | Packs 30 crédits 7,99 € et 70 crédits 16,99 € | n'existent plus : 40 crédits à 10,99 € |
-| 150 crédits — 29,99 € | le serveur crédite 140 (`VALID_PACKS`) |
+| 150 crédits — 29,99 € | le serveur créditait 140 : repassé à 150 dans le code le 10/11/2026 (à déployer) |
 | « Sécurité Face ID / Touch ID » | aucun code biométrique trouvé dans l'app |
 | « Mode hors-ligne » des favoris | non trouvé dans le code (seule la météo gère l'absence de réseau) |
 | Liens `/privacy`, `/terms`, `/faq` | erreur 404 ; les bons sont sous `/ecrin/…html` |
@@ -50,7 +50,7 @@ Le paiement est débité sur votre compte Apple à la confirmation de l'achat. L
 PACKS DE CRÉDITS (achat unique)
 • Spark — 10 crédits — 2,99 €
 • Éclat — 40 crédits — 10,99 €
-• Diamant — 140 crédits — 29,99 €
+• Diamant — 150 crédits — 29,99 €
 
 Les prix sont indiqués pour la France et peuvent varier selon le pays.
 
@@ -63,7 +63,7 @@ Assistance : https://inferencevision.store/ecrin/support.html
 
 ## À vérifier avant de coller (je ne vois pas App Store Connect)
 
-1. **Diamant : 140 ou 150 ?** Le produit s'appelle « Diamant — 150 Crédits » sur l'App Store, le serveur en crédite 140. Choisir une valeur et aligner les deux : renommer le produit dans App Store Connect (140), ou passer `VALID_PACKS` et `CreditsPack.all` à 150 puis relancer `python3 scripts/check-pricing-consistency.py`. Le texte ci-dessus dit 140.
+1. **Diamant : 150 (décidé le 10/11/2026).** Le code (app, serveur, sandbox) est repassé à 150 pour correspondre au produit « Diamant — 150 Crédits » d'App Store Connect. **Tant que les deux fonctions `credit-generations` et `revenuecat-webhook` ne sont pas redéployées sur Supabase, le serveur crédite encore 140.**
 2. **Prix annuels, Elite et Édition Fondateur :** ils viennent de `EcrinVirtuel.storekit`. La fiche publique ne les listait pas : confirmer qu'ils sont en vente et à ces prix, sinon retirer les lignes.
 3. **« sans expiration »** des packs : retiré, je n'ai pas vérifié que les crédits n'expirent jamais.
 4. **Face ID et mode hors-ligne :** retirés, faute de les trouver dans le code. À remettre seulement s'ils existent vraiment.

@@ -126,7 +126,7 @@ final class PaywallViewModel: ObservableObject {
     ///   6,99 €  Essentiel            25 cr  -> 0,280 €/cr
     ///  10,99 €  Éclat (pack)         40 cr  -> 0,275 €/cr
     ///  14,99 €  Signature            60 cr  -> 0,250 €/cr
-    ///  29,99 €  Diamant (pack)      140 cr  -> 0,214 €/cr
+    ///  29,99 €  Diamant (pack)      150 cr  -> 0,200 €/cr
     ///
     /// Ce qui a été RETIRÉ, et pourquoi :
     /// - Elite mensuel (100 cr, 29,99 €) était strictement dominé par le pack
@@ -141,7 +141,7 @@ final class PaywallViewModel: ObservableObject {
     ///   une dette perpétuelle irréversible.
     ///
     /// Aucun badge « meilleure offre ». Signature bat Essentiel au crédit
-    /// (0,250 contre 0,280) mais pas le pack Diamant (0,214) : toute mention
+    /// (0,250 contre 0,280) mais pas le pack Diamant (0,200) : toute mention
     /// de « meilleure » serait fausse quelque part, et c'est exactement le
     /// défaut qui a fait retirer la version précédente.
     // Non privé : le test qui verrouille la monotonie de l'échelle doit
