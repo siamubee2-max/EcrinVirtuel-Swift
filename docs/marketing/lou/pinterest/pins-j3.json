@@ -1,0 +1,5 @@
+{"pins": [
+ {"photo": "docs/marketing/lou/carrousel-04/photos/rouge-rose.jpg", "title": "Rouge et rose : la combinaison qu'on n'ose pas", "sub": "Teste-la sur ta photo avant de la porter.", "out": "docs/marketing/lou/pinterest/j3-pin-1-rouge-rose.jpg", "zoom": 1.03},
+ {"photo": "docs/marketing/lou/carrousel-04/photos/violet-gris.jpg", "title": "Violet et gris : plus facile qu'il n'y paraît", "sub": "Une couleur que tu évites ? Regarde-la sur toi.", "out": "docs/marketing/lou/pinterest/j3-pin-2-violet-gris.jpg", "zoom": 1.03},
+ {"photo": "docs/marketing/lou/carrousel-04/photos/vert-cobalt.jpg", "title": "Vert émeraude et bleu cobalt : ose le duo", "sub": "Essaie les couleurs avant d'acheter.", "out": "docs/marketing/lou/pinterest/j3-pin-3-vert-cobalt.jpg", "zoom": 1.03}
+]}
