@@ -18,6 +18,9 @@ Choisir un bijou ou un vêtement sans l'essayer, on ne sait jamais si ça va nou
 **4. La démo**
 Voilà comment ça marche. Un : tu choisis une photo de toi. Deux : tu choisis une pièce, une bague, un collier, des boucles d'oreilles ou un vêtement. Trois : l'application place la pièce sur ta photo. Et quatre : si tu hésites entre deux pièces, tu les compares côte à côte.
 
+**4 bis. Photographier une pièce (nouveau)**
+Et tu n'es pas limité au catalogue. Une bague en vitrine, des boucles d'oreilles dans un magazine, un collier porté par quelqu'un que tu admires ? Photographie la pièce, et l'application la place sur toi, sur ta photo ou sur celle que tu viens de prendre, pour voir tout de suite ce que ça donne.
+
 **5. Mon Écrin et le styliste**
 Tes essais préférés se gardent dans Mon Écrin, ton garde-bijoux virtuel. Et le styliste te propose un look adapté à ta journée et à la météo de ta région.
 
@@ -38,6 +41,7 @@ Le lien est dans la description. Dis-moi en commentaire la couleur ou le bijou q
 | 2 | Page d'accueil `inferencevision.store`, puis `/ecrin/` |
 | 3 | Photos de Lou (carrousel 02) |
 | 4 | Enregistrement d'écran de l'iPhone ; à défaut, les captures `docs/appstore/screenshots-framed/` |
+| 4 bis | Enregistrement d'écran à filmer : photographier une pièce, puis le résultat sur sa photo (aucune image de cette fonction dans les deux enregistrements reçus) |
 | 5 | Captures Mon Écrin et Look du jour |
 | 6 | Page « Comment l'IA fonctionne » de `/ecrin/` |
 | 7 | Écran des offres de l'app |
