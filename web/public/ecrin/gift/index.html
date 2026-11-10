@@ -1,61 +1,202 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Un cadeau vous attend — L'Écrin Virtuel</title>
-  <meta name="description" content="Quelqu'un vous a envoyé un bijou à essayer virtuellement avec L'Écrin Virtuel.">
-  <!-- Une fois l'app publiée, activer la Smart App Banner en remplaçant APP_ID :
-       <meta name="apple-itunes-app" content="app-id=APP_ID"> -->
-  <style>
-    :root { --gold: #C9A227; --bg: #0B0B0D; --ivory: #F5EFE6; --muted: #8A857C; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: var(--bg); color: var(--ivory); min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      text-align: center; padding: 24px;
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Un cadeau vous attend — L'Écrin Virtuel</title>
+<meta name="description" content="Quelqu'un vous a offert un cadeau sur L'Écrin Virtuel. Ouvrez-le dans l'application.">
+<meta name="robots" content="noindex, nofollow">
+
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Un cadeau vous attend 🎁">
+<meta property="og:description" content="Quelqu'un vous a offert un cadeau sur L'Écrin Virtuel.">
+<meta property="og:locale" content="fr_FR">
+
+<style>
+  :root {
+    --ink:      #2b2118;
+    --ink-soft: #6b5c4d;
+    --gold:     #b8893b;
+    --gold-dk:  #8f6626;
+    --cream:    #fdfaf5;
+    --card:     #ffffff;
+    --line:     #ece3d6;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background:
+      radial-gradient(120% 90% at 50% -10%, #fff8ec 0%, var(--cream) 55%, #f6efe4 100%);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                 "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 40px 30px 32px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(43,33,24,.04),
+                0 12px 40px -12px rgba(43,33,24,.14);
+  }
+  .gift {
+    font-size: 60px;
+    line-height: 1;
+    margin-bottom: 22px;
+    animation: pop .55s cubic-bezier(.2,.9,.3,1.4) both;
+  }
+  @keyframes pop {
+    from { transform: scale(.4) rotate(-12deg); opacity: 0; }
+    to   { transform: scale(1)  rotate(0);      opacity: 1; }
+  }
+  h1 {
+    margin: 0 0 12px;
+    font-size: 27px;
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -.02em;
+  }
+  p.lede {
+    margin: 0 0 28px;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 15px 20px;
+    border: 0;
+    border-radius: 13px;
+    font-size: 16.5px;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .btn:active { transform: scale(.985); }
+  .btn-primary {
+    background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dk) 100%);
+    color: #fff;
+    box-shadow: 0 6px 18px -6px rgba(143,102,38,.6);
+  }
+  .btn-secondary {
+    margin-top: 11px;
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+  .ref {
+    margin-top: 26px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 11.5px;
+    letter-spacing: .04em;
+    color: #a2937f;
+  }
+  .ref code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    word-break: break-all;
+    color: var(--ink-soft);
+  }
+  .hint {
+    margin-top: 16px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #a2937f;
+    min-height: 1.2em;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #f2ece3; --ink-soft: #b3a695; --card: #241d16;
+      --line: #3a3027; --cream: #16110c;
     }
-    .card { max-width: 420px; }
-    .glyph { font-size: 64px; margin-bottom: 24px; }
-    h1 { font-weight: 300; font-size: 28px; letter-spacing: 1px; margin-bottom: 12px; }
-    p  { color: var(--muted); line-height: 1.6; margin-bottom: 28px; }
-    .btn {
-      display: block; text-decoration: none; border-radius: 999px;
-      padding: 16px 32px; margin: 0 auto 14px; max-width: 320px;
-      font-size: 15px; letter-spacing: 0.5px;
-    }
-    .btn-gold  { background: var(--gold); color: #1A1408; font-weight: 600; }
-    .btn-ghost { border: 1px solid rgba(201,162,39,0.4); color: var(--gold); }
-    .brand { margin-top: 40px; color: var(--muted); font-size: 11px; letter-spacing: 3px; }
-    .brand b { color: var(--gold); font-weight: 500; }
-  </style>
+    body { background: radial-gradient(120% 90% at 50% -10%, #221a12 0%, #16110c 60%); }
+    .btn-secondary { background: transparent; }
+  }
+</style>
 </head>
 <body>
-  <div class="card">
-    <div class="glyph">🎁</div>
-    <h1>Un cadeau vous attend</h1>
-    <p>Quelqu'un vous a envoyé un bijou à découvrir et à essayer virtuellement.
-       Ouvrez-le dans l'app L'Écrin Virtuel.</p>
-    <a id="open-app" class="btn btn-gold" href="#">Ouvrir dans l'app</a>
-    <a class="btn btn-ghost" href="https://apps.apple.com/fr/app/id6760768389">Télécharger sur l'App Store</a>
-    <div class="brand">✦ <b>L'ÉCRIN VIRTUEL</b></div>
+
+<main class="card">
+  <div class="gift">🎁</div>
+
+  <h1>Un cadeau vous attend</h1>
+  <p class="lede">
+    Quelqu'un vous a offert un moment précieux sur&nbsp;<strong>L'Écrin&nbsp;Virtuel</strong>.
+    Ouvrez l'application pour le découvrir.
+  </p>
+
+  <a class="btn btn-primary" id="open" href="#">Ouvrir dans l'application</a>
+  <a class="btn btn-secondary" id="store" href="https://inferencevision.store/">
+    Bientôt sur l'App Store
+  </a>
+
+  <p class="hint" id="hint"></p>
+
+  <div class="ref">
+    RÉFÉRENCE DU CADEAU<br>
+    <code id="uuid">—</code>
   </div>
-  <script>
-    // /ecrin/gift/<uuid> → ecrin://gift/<uuid> (fallback quand l'universal link
-    // n'a pas ouvert l'app directement — app absente ou lien collé à la main).
-    (function () {
-      var m = location.pathname.match(/\/gift\/([0-9a-fA-F-]{36})/);
-      var btn = document.getElementById('open-app');
-      if (m) {
-        var deepLink = 'ecrin://gift/' + m[1];
-        btn.href = deepLink;
-        // Tentative d'ouverture automatique : sans effet si l'app est absente.
-        setTimeout(function () { location.href = deepLink; }, 400);
-      } else {
-        btn.style.display = 'none';
-      }
-    })();
-  </script>
+</main>
+
+<script>
+(function () {
+  // ---------------------------------------------------------------
+  // Jour de la publication App Store : renseigner l'ID numerique ici
+  // (ex. APP_STORE_ID = '6501234567') et rien d'autre a modifier.
+  var APP_STORE_ID = '6760768389';
+  // ---------------------------------------------------------------
+
+  // L'uuid est le dernier segment de /ecrin/gift/<uuid>
+  var parts = window.location.pathname.replace(/\/+$/, '').split('/');
+  var uuid  = parts[parts.length - 1] || '';
+
+  var isUuidLike = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
+
+  document.getElementById('uuid').textContent = isUuidLike ? uuid : 'aucune référence détectée';
+
+  var openBtn  = document.getElementById('open');
+  var hint     = document.getElementById('hint');
+  var storeBtn = document.getElementById('store');
+
+  if (APP_STORE_ID) {
+    storeBtn.setAttribute('href', 'https://apps.apple.com/app/id' + APP_STORE_ID);
+    storeBtn.textContent = "Installer L'\u00C9crin Virtuel";
+    var banner = document.createElement('meta');
+    banner.setAttribute('name', 'apple-itunes-app');
+    banner.setAttribute('content', 'app-id=' + APP_STORE_ID);
+    document.head.appendChild(banner);
+  }
+
+  // Schéma personnalisé : utilisé si le universal link n'a pas intercepté
+  var scheme = 'lecrinvirtuel://gift/' + encodeURIComponent(uuid);
+  openBtn.setAttribute('href', scheme);
+
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+              || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  if (!isIOS) {
+    hint.textContent = "L'Écrin Virtuel est disponible sur iPhone et iPad. "
+                     + "Ouvrez ce lien depuis votre appareil Apple.";
+    openBtn.style.display = 'none';
+  } else if (!isUuidLike) {
+    hint.textContent = "Ce lien semble incomplet. Demandez à votre proche de vous le renvoyer.";
+  }
+})();
+</script>
+
 </body>
 </html>
