@@ -1,0 +1,5 @@
+{"pins": [
+ {"photo": "docs/marketing/lou/carrousel-01/photos/a-sol.jpg", "title": "Essayer sans cabine : une photo suffit", "sub": "Bijoux, robes, couleurs : vois-les sur toi avant d'acheter.", "out": "docs/marketing/lou/pinterest/j1-pin-1-sans-cabine.jpg", "focus_y": 0.25},
+ {"photo": "docs/marketing/lou/carrousel-01/photos/b-rouge.jpg", "title": "Le rouge que je n'avais jamais osé", "sub": "Teste une couleur sur toi avant de t'engager.", "out": "docs/marketing/lou/pinterest/j1-pin-2-le-rouge.jpg", "focus_y": 0.2},
+ {"photo": "docs/marketing/lou/carrousel-02/photos/a-bague.jpg", "title": "Cette bague à 3 000 €, essayée sans entrer en boutique", "sub": "Sans vendeur, sans pression : juste ta photo.", "out": "docs/marketing/lou/pinterest/j1-pin-3-la-bague.jpg", "focus_y": 0.15}
+]}
