@@ -2,7 +2,7 @@
 """Build a Pinterest pin (1000x1500, 2:3) from one of Lou's photos.
 
 Usage: python3 scripts/lou-pin.py plan.json
-Plan: {"pins": [{"photo": path, "title": "...", "sub": "...", "out": path, "focus_y": 0.35}]}
+Plan: {"pins": [{"photo": path, "title": "...", "sub": "...", "out": path, "focus_y": 0.35, "zoom": 1.0}]}
 Needs Pillow. Title and sub are burned over a bottom gradient; the AI disclosure
 and brand line are always added.
 """
@@ -35,7 +35,7 @@ def wrap(draw, text, fnt, width):
 
 def build(p):
     img = Image.open(p["photo"]).convert("RGB")
-    scale = max(W / img.width, H / img.height)
+    scale = max(W / img.width, H / img.height) * p.get("zoom", 1.0)
     img = img.resize((round(img.width * scale), round(img.height * scale)), Image.LANCZOS)
     top = int((img.height - H) * p.get("focus_y", 0.35))
     img = img.crop(((img.width - W) // 2, top, (img.width - W) // 2 + W, top + H))
