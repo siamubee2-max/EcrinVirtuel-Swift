@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Assemble the 16:9 YouTube explainer: Lou's MIMI voice-over over app footage.
+"""Assemble the 16:9 YouTube explainer (about 3 min): Lou's MIMI voice-over over app footage.
 
 Usage: python3 scripts/lou-youtube-explainer.py --rec1 A.mp4 --rec2 B.mp4 --site DIR --out out.mp4 [--work DIR]
   --rec1/--rec2 : the two iPhone screen recordings (not stored in the repo: they hold private screens)
-  --site        : folder with site-home/ecrin/ia/prix.png (Playwright captures of inferencevision.store)
-Section boundaries are the pauses of docs/marketing/youtube/voix-lou-video-longue.mp3.
-Vertical footage is centred over a blurred copy of itself. Needs ffmpeg with libass and Pillow.
+  --site        : folder with site-home/ecrin/projets/liste/prix.png (Playwright captures of inferencevision.store)
+The voice is built from pieces of the first take (VOICE_ORIG) and four new blocks (voix-blocs/bloc-A..D.mp3).
+Each piece gets its own visuals (PLAN). Vertical footage is centred over a blurred copy of itself.
+Needs ffmpeg with libass and Pillow.
 """
 import argparse
 import subprocess
@@ -16,29 +17,56 @@ from PIL import Image, ImageDraw, ImageFont
 W, H, FPS = 1920, 1080, 25
 LOU = "docs/marketing/lou/"
 SHOTS = "docs/appstore/screenshots-framed/"
-VOICE = "docs/marketing/youtube/voix-lou-video-longue.mp3"
-# Voice cuts taken from the original take (seconds): sections 1 (without the AI sentence), 2-5, then 7-8.
-VOICE_CUTS = [(0.0, 5.0), (11.54, 55.2), "gap0.4", (67.24, 82.36)]
-B = [0, 5.0, 15.66, 23.43, 40.06, 49.06, 55.82, 64.18]   # section boundaries in the edited voice
-END = 2.5
+YT = "docs/marketing/youtube/"
+ORIG = YT + "voix-lou-video-longue.mp3"
+BLOC = YT + "voix-blocs/bloc-%s.mp3"
+GAP, END = 0.35, 2.5
+
+# (audio file, start, end) ; None = whole file
+PIECES = [
+    ("orig", 0.0, 5.0), ("orig", 11.54, 22.0), ("A", None, None), ("orig", 22.52, 29.75),
+    ("orig", 30.18, 46.39), ("B", None, None), ("orig", 46.79, 55.2), ("C", None, None),
+    ("D", None, None), ("orig", 67.24, 82.36),
+]
+
+# Visuals per piece: list of (weight, kind, args, chip). kind: img path | vid rec src_start src_dur
+PLAN = [
+    [(1, "img", LOU + "carrousel-02/photos/a-bague.jpg", None), (1, "img", LOU + "carrousel-02/photos/c-main.jpg", None)],
+    [(1, "site", "site-home.png", "Un **studio**\\Nindépendant\\Nbelge"), (1, "site", "site-ecrin.png", None)],
+    [(1.0, "site", "site-home.png", "Moins de **bruit**\\Nplus d'**usage**"), (1.2, "site", "site-projets.png", "Des applications\\N**indépendantes**")],
+    [(1, "img", LOU + "carrousel-02/photos/b-vitrine.jpg", "Le **problème**")],
+    [(3.5, "vid", ("rec2", 117, 12), "**1** · Ta photo"), (4.0, "vid", ("rec1", 17, 28), "**2** · Une pièce"),
+     (6.5, "vid", ("rec2", 521, 12), "**3** · Le rendu"), (2.21, "vid", ("rec2", 545, 7), "**4** · Comparer")],
+    [(16.3, "img", SHOTS + "06-quicktryon-framed.png", "**Photographie**\\Nla pièce"),
+     (10.6, "vid", ("rec1", 17, 60), "Bijoux, vêtements,\\N**accessoires**"),
+     (3.75, "vid", ("rec2", 76, 14), "**3 vues** :\\Nface, 3/4, profil"), (3.75, "vid", ("rec2", 205, 14), None),
+     (4.5, "vid", ("rec2", 440, 7), "La **tenue complète**"), (5.2, "vid", ("rec2", 521, 12), None),
+     (4.7, "vid", ("rec2", 545, 7), "**Avant** / **après**"),
+     (4.4, "site", "site-liste.png", "**Côte à côte**")],
+    [(1.0, "vid", ("rec1", 78, 8), "Mon **Écrin**"), (0.9, "img", SHOTS + "05-lookdujour-framed.png", "Le **styliste** météo")],
+    [(7.5, "vid", ("rec1", 93, 13), "Un espace **créateurs**"),
+     (15.5, "img", LOU + "carrousel-01/photos/d-cafe.jpg", "Un mot\\Nd'**honnêteté**"),
+     (6.7, "img", SHOTS + "01-essayage-framed.png", "Comment **commencer**")],
+    [(1, "img", LOU + "carrousel-01/photos/b-rouge.jpg", "Des **idées**\\Npour t'amuser")],
+    [(6.76, "site", "site-prix.png", "**Gratuit**\\Npour découvrir"), (8.36, "img", LOU + "carrousel-01/photos/a-sol.jpg", "Lien dans la\\N**description**")],
+]
 
 
 def run(cmd):
     subprocess.run(cmd, check=True, stderr=subprocess.DEVNULL)
 
 
-def vfilter(fw_expr, src_chain):
-    return (f"{src_chain},split=2[a][b];[a]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
-            f"boxblur=40:6,eq=brightness=-0.12:saturation=0.9[bg];[b]{fw_expr}[fg];"
+def vfilter(fg_expr, chain):
+    return (f"{chain},split=2[a][b];[a]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},"
+            f"boxblur=40:6,eq=brightness=-0.12:saturation=0.9[bg];[b]{fg_expr}[fg];"
             f"[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p")
 
 
 def image_seg(path, dur, out):
     w, h = Image.open(path).size
     fw = round(1000 * w / h / 2) * 2
-    frames = round(dur * FPS)
-    fg = (f"zoompan=z='min(1+0.0005*on,1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={fw}x1000:fps={FPS}")
-    run(["ffmpeg", "-y", "-i", str(path), "-filter_complex", vfilter(fg, "[0:v]format=rgba,fps=25") .replace("[0:v]format=rgba,fps=25,split=2", "[0:v]format=rgba,split=2"),
+    fg = f"zoompan=z='min(1+0.0005*on,1.08)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={round(dur * FPS)}:s={fw}x1000:fps={FPS}"
+    run(["ffmpeg", "-y", "-i", str(path), "-filter_complex", vfilter(fg, "[0:v]format=rgba"),
          "-t", f"{dur:.3f}", "-r", str(FPS), "-c:v", "libx264", "-crf", "18", "-an", str(out)])
 
 
@@ -51,8 +79,7 @@ def video_seg(src, start, src_dur, out_dur, out):
 def end_card(path):
     img = Image.new("RGB", (W, H), (237, 230, 218))
     d = ImageDraw.Draw(img)
-    F = "/usr/share/fonts/opentype/inter/"
-    f = lambda n, s: ImageFont.truetype(F + n, s)
+    f = lambda n, s: ImageFont.truetype("/usr/share/fonts/opentype/inter/" + n, s)
     d.text((W // 2, 420), "L'Écrin Virtuel", font=f("Inter-ExtraBold.otf", 130), fill=(107, 70, 48), anchor="mm")
     d.text((W // 2, 560), "Ose. C'est gratuit d'essayer.", font=f("Inter-ExtraBold.otf", 56), fill=(201, 162, 75), anchor="mm")
     d.text((W // 2, 700), "Disponible sur l'App Store · inferencevision.store/ecrin", font=f("Inter-Medium.otf", 40), fill=(107, 70, 48), anchor="mm")
@@ -60,11 +87,11 @@ def end_card(path):
     img.save(path)
 
 
-def ass_time(t):
+def ts(t):
     return f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:05.2f}"
 
 
-def build_ass(path, total):
+def build_ass(path, chips, total):
     head = f"""[Script Info]
 ScriptType: v4.00+
 PlayResX: {W}
@@ -79,32 +106,16 @@ Style: Label,Inter SemiBold,32,&H00FFFFFF&,&H00FFFFFF&,&H00000000&,&H78000000&,0
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
-    gold = "{\\c&H004BA2C9&}"
-    white = "{\\c&H00FFFFFF&}"
 
-    def chip(text):
+    def fmt(text):
         out, on = "", False
         for part in text.split("**"):
-            out += (gold if on else white) + part
+            out += ("{\\c&H004BA2C9&}" if on else "{\\c&H00FFFFFF&}") + part
             on = not on
         return out
 
-    s4 = B[3]
-    items = [
-        (B[1], B[2], "Un **studio**\\Nindépendant\\Nbelge"),
-        (B[2], B[3], "Le **problème**"),
-        (s4, s4 + 3.5, "**1** · Ta photo"),
-        (s4 + 3.5, s4 + 7.5, "**2** · Une pièce"),
-        (s4 + 7.5, s4 + 14.0, "**3** · Le rendu"),
-        (s4 + 14.0, B[4], "**4** · Comparer"),
-        (B[4], B[4] + 4.4, "Mon **Écrin**"),
-        (B[4] + 4.4, B[5], "Le **styliste**\\Nmétéo"),
-        (B[5], B[6], "**Gratuit**\\Npour découvrir"),
-        (B[6], B[7], "Lien dans la\\N**description**"),
-    ]
-    lines = [f"Dialogue: 0,{ass_time(0)},{ass_time(total - END)},Label,,0,0,0,,Personnage IA"]
-    for a, b, t in items:
-        lines.append(f"Dialogue: 0,{ass_time(a)},{ass_time(b)},Chip,,0,0,0,,{chip(t)}")
+    lines = [f"Dialogue: 0,{ts(0)},{ts(total - END)},Label,,0,0,0,,Personnage IA"]
+    lines += [f"Dialogue: 0,{ts(a)},{ts(b)},Chip,,0,0,0,,{fmt(t)}" for a, b, t in chips]
     Path(path).write_text(head + "\n".join(lines) + "\n")
 
 
@@ -118,53 +129,58 @@ def main():
     a = ap.parse_args()
     w = Path(a.work)
     w.mkdir(parents=True, exist_ok=True)
-    site = Path(a.site)
-    d = [B[i + 1] - B[i] for i in range(7)]
-    segs = []
+    recs, site = {"rec1": a.rec1, "rec2": a.rec2}, Path(a.site)
 
-    def add(name, fn, *args):
-        out = w / f"{name}.mp4"
-        fn(*args, out)
-        segs.append(out)
+    # 1. voice: pieces joined with a short pause
+    inputs, filt, labels, spans = [], [], [], []
+    for i, (name, s, e) in enumerate(PIECES):
+        src = ORIG if name == "orig" else BLOC % name
+        inputs += ["-i", src]
+        dur = e - s if s is not None else float(subprocess.check_output(
+            ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", src]).strip())
+        trim = f"atrim={s}:{e}," if s is not None else ""
+        filt.append(f"[{i}:a]aresample=44100,aformat=channel_layouts=mono,{trim}asetpts=PTS-STARTPTS,"
+                    f"afade=t=in:d=0.02,afade=t=out:st={dur - 0.02:.3f}:d=0.02[v{i}]")
+        labels.append(f"[v{i}]")
+        spans.append(dur)
+        if i < len(PIECES) - 1:
+            filt.append(f"anullsrc=r=44100:cl=mono,atrim=0:{GAP}[g{i}]")
+            labels.append(f"[g{i}]")
+    voice = w / "voice.wav"
+    run(["ffmpeg", "-y", *inputs, "-filter_complex", ";".join(filt) + ";" + "".join(labels) + f"concat=n={len(labels)}:v=0:a=1[o]", "-map", "[o]", str(voice)])
 
-    add("s1a", image_seg, LOU + "carrousel-02/photos/a-bague.jpg", d[0] / 2)
-    add("s1b", image_seg, LOU + "carrousel-02/photos/c-main.jpg", d[0] / 2)
-    add("s2a", image_seg, site / "site-home.png", d[1] / 2)
-    add("s2b", image_seg, site / "site-ecrin.png", d[1] / 2)
-    add("s3", image_seg, LOU + "carrousel-02/photos/b-vitrine.jpg", d[2])
-    add("s4a", video_seg, a.rec2, 117, 12, 3.5)
-    add("s4b", video_seg, a.rec1, 17, 28, 4.0)
-    add("s4c", video_seg, a.rec2, 521, 12, 6.5)
-    add("s4d", video_seg, a.rec2, 545, 7, d[3] - 14.0)
-    add("s5a", image_seg, SHOTS + "02-garderobe-framed.png", 4.4)
-    add("s5b", image_seg, SHOTS + "05-lookdujour-framed.png", d[4] - 4.4)
-    add("s7", image_seg, site / "site-prix.png", d[5])
-    add("s8", image_seg, LOU + "carrousel-01/photos/a-sol.jpg", d[6])
-    end_png = w / "end.png"
+    # 2. visuals: each piece's span (plus the pause after it) is split by weight
+    segs, chips, t = [], [], 0.0
+    for i, (dur, plan) in enumerate(zip(spans, PLAN)):
+        span = dur + (GAP if i < len(PIECES) - 1 else 0)
+        total_w = sum(p[0] for p in plan)
+        for j, (wt, kind, arg, chip) in enumerate(plan):
+            d = span * wt / total_w
+            out = w / f"p{i}_{j}.mp4"
+            if kind == "img":
+                image_seg(arg, d, out)
+            elif kind == "site":
+                image_seg(site / arg, d, out)
+            else:
+                video_seg(recs[arg[0]], arg[1], arg[2], d, out)
+            segs.append(out)
+            if chip:
+                chips.append((t, t + d, chip))
+            t += d
+    end_png, endv = w / "end.png", w / "end.mp4"
     end_card(end_png)
-    endv = w / "end.mp4"
     run(["ffmpeg", "-y", "-loop", "1", "-i", str(end_png), "-t", str(END), "-r", str(FPS), "-vf", "format=yuv420p", "-c:v", "libx264", "-crf", "18", str(endv)])
     segs.append(endv)
     lst = w / "list.txt"
     lst.write_text("".join(f"file '{p.resolve()}'\n" for p in segs))
     body = w / "body.mp4"
     run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(body)])
-    total = B[-1] + END
-    voice = w / "voice-edit.wav"
-    parts, labels = [], []
-    for i, c in enumerate(VOICE_CUTS):
-        if isinstance(c, str):
-            parts.append(f"anullsrc=r=44100:cl=mono,atrim=0:{c[3:]}[p{i}]")
-        else:
-            parts.append(f"[0:a]aresample=44100,aformat=channel_layouts=mono,atrim={c[0]}:{c[1]},asetpts=PTS-STARTPTS,"
-                         f"afade=t=in:d=0.02,afade=t=out:st={c[1] - c[0] - 0.02:.3f}:d=0.02[p{i}]")
-        labels.append(f"[p{i}]")
-    run(["ffmpeg", "-y", "-i", VOICE, "-filter_complex", ";".join(parts) + ";" + "".join(labels) + f"concat=n={len(labels)}:v=0:a=1[o]", "-map", "[o]", str(voice)])
+    total = t + END
     ass = w / "caps.ass"
-    build_ass(ass, total)
-    run(["ffmpeg", "-y", "-i", str(body), "-i", str(voice), "-vf", f"ass={ass}", "-af", f"apad=whole_dur={total},loudnorm=I=-14:TP=-1.5",
+    build_ass(ass, chips, total)
+    run(["ffmpeg", "-y", "-i", str(body), "-i", str(voice), "-vf", f"ass={ass}", "-af", f"apad=whole_dur={total:.2f},loudnorm=I=-14:TP=-1.5",
          "-t", f"{total:.2f}", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(a.out)])
-    print(a.out)
+    print(a.out, round(total, 1))
 
 
 if __name__ == "__main__":
