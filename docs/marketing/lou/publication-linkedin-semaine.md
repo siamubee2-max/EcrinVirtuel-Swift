@@ -32,7 +32,7 @@ Vous, que pensez-vous des personnages virtuels pour une marque ?
 #IA #FashionTech #Marque #StartupFrance
 ```
 
-**Premier commentaire :** « Le lien pour essayer : [lien App Store] »
+**Premier commentaire :** « Le lien pour essayer : https://apps.apple.com/fr/app/id6760768389 »
 
 ---
 
@@ -54,7 +54,7 @@ Quel est, selon vous, le principal frein à l'achat d'un bijou ou d'un vêtement
 #Ecommerce #ExpérienceClient #Bijoux #FashionTech
 ```
 
-**Premier commentaire :** « Essayer gratuitement : [lien App Store] »
+**Premier commentaire :** « Essayer gratuitement : https://apps.apple.com/fr/app/id6760768389 »
 
 ---
 
@@ -76,7 +76,7 @@ Lou est un personnage créé par IA.
 #IA #Mode #ProduitNumérique #FashionTech
 ```
 
-**Premier commentaire :** « Le lien : [lien App Store] »
+**Premier commentaire :** « Le lien : https://apps.apple.com/fr/app/id6760768389 »
 
 ---
 
@@ -133,7 +133,7 @@ Quel format court fonctionne le mieux pour votre marque ?
 #MarketingDigital #ContenuCourt #IA #FashionTech
 ```
 
-**Premier commentaire :** « Essayer L'Écrin Virtuel : [lien App Store] »
+**Premier commentaire :** « Essayer L'Écrin Virtuel : https://apps.apple.com/fr/app/id6760768389 »
 
 ---
 

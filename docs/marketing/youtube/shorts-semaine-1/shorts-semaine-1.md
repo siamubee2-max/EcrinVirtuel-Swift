@@ -22,13 +22,13 @@ Fichiers verticaux 1080 × 1920, de 8 à 14 s, dans ce dossier. Ce sont les mêm
 
 ## Descriptions (à copier)
 
-Remplacez `[lien App Store]` par votre lien. Le lien du site `https://inferencevision.store/ecrin/` est valide ; le bouton App Store n'y est pas encore (voir la fiche Pinterest).
+Remplacez `https://apps.apple.com/fr/app/id6760768389` par votre lien. Le lien du site `https://inferencevision.store/ecrin/` est valide ; le bouton App Store n'y est pas encore (voir la fiche Pinterest).
 
 ### 1 · Je suis Lou
 ```
 Je suis Lou, virtuelle, et j'essaie tout sans cabine : robe rouge, collier, montre. Et toi, tu oserais quoi ? 👇
 Essaie sur ta photo : L'Écrin Virtuel, application iOS gratuite à essayer.
-[lien App Store]
+https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 #Shorts #EssayageVirtuel #Bijoux #OseTonStyle
 ```
@@ -36,7 +36,7 @@ Lou est un personnage créé par IA.
 ```
 Il pleut ? Mon appli a déjà choisi ma tenue. Quel temps chez toi ?
 Essaie sur ta photo : L'Écrin Virtuel, application iOS gratuite à essayer.
-[lien App Store]
+https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 #Shorts #LookDuJour #Météo #EssayageVirtuel
 ```
@@ -44,7 +44,7 @@ Lou est un personnage créé par IA.
 ```
 Dix ans que je me disais « le rouge, c'est pas pour moi ». Regarde.
 Essaie une couleur sur toi avant de t'engager : L'Écrin Virtuel, gratuit à essayer.
-[lien App Store]
+https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 #Shorts #Rouge #OseTonStyle #EssayageVirtuel
 ```
@@ -52,7 +52,7 @@ Lou est un personnage créé par IA.
 ```
 Quel collier pour quel col ? Col rond, col V : l'effet n'est pas le même.
 Essaie sur ta photo : L'Écrin Virtuel, application iOS gratuite à essayer.
-[lien App Store]
+https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 #Shorts #Collier #Bijoux #EssayageVirtuel
 ```
@@ -60,7 +60,7 @@ Lou est un personnage créé par IA.
 ```
 Je mets quoi aujourd'hui ? Ma garde-robe virtuelle et la météo de ma région choisissent pour moi.
 L'Écrin Virtuel : application iOS gratuite à essayer.
-[lien App Store]
+https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 #Shorts #LookDuJour #GardeRobe #Météo
 ```
@@ -68,7 +68,7 @@ Lou est un personnage créé par IA.
 ```
 Même visage, cinq boucles d'oreilles. Laquelle te ressemble ? Dis-moi ton numéro en commentaire. 👇
 Essaie-les sur ta photo : L'Écrin Virtuel, gratuit à essayer.
-[lien App Store]
+https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 #Shorts #BouclesDOreilles #Bijoux #EssayageVirtuel
 ```
@@ -76,14 +76,14 @@ Lou est un personnage créé par IA.
 ```
 Une bague à 3 000 € essayée sans entrer en boutique : sans vendeur, sans pression, juste ma photo.
 Essaie sur la tienne : L'Écrin Virtuel, gratuit à essayer.
-[lien App Store]
+https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 #Shorts #Bague #Bijoux #EssayageVirtuel
 ```
 
 ## Commentaire épinglé (le même partout)
 ```
-Essaie L'Écrin Virtuel gratuitement : [lien App Store]
+Essaie L'Écrin Virtuel gratuitement : https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 ```
 

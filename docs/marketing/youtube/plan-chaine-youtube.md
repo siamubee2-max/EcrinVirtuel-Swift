@@ -48,7 +48,7 @@ Les fichiers sont dans `docs/marketing/lou/` (`videos/`, `hooks-tiktok/`). Descr
 ```
 [Une phrase sur le Short, ex. « Il pleut ? Mon appli a choisi ma tenue. »]
 Essaie-le sur ta photo : L'Écrin Virtuel, application iOS gratuite à essayer.
-[lien App Store]
+https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 #Shorts #EssayageVirtuel #Bijoux #LookDuJour
 ```
@@ -98,7 +98,7 @@ Dans cette vidéo : qui est InferenceVision, ce qu'est L'Écrin Virtuel, et comm
 4:00 Combien ça coûte
 4:30 À toi d'essayer
 
-L'application : [lien App Store]
+L'application : https://apps.apple.com/fr/app/id6760768389
 Le site : https://inferencevision.store/ecrin/
 Confidentialité : https://inferencevision.store/ecrin/privacy.html
 

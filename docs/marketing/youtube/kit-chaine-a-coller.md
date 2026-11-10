@@ -35,7 +35,8 @@ L'Écrin Virtuel : essayer bijoux et vêtements sur ta photo (comment ça marche
 ```
 Qui est InferenceVision, ce qu'est L'Écrin Virtuel, et comment essayer un bijou ou un vêtement sur ta propre photo avant d'acheter.
 
-L'application et le site : https://inferencevision.store/ecrin/
+L'application : https://apps.apple.com/fr/app/id6760768389
+Le site : https://inferencevision.store/ecrin/
 Confidentialité : https://inferencevision.store/ecrin/privacy.html
 
 Lou est un personnage créé par IA.
@@ -52,6 +53,6 @@ Fichiers, titres, descriptions et dates : `shorts-semaine-1/shorts-semaine-1.md`
 
 ## 6. Commentaire à épingler sous chaque vidéo
 ```
-Essaie L'Écrin Virtuel gratuitement : https://inferencevision.store/ecrin/
+Essaie L'Écrin Virtuel gratuitement : https://apps.apple.com/fr/app/id6760768389
 Lou est un personnage créé par IA.
 ```
