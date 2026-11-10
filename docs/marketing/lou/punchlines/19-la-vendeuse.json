@@ -1,0 +1,11 @@
+{
+  "hook": "Moi devant une bijouterie,\nà me demander si j'ai le droit\nde **juste regarder.**",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-02/photos/b-vitrine.jpg",
+      "length": 7.0
+    }
+  ]
+}

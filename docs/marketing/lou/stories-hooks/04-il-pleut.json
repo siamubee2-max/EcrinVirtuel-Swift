@@ -1,0 +1,14 @@
+{
+  "hook": "Il pleut ?\nMon appli a choisi\nma **tenue.**",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 2.5,
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-09/photos/a-pluie.jpg",
+      "length": 6.0,
+      "zoom": true,
+      "caption": "Quel temps chez toi ?"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "hook": "Je n'ai jamais porté\nde bague à 3 000 €.\n\nEnfin… **pas en vrai.**",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-02/photos/c-main.jpg",
+      "length": 7.0
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "hook": "**Or** ou **argent ?**\nRegarde ma peau.",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 3.0,
+  "signature": "Commente 1 pour l'or, 2 pour l'argent",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-06/photos/b-or.jpg",
+      "length": 3.0,
+      "zoom": true,
+      "caption": "Or"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-06/photos/c-argent.jpg",
+      "length": 3.0,
+      "zoom": true,
+      "caption": "Argent"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-06/photos/d-mix.jpg",
+      "length": 2.0,
+      "zoom": true,
+      "caption": "Les deux ?"
+    }
+  ]
+}

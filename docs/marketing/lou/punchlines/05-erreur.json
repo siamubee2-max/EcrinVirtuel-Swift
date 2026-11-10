@@ -1,0 +1,25 @@
+{
+  "hook": "L'erreur n°1 :\nacheter sans avoir essayé",
+  "hook_until": 3.0,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab05cc5/hx2YzMW5pNJgUDoCV3XC5_XQkf8HhI.mp4",
+      "length": 3.08,
+      "caption": "Moi, j'essaie tout\nsans jamais entrer en **cabine.**"
+    },
+    {
+      "image": "docs/appstore/screenshots-framed/01-essayage-framed.png",
+      "length": 1.5,
+      "caption": "**1 photo**, et tu vois tout."
+    }
+  ],
+  "cta": {
+    "length": 2.4,
+    "background": "docs/marketing/lou/carrousel-01/photos/a-sol.jpg",
+    "lines": [
+      "Essaie avant d'acheter",
+      "**C'est gratuit**",
+      "L'Écrin Virtuel · App Store"
+    ]
+  }
+}

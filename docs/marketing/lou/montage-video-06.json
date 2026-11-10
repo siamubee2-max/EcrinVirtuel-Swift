@@ -1,0 +1,44 @@
+{
+  "title": "Lou — Vidéo 06 « Messieurs, je mets quoi ? »",
+  "shots": [
+    {
+      "src": "docs/marketing/lou/v6/clips/p1.mp4",
+      "caption": "je mets **quoi** ?"
+    },
+    {
+      "src": "docs/marketing/lou/v6/clips/p2.mp4",
+      "caption": "la météo **décide**"
+    },
+    {
+      "src": "docs/marketing/lou/v6/clips/p3.mp4",
+      "caption": "votre garde-robe **virtuelle**",
+      "max_length": 5.6,
+      "overlay": {
+        "image": "docs/appstore/screenshots-framed/02-garderobe-framed.png",
+        "height": 900,
+        "x": "right",
+        "y": 260,
+        "from": 1.0
+      }
+    },
+    {
+      "src": "docs/marketing/lou/v6/clips/p4.mp4",
+      "caption": "1 appui = le **look**"
+    },
+    {
+      "src": "docs/marketing/lou/v6/clips/p5d.mp4",
+      "caption": "pas que la **montre**"
+    },
+    {
+      "src": "docs/marketing/lou/v6/clips/p6c.mp4",
+      "caption": "**Osez.**\nC'est gratuit"
+    }
+  ],
+  "end_card": {
+    "length": 2.5,
+    "brand": "L'Écrin Virtuel",
+    "tagline": "Ose. C'est gratuit d'essayer.",
+    "store": "Disponible sur l'App Store",
+    "disclosure": "Lou est un personnage créé par IA"
+  }
+}

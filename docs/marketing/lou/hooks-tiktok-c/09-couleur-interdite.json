@@ -1,0 +1,27 @@
+{
+  "hook": "Ma couleur **interdite :**\nje la teste pour toi.",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 3.0,
+  "signature": "Dis-moi la tienne en commentaire",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-04/photos/vert-cobalt.jpg",
+      "length": 2.7,
+      "zoom": true,
+      "caption": "Émeraude + cobalt"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-04/photos/rouge-rose.jpg",
+      "length": 2.7,
+      "zoom": true,
+      "caption": "Rouge + rose"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-04/photos/violet-gris.jpg",
+      "length": 2.6,
+      "zoom": true,
+      "caption": "Violet + gris"
+    }
+  ]
+}

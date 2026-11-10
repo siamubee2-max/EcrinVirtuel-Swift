@@ -1,0 +1,11 @@
+{
+  "hook": "Mon dimanche :\nun café, mon canapé,\net **10 robes essayées.**\n\nZéro cabine.",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-01/photos/d-cafe.jpg",
+      "length": 7.0
+    }
+  ]
+}

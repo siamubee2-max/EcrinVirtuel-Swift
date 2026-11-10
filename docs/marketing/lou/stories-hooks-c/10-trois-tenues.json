@@ -1,0 +1,26 @@
+{
+  "hook": "Pluie, soleil, froid :\n**3 tenues.**",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 2.5,
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-09/photos/b-soleil.jpg",
+      "length": 2.03,
+      "zoom": true,
+      "caption": "Soleil"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-09/photos/a-pluie.jpg",
+      "length": 2.03,
+      "zoom": true,
+      "caption": "Pluie"
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-09/photos/c-froid.jpg",
+      "length": 1.95,
+      "zoom": true,
+      "caption": "Froid"
+    }
+  ]
+}

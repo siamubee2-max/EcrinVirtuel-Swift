@@ -1,0 +1,20 @@
+{
+  "hook": "Dis-moi ta couleur interdite.\nJe la teste pour toi.",
+  "hook_until": 3.0,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab0b505/Q1ZW2qPEGLScWqY_Y87Xn_aapOPFZp.mp4",
+      "length": 5.48,
+      "caption": "C'est quoi la couleur\nque tu n'as **jamais osée** ?"
+    }
+  ],
+  "cta": {
+    "length": 1.5,
+    "background": "docs/marketing/lou/carrousel-01/photos/b-rouge.jpg",
+    "lines": [
+      "Réponds en commentaire",
+      "**Ose. C'est gratuit.**",
+      "L'Écrin Virtuel · App Store"
+    ]
+  }
+}

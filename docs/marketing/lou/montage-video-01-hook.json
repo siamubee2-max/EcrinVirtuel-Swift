@@ -1,0 +1,20 @@
+{
+  "title": "Lou — Vidéo 01 « Enchantée, moi c'est Lou » (version accroche)",
+  "shots": [
+    {
+      "src": "https://v3b.fal.media/files/b/0ab04f84/l5H4e-g8nmXDs7iAnomV__FkF7kNLJ.mp4",
+      "caption": "Une photo. **Robe rouge,** collier, montre."
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab07a05/r5Yq3qSDr_dA-6ho72Zq1_PF7TCYyU.mp4",
+      "caption": "**On essaie ?**"
+    }
+  ],
+  "end_card": {
+    "length": 2.0,
+    "brand": "L'Écrin Virtuel",
+    "tagline": "Ose. C'est gratuit d'essayer.",
+    "store": "Disponible sur l'App Store",
+    "disclosure": "Lou est un personnage créé par IA"
+  }
+}

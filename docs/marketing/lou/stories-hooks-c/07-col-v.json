@@ -1,0 +1,19 @@
+{
+  "hook": "Col V ?\nSuis le **V.**",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 2.5,
+  "segments": [
+    {
+      "image": "docs/marketing/lou/hooks-tiktok-c/assets/colV-gros-plan.jpg",
+      "length": 2.25,
+      "zoom": true
+    },
+    {
+      "image": "docs/marketing/lou/carrousel-05/photos/colV-pendentif.jpg",
+      "length": 3.75,
+      "zoom": true,
+      "caption": "Ton col, c'est lequel ?"
+    }
+  ]
+}

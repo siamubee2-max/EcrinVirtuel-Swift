@@ -1,0 +1,15 @@
+{
+  "hook": "Il pleut ?\nMon appli a choisi\nma **tenue.**",
+  "hook_style": "overlay",
+  "hook_margin_v": 1150,
+  "hook_until": 3.5,
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/v6/v6-p2.png",
+      "length": 8.0,
+      "zoom": true,
+      "caption": "Quel temps chez toi ?"
+    }
+  ]
+}

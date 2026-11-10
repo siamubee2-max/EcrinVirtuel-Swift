@@ -1,0 +1,11 @@
+{
+  "hook": "Il y a celles qui attendent\nune occasion pour porter du rouge.\n\nEt il y a **moi.**",
+  "hook_style": "overlay",
+  "signature": "L'Écrin Virtuel · essaie avant d'acheter",
+  "segments": [
+    {
+      "image": "docs/marketing/lou/carrousel-01/photos/b-rouge.jpg",
+      "length": 7.0
+    }
+  ]
+}

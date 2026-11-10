@@ -9,7 +9,8 @@ import Foundation
 // de rejet : les anciens « +5 / +20 offerts » affichaient 75 et 170 dans
 // l'app pour des fiches ASC qui en annonçaient 70 et 150).
 //
-// ⚠️ Grille du 31/08/2026 (Spark 10 / Éclat 40 / Diamant 140, Glow retiré) —
+// ⚠️ Grille du 10/11/2026 (Spark 10 / Éclat 40 / Diamant 150, Glow retiré ;
+// Diamant repassé de 140 à 150 pour correspondre à la fiche ASC « Diamant — 150 Crédits ») —
 // alignée avec `supabase/functions/credit-generations/index.ts` ET avec
 // `EcrinVirtuel.storekit` (sandbox local). PAS ENCORE répercutée sur les
 // fiches produit App Store Connect elles-mêmes : au 17/09/2026, ASC annonce
@@ -48,7 +49,7 @@ struct CreditsPack: Identifiable {
     ///   6,99 €  Essentiel mensuel 25 cr -> 0,280 €/cr
     ///  10,99 €  Éclat    40 cr  -> 0,275 €/cr
     ///  14,99 €  Signature mensuel 60 cr -> 0,250 €/cr
-    ///  29,99 €  Diamant 140 cr  -> 0,214 €/cr
+    ///  29,99 €  Diamant 150 cr  -> 0,200 €/cr
     ///
     /// Glow (30 crédits, 7,99 €, 0,266 €/cr) a été RETIRÉ : placé juste après
     /// Essentiel mensuel, il faisait remonter le prix au crédit d'Éclat et
@@ -79,7 +80,7 @@ struct CreditsPack: Identifiable {
         CreditsPack(
             id: "ecrin_credits_diamant",
             label: "Diamant",
-            count: 140,
+            count: 150,
             price: "29,99€",
             referencePrice: 29.99,
             badge: nil,

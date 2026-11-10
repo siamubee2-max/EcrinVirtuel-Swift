@@ -1,0 +1,20 @@
+{
+  "title": "Lou — Vidéo 04 « Spécial messieurs » (version accroche)",
+  "shots": [
+    {
+      "src": "https://v3b.fal.media/files/b/0ab1583a/shUAHKo0sCgul-qPF60Vz_z5jFJAyr.mp4",
+      "caption": "Montre **classique** ou audacieuse ?"
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab1585b/iXguoL1AnuMmJKIO8ynMz_0dNWQAuE.mp4",
+      "caption": "1 photo de votre **poignet**"
+    }
+  ],
+  "end_card": {
+    "length": 2.0,
+    "brand": "L'Écrin Virtuel",
+    "tagline": "Ose. C'est gratuit d'essayer.",
+    "store": "Disponible sur l'App Store",
+    "disclosure": "Lou est un personnage créé par IA"
+  }
+}

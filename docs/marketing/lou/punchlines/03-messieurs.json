@@ -1,0 +1,25 @@
+{
+  "hook": "Messieurs :\nclassique ou audacieuse ?",
+  "hook_until": 4.8,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab15832/6uIZHq25ABGx1SjOi4eJT_uznNjMaI.mp4",
+      "length": 1.96,
+      "caption": "Messieurs, ce message\nest pour **vous.**"
+    },
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab1583a/shUAHKo0sCgul-qPF60Vz_z5jFJAyr.mp4",
+      "length": 2.92,
+      "caption": "Classique ou celle\nqui **ose un peu** ?"
+    }
+  ],
+  "cta": {
+    "length": 2.1,
+    "background": "docs/marketing/lou/carrousel-03/photos/b-poignet.jpg",
+    "lines": [
+      "Réponds en commentaire",
+      "**Essaie les deux, gratuit**",
+      "L'Écrin Virtuel · App Store"
+    ]
+  }
+}

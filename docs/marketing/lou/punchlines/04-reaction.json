@@ -1,0 +1,25 @@
+{
+  "hook": "Personne ne m'avait dit ça…",
+  "hook_until": 3.0,
+  "segments": [
+    {
+      "clip": "https://v3b.fal.media/files/b/0ab15a04/i93bPWzIbkIlFi2auKROu_sPKAmhuP.mp4",
+      "length": 3.08,
+      "caption": "Attends… pourquoi personne m'a dit\nqu'on pouvait faire **ça** ?!"
+    },
+    {
+      "image": "docs/appstore/screenshots-framed/01-essayage-framed.png",
+      "length": 1.6,
+      "caption": "Le bijou sur **toi**, en 1 photo."
+    }
+  ],
+  "cta": {
+    "length": 2.3,
+    "background": "docs/marketing/lou/v3/v3-p4.png",
+    "lines": [
+      "Essaie n'importe quel bijou",
+      "**Gratuit · lien en bio**",
+      "L'Écrin Virtuel · App Store"
+    ]
+  }
+}

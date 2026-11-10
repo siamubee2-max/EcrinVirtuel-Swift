@@ -67,14 +67,14 @@
       "introductoryOffer": null,
       "localizations": [
         {
-          "description": "140 essais virtuels — pack Diamant",
-          "displayName": "Diamant — 140 essais",
+          "description": "150 essais virtuels — pack Diamant",
+          "displayName": "Diamant — 150 essais",
           "locale": "fr_FR"
         }
       ],
       "productID": "ecrin_credits_diamant",
       "recurringSubscriptionPeriod": "",
-      "referenceName": "Diamant 140 crédits",
+      "referenceName": "Diamant 150 crédits",
       "subscriptionGroupID": "",
       "type": "Consumable"
     },

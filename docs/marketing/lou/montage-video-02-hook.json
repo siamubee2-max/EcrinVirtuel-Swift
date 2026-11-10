@@ -1,0 +1,27 @@
+{
+  "title": "Lou — Vidéo 02 « J'aurais jamais osé : le rouge » (version accroche)",
+  "accent": "#C8102E",
+  "shots": [
+    {
+      "src": "https://v3b.fal.media/files/b/0ab0b46f/luUjLjK1DAQHHxB070riw_8Gj4bsKd.mp4",
+      "caption": "Je me trouve **canon** en rouge.",
+      "crop": [
+        37,
+        0,
+        820,
+        1458
+      ]
+    },
+    {
+      "src": "https://v3b.fal.media/files/b/0ab0b4e6/o3lOR3JDIeM5nrPcxO1XZ_kE4LWeta.mp4",
+      "caption": "**0** cabine · **0** vendeuse\n**0** regret"
+    }
+  ],
+  "end_card": {
+    "length": 2.0,
+    "brand": "L'Écrin Virtuel",
+    "tagline": "Ose. C'est gratuit d'essayer.",
+    "store": "Disponible sur l'App Store",
+    "disclosure": "Lou est un personnage créé par IA"
+  }
+}
