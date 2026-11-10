@@ -1,6 +1,6 @@
-# Vidéo longue v3 : texte de Lou (environ 3 min 05)
+# Vidéo longue v3 : texte de Lou (environ 3 min 05 avec les blocs A à D)
 
-La voix actuelle (V1 MIMI) est conservée pour les parties 1, 2 (début), 3, 4 (démo), 5 et 7. On ne génère que les 3 blocs nouveaux ci-dessous, en 3 prises, à insérer aux endroits indiqués. Ni l'envoi des photos aux prestataires d'IA ni la phrase « Lou est un personnage IA » ne sont dits à voix haute (étiquette écrite conservée à l'écran).
+La voix actuelle (V1 MIMI) est conservée pour les parties 1, 2 (début), 3, 4 (démo), 5 et 7. On ne génère que les 4 blocs nouveaux ci-dessous, en 4 prises, à insérer aux endroits indiqués. Ni l'envoi des photos aux prestataires d'IA ni la phrase « Lou est un personnage IA » ne sont dits à voix haute (étiquette écrite conservée à l'écran).
 
 ## Bloc A : à insérer après « Le studio »
 InferenceVision, c'est un studio qui part d'une idée simple : moins de bruit, plus d'usage. Des applications indépendantes, pensées pour résoudre des besoins concrets, avec une attention particulière à l'expérience, à la lisibilité et au respect des utilisateurs. L'Écrin Virtuel est l'une d'entre elles.
@@ -22,3 +22,6 @@ Si tu crées toi-même des bijoux, l'application a aussi un espace pour les cré
 Un mot d'honnêteté : ce que tu vois est un rendu. La taille réelle, la matière et la couleur d'une pièce peuvent différer un peu une fois dans ta main. L'idée, c'est de te donner une première réponse avant d'acheter, pas de remplacer l'avis de ton miroir.
 
 Alors, comment commencer ? Télécharge l'application, choisis une photo de toi, choisis une pièce, et laisse l'application faire le reste.
+
+## Bloc D : à insérer après le bloc C, avant l'appel à l'action
+Quelques idées pour t'amuser : tester la couleur que tu n'as jamais osée, regarder une bague avant de pousser la porte d'une boutique, ou préparer la tenue de demain selon la météo. Chaque essai t'aide à savoir ce qui te va vraiment, et à acheter avec plus d'assurance.
