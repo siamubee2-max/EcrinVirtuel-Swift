@@ -1,13 +1,13 @@
 # Vidéo longue : texte de Lou (voix MIMI)
 
-Lou parle en son nom de personnage. Elle ne dit pas « je crée des applications » : l'app est présentée comme celle d'InferenceVision. La mention IA est dite dès la première phrase.
+Lou parle en son nom de personnage. Elle ne dit pas « je crée des applications » : l'app est présentée comme celle d'InferenceVision. À la demande de l'auteur, la voix ne parle ni de l'envoi des photos aux prestataires d'IA ni du fait que Lou est un personnage IA : la mention « Personnage IA » reste affichée à l'écran, dans le carton final, et dans les commentaires et la case YouTube.
 
 Titre : L'Écrin Virtuel : essayer bijoux et vêtements sur ta photo (comment ça marche)
 
 ## Texte à dire (une seule prise)
 
 **1. Accroche**
-Et si tu pouvais voir cette bague sur toi, sans entrer dans une boutique ? Je suis Lou. Avant de commencer : je ne suis pas une vraie personne, je suis un personnage créé par intelligence artificielle.
+Et si tu pouvais voir cette bague sur toi, sans entrer dans une boutique ? Je suis Lou.
 
 **2. Le studio**
 L'application dont je te parle s'appelle L'Écrin Virtuel. Elle est créée par InferenceVision, un studio indépendant belge qui fabrique des applications simples et utiles, sans bruit inutile.
@@ -24,13 +24,10 @@ Et tu n'es pas limité au catalogue. Une bague en vitrine, des boucles d'oreille
 **5. Mon Écrin et le styliste**
 Tes essais préférés se gardent dans Mon Écrin, ton garde-bijoux virtuel. Et le styliste te propose un look adapté à ta journée et à la météo de ta région.
 
-**6. L'IA, en toute transparence**
-Parlons franchement de l'intelligence artificielle. Pour fabriquer le rendu, ta photo est envoyée à des prestataires d'IA. Mais seulement après ton accord explicite, et tu peux le retirer à tout moment depuis ton profil. Si tu refuses, rien n'est envoyé.
-
-**7. Le prix**
+**6. Le prix**
 C'est gratuit pour découvrir. Ensuite, il y a un abonnement ou des packs de crédits. Les prix sont affichés sur l'App Store.
 
-**8. Appel à l'action**
+**7. Appel à l'action**
 Le lien est dans la description. Dis-moi en commentaire la couleur ou le bijou que tu veux me voir essayer. À très vite.
 
 ## Images sous la voix (sans synchro des lèvres, donc gratuit)
@@ -43,7 +40,6 @@ Le lien est dans la description. Dis-moi en commentaire la couleur ou le bijou q
 | 4 | Enregistrement d'écran de l'iPhone ; à défaut, les captures `docs/appstore/screenshots-framed/` |
 | 4 bis | Enregistrement d'écran à filmer : photographier une pièce, puis le résultat sur sa photo (aucune image de cette fonction dans les deux enregistrements reçus) |
 | 5 | Captures Mon Écrin et Look du jour |
-| 6 | Page « Comment l'IA fonctionne » de `/ecrin/` |
 | 7 | Écran des offres de l'app |
 | 8 | Lou souriante, puis carton final |
 

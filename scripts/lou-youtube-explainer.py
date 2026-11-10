@@ -17,7 +17,9 @@ W, H, FPS = 1920, 1080, 25
 LOU = "docs/marketing/lou/"
 SHOTS = "docs/appstore/screenshots-framed/"
 VOICE = "docs/marketing/youtube/voix-lou-video-longue.mp3"
-B = [0, 11.3, 22.2, 29.97, 46.6, 55.4, 67.05, 74.0, 82.36]   # section boundaries in the voice
+# Voice cuts taken from the original take (seconds): sections 1 (without the AI sentence), 2-5, then 7-8.
+VOICE_CUTS = [(0.0, 5.0), (11.54, 55.2), "gap0.4", (67.24, 82.36)]
+B = [0, 5.0, 15.66, 23.43, 40.06, 49.06, 55.82, 64.18]   # section boundaries in the edited voice
 END = 2.5
 
 
@@ -89,7 +91,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
     s4 = B[3]
     items = [
-        (B[1], B[2], "Une **studio**\\Nindépendant\\Nbelge".replace("Une **studio**", "Un **studio**")),
+        (B[1], B[2], "Un **studio**\\Nindépendant\\Nbelge"),
         (B[2], B[3], "Le **problème**"),
         (s4, s4 + 3.5, "**1** · Ta photo"),
         (s4 + 3.5, s4 + 7.5, "**2** · Une pièce"),
@@ -97,9 +99,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         (s4 + 14.0, B[4], "**4** · Comparer"),
         (B[4], B[4] + 4.4, "Mon **Écrin**"),
         (B[4] + 4.4, B[5], "Le **styliste**\\Nmétéo"),
-        (B[5], B[6], "L'IA, en\\N**toute transparence**"),
-        (B[6], B[7], "**Gratuit**\\Npour découvrir"),
-        (B[7], B[8], "Lien dans la\\N**description**"),
+        (B[5], B[6], "**Gratuit**\\Npour découvrir"),
+        (B[6], B[7], "Lien dans la\\N**description**"),
     ]
     lines = [f"Dialogue: 0,{ass_time(0)},{ass_time(total - END)},Label,,0,0,0,,Personnage IA"]
     for a, b, t in items:
@@ -118,7 +119,7 @@ def main():
     w = Path(a.work)
     w.mkdir(parents=True, exist_ok=True)
     site = Path(a.site)
-    d = [B[i + 1] - B[i] for i in range(8)]
+    d = [B[i + 1] - B[i] for i in range(7)]
     segs = []
 
     def add(name, fn, *args):
@@ -137,9 +138,8 @@ def main():
     add("s4d", video_seg, a.rec2, 545, 7, d[3] - 14.0)
     add("s5a", image_seg, SHOTS + "02-garderobe-framed.png", 4.4)
     add("s5b", image_seg, SHOTS + "05-lookdujour-framed.png", d[4] - 4.4)
-    add("s6", image_seg, site / "site-ia.png", d[5])
-    add("s7", image_seg, site / "site-prix.png", d[6])
-    add("s8", image_seg, LOU + "carrousel-01/photos/a-sol.jpg", d[7])
+    add("s7", image_seg, site / "site-prix.png", d[5])
+    add("s8", image_seg, LOU + "carrousel-01/photos/a-sol.jpg", d[6])
     end_png = w / "end.png"
     end_card(end_png)
     endv = w / "end.mp4"
@@ -150,9 +150,19 @@ def main():
     body = w / "body.mp4"
     run(["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy", str(body)])
     total = B[-1] + END
+    voice = w / "voice-edit.wav"
+    parts, labels = [], []
+    for i, c in enumerate(VOICE_CUTS):
+        if isinstance(c, str):
+            parts.append(f"anullsrc=r=44100:cl=mono,atrim=0:{c[3:]}[p{i}]")
+        else:
+            parts.append(f"[0:a]aresample=44100,aformat=channel_layouts=mono,atrim={c[0]}:{c[1]},asetpts=PTS-STARTPTS,"
+                         f"afade=t=in:d=0.02,afade=t=out:st={c[1] - c[0] - 0.02:.3f}:d=0.02[p{i}]")
+        labels.append(f"[p{i}]")
+    run(["ffmpeg", "-y", "-i", VOICE, "-filter_complex", ";".join(parts) + ";" + "".join(labels) + f"concat=n={len(labels)}:v=0:a=1[o]", "-map", "[o]", str(voice)])
     ass = w / "caps.ass"
     build_ass(ass, total)
-    run(["ffmpeg", "-y", "-i", str(body), "-i", VOICE, "-vf", f"ass={ass}", "-af", f"apad=whole_dur={total},loudnorm=I=-14:TP=-1.5",
+    run(["ffmpeg", "-y", "-i", str(body), "-i", str(voice), "-vf", f"ass={ass}", "-af", f"apad=whole_dur={total},loudnorm=I=-14:TP=-1.5",
          "-t", f"{total:.2f}", "-c:v", "libx264", "-crf", "20", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", str(a.out)])
     print(a.out)
 
