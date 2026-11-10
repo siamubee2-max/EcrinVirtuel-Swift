@@ -10,7 +10,7 @@ Relevé sur la fiche publique (`https://apps.apple.com/fr/app/id6760768389`) le 
 |---|---|
 | Starter — 4,99 €/mois | 6,99 €/mois (affiché « Essentiel ») |
 | Premium — 9,99 €/mois | 14,99 €/mois (affiché « Signature ») |
-| Elite : « Essayages illimités » | 100 crédits par mois (`revenuecat-webhook`) |
+| Elite, Édition Fondateur et prix annuels | retirés de la vente dans l'app (`PaywallView.allPlans` : deux formules mensuelles) |
 | Packs 30 crédits 7,99 € et 70 crédits 16,99 € | n'existent plus : 40 crédits à 10,99 € |
 | 150 crédits — 29,99 € | le serveur créditait 140 : repassé à 150 dans le code le 10/11/2026 (à déployer) |
 | « Sécurité Face ID / Touch ID » | aucun code biométrique trouvé dans l'app |
@@ -40,10 +40,8 @@ Composez une tenue avec plusieurs pièces, comparez avant et après, ou placez d
 L'essayage est un rendu généré par IA : la taille, la matière et la couleur réelles d'une pièce peuvent différer.
 
 ABONNEMENTS (renouvellement automatique)
-• Essentiel — 6,99 €/mois ou 54,99 €/an : 25 crédits d'essayage par mois
-• Signature — 14,99 €/mois ou 79,99 €/an : 60 crédits par mois
-• Elite — 29,99 €/mois ou 194,99 €/an : 100 crédits par mois
-• Édition Fondateur — 349,99 € (achat unique) : accès Elite à vie, sans abonnement
+• Essentiel — 6,99 €/mois : 25 crédits d'essayage par mois
+• Signature — 14,99 €/mois : 60 crédits par mois
 
 Le paiement est débité sur votre compte Apple à la confirmation de l'achat. L'abonnement se renouvelle automatiquement, sauf annulation au moins 24 h avant la fin de la période en cours. Gérez ou annulez votre abonnement dans Réglages › [votre nom] › Abonnements.
 
@@ -63,8 +61,8 @@ Assistance : https://inferencevision.store/ecrin/support.html
 
 ## À vérifier avant de coller (je ne vois pas App Store Connect)
 
-1. **Diamant : 150 (décidé le 10/11/2026).** Le code (app, serveur, sandbox) est repassé à 150 pour correspondre au produit « Diamant — 150 Crédits » d'App Store Connect. **Tant que les deux fonctions `credit-generations` et `revenuecat-webhook` ne sont pas redéployées sur Supabase, le serveur crédite encore 140.**
-2. **Prix annuels, Elite et Édition Fondateur :** ils viennent de `EcrinVirtuel.storekit`. La fiche publique ne les listait pas : confirmer qu'ils sont en vente et à ces prix, sinon retirer les lignes.
+1. **Diamant : 150 (décidé le 10/11/2026).** Le code (app, serveur, sandbox) est repassé à 150 pour correspondre au produit « Diamant — 150 Crédits » d'App Store Connect. Les deux fonctions `credit-generations` (v10) et `revenuecat-webhook` (v16) ont été redéployées le 10/11/2026 : le serveur crédite 150.
+2. **Formules annuelles, Elite et Édition Fondateur : retirées du texte.** L'app ne propose que deux abonnements mensuels (`PaywallView.allPlans`), et le code note qu'Elite, Fondateur et les formules annuelles sont retirés de la vente. Si ces produits sont encore « en vente » dans App Store Connect, pensez à les retirer là aussi.
 3. **« sans expiration »** des packs : retiré, je n'ai pas vérifié que les crédits n'expirent jamais.
 4. **Face ID et mode hors-ligne :** retirés, faute de les trouver dans le code. À remettre seulement s'ils existent vraiment.
 5. **« Photographiez une pièce » :** ajouté à votre demande ; je ne l'ai pas vu fonctionner dans les enregistrements.
