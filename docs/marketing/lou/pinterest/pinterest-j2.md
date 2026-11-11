@@ -1,6 +1,6 @@
 # Pinterest : épingles du J2 (météo et look du jour)
 
-Trois épingles 1000 × 1500, à partir des photos du carrousel 09. Tableau : **Look du jour selon la météo** (à créer s'il n'existe pas encore). Lien de destination : `https://inferencevision.store/ecrin/`, ou le lien App Store quand il sera disponible.
+Trois épingles 1000 × 1500, à partir des photos du carrousel 09. Tableau : **Look du jour selon la météo** (à créer s'il n'existe pas encore). Lien de destination : `https://apps.apple.com/fr/app/id6760768389`.
 
 ### Épingle 1 : `j2-pin-1-pluie.jpg`
 **Titre :** Il pleut ? Ma tenue est déjà choisie

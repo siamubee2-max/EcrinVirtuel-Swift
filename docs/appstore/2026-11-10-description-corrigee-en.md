@@ -25,10 +25,8 @@ Build an outfit from several pieces, compare before and after, or place two piec
 Try-ons are AI-generated renderings: the actual size, material and colour of a piece may differ.
 
 SUBSCRIPTIONS (auto-renewing)
-• Essentiel — €6.99/month or €54.99/year: 25 try-on credits per month
-• Signature — €14.99/month or €79.99/year: 60 credits per month
-• Elite — €29.99/month or €194.99/year: 100 credits per month
-• Founder Edition — €349.99 (one-time purchase): lifetime Elite access, no subscription
+• Essentiel — €6.99/month: 25 try-on credits per month
+• Signature — €14.99/month: 60 credits per month
 
 Payment is charged to your Apple account at confirmation of purchase. Subscriptions renew automatically unless cancelled at least 24 hours before the end of the current period. Manage or cancel your subscription in Settings › [your name] › Subscriptions.
 
@@ -51,4 +49,4 @@ Support: https://inferencevision.store/ecrin/support.html
 - Prices are the euro prices of the French storefront. For the US or UK storefront, replace them with the prices App Store Connect shows for that territory, or keep only the sentence "Prices vary by country" and remove the amounts.
 - The subscription names "Essentiel" and "Signature" are the display names seen on the French listing: use the English display names if they differ in App Store Connect.
 - The linked pages (privacy, terms, support) are in French.
-- Same open points as the French file: annual plans, Elite and Founder Edition come from the local StoreKit file and were not visible on the public listing.
+- Annual plans, Elite and Founder Edition were removed from the text: the app only offers two monthly subscriptions (`PaywallView.allPlans`).
